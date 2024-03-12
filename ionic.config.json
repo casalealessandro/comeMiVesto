@@ -1,0 +1,7 @@
+{
+  "name": "comeMiVesto",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
