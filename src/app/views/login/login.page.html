@@ -7,8 +7,10 @@
 <ion-content>
 
  <app-dynamic-form
- [service]="'loginForm'">
+ [service]="'loginForm'"
+(submitFormEvent)="submitFormEvent($event)"
 
+>
  </app-dynamic-form>
 
  

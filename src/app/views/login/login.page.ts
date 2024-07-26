@@ -1,3 +1,4 @@
+import { EmitterVisitorContext } from '@angular/compiler';
 import { Component, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 
@@ -22,5 +23,9 @@ export class LoginPage {
       .catch(error => {
         // Gestione degli errori durante il login
       });
+  }
+
+  submitFormEvent(event:any){
+      console.log('submitFormEvent-->',event)
   }
 }

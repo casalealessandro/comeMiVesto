@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
 import {DynamicFormField} from '../../service/interface/dynamic-form-field'
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
@@ -15,7 +15,8 @@ import { AnagraficaService } from 'src/app/service/anagrafica-service';
 export class DynamicFormComponent implements OnInit {
 
   
-  @Input() service: string | undefined
+  @Input() service: string | undefined;
+  @Output() submitFormEvent: EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
   form: FormGroup = new FormGroup({});
   dataSet:any=[]
   fields: DynamicFormField[] = [];
@@ -59,7 +60,7 @@ export class DynamicFormComponent implements OnInit {
 
   submitForm() {
     if (this.form.valid) {
-      console.log(this.form.value);
+      this.submitFormEvent.emit(this.form.value);
     } else {
       console.error('Form is invalid');
     }
