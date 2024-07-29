@@ -3,12 +3,12 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 const routes: Routes = [
   {
-    path: 'home',
-    loadChildren: () => import('./views/home/home.module').then( m => m.HomePageModule)
+    path: 'myoutfit',
+    loadChildren: () => import('./views/myoutfit/myoutfit.module').then( m => m.MyOutFitPageModule)
   },
   {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'myoutfit',
     pathMatch: 'full'
   },
   {
@@ -19,6 +19,16 @@ const routes: Routes = [
     path: 'login',
     loadChildren: () => import('./views/login/login.module').then( m => m.LoginPageModule)
   },
+  {
+    path: 'filter-modal',
+    loadChildren: () => import('./views/filter-modal/filter-modal.module').then( m => m.FilterModalPageModule)
+  },
+  {
+    path: 'add-outfit',
+    loadChildren: () => import('./views/add-outfit/add-outfit.module').then( m => m.AddOutfitPageModule)
+  },
+
+
 ];
 
 @NgModule({

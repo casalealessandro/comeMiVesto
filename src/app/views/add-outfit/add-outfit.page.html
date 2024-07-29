@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Capture Outfit</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-item>
+    <ion-label position="floating">Title</ion-label>
+    <ion-input [(ngModel)]="title"></ion-input>
+  </ion-item>
+  <ion-item>
+    <ion-label position="floating">Description</ion-label>
+    <ion-input [(ngModel)]="description"></ion-input>
+  </ion-item>
+  <div  *ngIf="image" class="image-container" (click)="addTag($event)" >
+    <img #imageElement [src]="image"  class="outfit-pin-image" /> 
+
+      <div *ngFor="let tag of tags" class="tag" 
+        [ngStyle]="{'top.%': tag.y, 'left.%': tag.x}">
+        {{ tag.name }}
+    </div>
+   
+    
+
+    
+  </div>
+  <ion-button expand="full" (click)="captureImage()">Capture Image</ion-button>
+  <ion-button expand="full" (click)="saveOutfit()">Save Outfit</ion-button>
+</ion-content>

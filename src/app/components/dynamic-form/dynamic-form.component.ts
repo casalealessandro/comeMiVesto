@@ -20,7 +20,7 @@ export class DynamicFormComponent implements OnInit {
   form: FormGroup = new FormGroup({});
   dataSet:any=[]
   fields: DynamicFormField[] = [];
-
+  formShow:boolean=false
   constructor(private templateService: AnagraficaService,private formBuilder: FormBuilder) {
 
    
@@ -56,6 +56,8 @@ export class DynamicFormComponent implements OnInit {
     });
 
     this.form = formGroup
+
+   
   }
 
   submitForm() {

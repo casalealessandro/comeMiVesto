@@ -1,0 +1,18 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Filtri</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">Chiudi</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <app-dynamic-form
+  [service]="'filtersForm'"
+  (submitFormEvent)="applyFilters()"
+
+  >
+ </app-dynamic-form>
+
+</ion-content>

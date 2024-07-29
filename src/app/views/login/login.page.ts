@@ -18,7 +18,7 @@ export class LoginPage {
   login() {
     this.afAuth.signInWithEmailAndPassword(this.email, this.password)
       .then(() => {
-        // Utente loggato con successo
+        alert('utene')
       })
       .catch(error => {
         // Gestione degli errori durante il login
