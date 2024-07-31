@@ -24,3 +24,21 @@
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
+
+
+@font-face {
+    font-family: 'Neue Helvetica';
+    src: url('/src/assets/fonts/helvetica-neue/helveticaneue.woff2') format('woff2'),
+         url('/src/assets/fonts/helvetica-neue/helveticaneue.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+  // Definisci la variabile globale per il font
+  :root {
+    --ion-font-family: 'Neue Helvetica', sans-serif;
+  }
+
+  html.md {
+    --ion-default-font:'Neue Helvetica', sans-serif;
+}

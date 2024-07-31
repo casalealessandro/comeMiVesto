@@ -1,0 +1,18 @@
+<div #imageContainer class="image-container"  >
+    <img *ngIf="image" #imageElement [src]="image"  class="outfit-pin-image"  [ngClass]="{'darken': showTag}" (click)="addTag($event)" /> 
+    <ng-container *ngIf="showTag">
+      <div  *ngFor="let tag of tags" class="tag" 
+        [ngStyle]="tagStyle[tag.id]" >
+        <span >{{ tag.name }}</span>
+      </div>
+    </ng-container>
+      <ion-button *ngIf="tags.length>0" (click)="toggleTags()" id="toggle-button" [ngStyle]="tagToggleButton" >
+        <ion-icon slot="start" name="pricetags-outline"></ion-icon>
+        {{ showTag ? 'Nascondi Tags' : 'Mostra Tags' }}
+      </ion-button>
+    <ion-button *ngIf="enableNewImagecaptured" expand="full" class="select-photo" (click)="captureImage()">
+      
+      Seleziona foto
+    
+    </ion-button>
+  </div>

@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'comeMiVesto',
   webDir: 'www',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    allowNavigation: ["*"]
   }
 };
 

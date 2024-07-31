@@ -17,7 +17,7 @@ export class AppComponent {
     this.afAuth.authState.subscribe(user => {
       if (user) {
         // L'utente è già autenticato, reindirizzalo alla pagina principale o a un'altra pagina
-        this.router.navigateByUrl('/home');
+        this.router.navigateByUrl('/myoutfit');
       } else {
         // L'utente non è autenticato, reindirizzalo alla pagina di login
         this.router.navigateByUrl('/login');

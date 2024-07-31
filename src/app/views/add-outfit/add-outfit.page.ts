@@ -1,71 +1,112 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { Router } from '@angular/router';
-import { AnagraficaService } from 'src/app/service/anagrafica-service';
 
+import { AnagraficaService } from 'src/app/service/anagrafica-service';
+import { outfit, Tag } from 'src/app/service/interface/outfit-all-interface';
+
+import { NavController } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
 @Component({
   selector: 'app-add-outfit',
   templateUrl: './add-outfit.page.html',
   styleUrls: ['./add-outfit.page.scss'],
 })
 export class AddOutfitPage  {
-  @ViewChild('imageElement', { static: false }) imageElement: ElementRef | undefined;
   
-  image: string | undefined;
-  tags: any[] = [];
+  @ViewChild('imageContainer', { static: false }) imageContainer: ElementRef | undefined;
+  
+  image: string= '';
+  tags: Tag[]=[];
+  outfit!: outfit;
   title: string = '';
   description: string = '';
   showTag:boolean=false
+  gender!: "man" | "woman";
+  style!: "casual" | "elegant" | "sporty" | "formal";
+  season!: "winter" | "spring" | "summer" | "autumn";
+ 
+  color: any;
+  imgCapt: string='';
+  imgFileName: string='';
+  
   constructor(
     
-    private anagraficaService: AnagraficaService
+    private anagraficaService: AnagraficaService,
+    private router: Router,
+    private afAuth: AngularFireAuth
   ) {
 
-    this.captureImage()
-  }
-
-  async captureImage() {
-    const image = await Camera.getPhoto({
-      quality: 100,
-      resultType: CameraResultType.DataUrl,
-      source: CameraSource.Camera
-    });
-
-    this.image = image.dataUrl;
-  }
-
-  addTag(event:any) {
-    
-    const name = prompt('Enter tag name:');
-    const link = prompt('Enter Link name:');
-
-
-    const imageElement = this.imageElement!.nativeElement;;
-    const rect = imageElement.getBoundingClientRect();
-    // Calcola la posizione relativa al contenitore dell'immagine
-    const x = (event.clientX - rect.left) / rect.width * 100;
-    const y = (event.clientY - rect.top) / rect.height * 100;
-
-    this.tags.push({ name, x, y, link });
-  }
-
-  async saveOutfit() {
-
-    
    
-      const outfit = {
-        imageUrl: this.image,
-        title: this.title,
-        description: this.description,
-        tags: this.tags,
-        userId: '0001'
-      };
+  }
 
-      //this.anagraficaService
-      //await addDoc(collection(this.firestore, 'outfits'), outfit);
-      //this.router.navigate(['/home']);
+  setImageCaptured(event:any){
+    this.image =event.img;
+    this.imgFileName = event.imgName;
+  }
+
+  setImageTagSet(event:any){
+    this.tags = event.tags as Tag[]
+  }
+  
+  saveOutfit(event:any) {
     
+    this.title = event.title;
+    this.color = event.color;
+    this.description = event.description;
+    this.gender = event.gender;
+    this.season = event.season;
+    this.style = event.style;
+
+    this.confirmOutfit()
+    
+  }
+
+  async confirmOutfit(){
+      let imageUrl = null
+      if(!this.title){
+        return
+      }
+      if(!this.image){
+        return
+      }else{
+        imageUrl = await this.anagraficaService.uploadImage(this.image, this.imgFileName);
+
+      }
+      const user = await this.afAuth.currentUser;
+      if (user) {
+        this.outfit = {
+          title:this.title,
+          description:this.description,
+          imageUrl: imageUrl,
+          tags: this.tags,
+          gender: this.gender,
+          style: this.style,
+          season: this.season,
+          color:this.color,
+          userId: user.uid
+        };
+      }
+      const nameDoc = `outfit_${user!.uid}`
+      let res = await this.anagraficaService.saveInCollection(nameDoc,this.outfit )
+      
+      if(res){
+        this.router.navigate(['/myoutfit']);
+      }
+     
+    
+  }
+
+  /**utility**/
+  // Helper per convertire il blob in base64
+  private convertBlobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.readAsDataURL(blob);
+    });
   }
 }

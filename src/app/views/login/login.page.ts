@@ -21,11 +21,18 @@ export class LoginPage {
         alert('utene')
       })
       .catch(error => {
-        // Gestione degli errori durante il login
+        console.error(error)
       });
   }
 
   submitFormEvent(event:any){
       console.log('submitFormEvent-->',event)
+
+      if(event.email && event.password) {
+        this.email = event.email;
+        this.password = event.password;
+
+        this.login()
+      }
   }
 }

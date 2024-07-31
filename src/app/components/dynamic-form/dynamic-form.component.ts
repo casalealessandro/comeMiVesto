@@ -53,6 +53,10 @@ export class DynamicFormComponent implements OnInit {
       }
 
       formGroup.addControl(field.name, new FormControl('', validators));
+
+      if(field.type === 'selectBox'){
+
+      }
     });
 
     this.form = formGroup

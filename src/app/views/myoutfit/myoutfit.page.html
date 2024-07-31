@@ -10,14 +10,19 @@
 <ion-content>
   <div class="outfit-gallery-container">
     <cdk-virtual-scroll-viewport itemSize="10" class="outfit-virtual-scroll">
-      <div class="outfit-masonry-grid">
+      <div class="outfit-masonry-grid" *ngIf="outfits.length>0">
         <div *cdkVirtualFor="let outfit of outfits" class="outfit-masonry-item">
           <ion-card class="outfit-pin-card">
-            <img [src]="outfit.imageUrl" class="outfit-pin-image" />
-            <div *ngFor="let tag of outfit.tags" class="tag" 
-              [ngStyle]="{'top.%': tag.y, 'left.%': tag.x}">
-              {{ tag.name }}
-          </div>
+            <app-foto-outfit
+            [image]="outfit.imageUrl"
+            [enableNewImagecaptured]="false"
+            [enableSetTagsImage]="false"
+            [tags]="outfit.tags"
+            >
+
+            </app-foto-outfit>
+            
+       
             <ion-card-content>
               <h2 class="outfit-pin-title">{{ outfit.title }}</h2>
               <p class="outfit-pin-description">{{ outfit.description }}</p>
@@ -25,6 +30,9 @@
             </ion-card-content>
           </ion-card>
         </div>
+      </div>
+      <div *ngIf="outfits.length==0">
+        Pippo
       </div>
     </cdk-virtual-scroll-viewport>
   </div>

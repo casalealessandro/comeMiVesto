@@ -9,8 +9,8 @@
 
 <ion-content>
   <app-dynamic-form
-  [service]="'filtersForm'"
-  (submitFormEvent)="applyFilters()"
+  [service]="service"
+  (submitFormEvent)="applyData($event)"
 
   >
  </app-dynamic-form>

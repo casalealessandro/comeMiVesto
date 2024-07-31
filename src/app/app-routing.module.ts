@@ -19,14 +19,13 @@ const routes: Routes = [
     path: 'login',
     loadChildren: () => import('./views/login/login.module').then( m => m.LoginPageModule)
   },
-  {
-    path: 'filter-modal',
-    loadChildren: () => import('./views/filter-modal/filter-modal.module').then( m => m.FilterModalPageModule)
-  },
+  
   {
     path: 'add-outfit',
     loadChildren: () => import('./views/add-outfit/add-outfit.module').then( m => m.AddOutfitPageModule)
   },
+  
+
 
 
 ];

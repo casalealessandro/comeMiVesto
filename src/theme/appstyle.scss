@@ -1,0 +1,30 @@
+@font-face {
+    font-family: 'Neue Helvetica';
+    src: url('../assets/fonts/helvetica-neue/helveticaneue.woff2') format('woff2'),
+         url('../assets/fonts/helvetica-neue/helveticaneue.woff2') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  }
+
+body,html {
+    font-family: 'Neue Helvetica', sans-serif!important;
+}
+
+
+p,h1,h2,h3,h4,h5,h6,button,span,li,ul,ol,dl,div,b,header,footer,section{
+    font-family: 'Neue Helvetica', sans-serif;
+}
+.title-default{
+    font-family: 'Neue Helvetica', sans-serif;
+}
+div{
+    //position: relative; //ma questo è da vedere
+}
+:host {
+    font-family: 'Neue Helvetica', sans-serif; 
+}
+
+$ion-default-font: 'Neue Helvetica', sans-serif;;
+ 
+// Sovrascrivi la variabile ion-font-family
+$ion-font-family: 'Neue Helvetica', sans-serif;

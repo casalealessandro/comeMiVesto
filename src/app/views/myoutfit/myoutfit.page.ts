@@ -2,15 +2,16 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { ModalController } from '@ionic/angular';
 
-import { FilterModalPage } from '../filter-modal/filter-modal.page';
+
 import { AnagraficaService } from 'src/app/service/anagrafica-service';
+import { outfit } from 'src/app/service/interface/outfit-all-interface';
 @Component({
   selector: 'app-myoutfit',
   templateUrl: './myoutfit.page.html',
   styleUrls: ['./myoutfit.page.scss'],
 })
 export class MyOutFitPage implements OnInit {
-  outfits:any = [];
+  outfits:outfit[]=[]
   isLoading: boolean=true;
 
   constructor(private anagraficaService:AnagraficaService, private modalController: ModalController) {}
@@ -20,25 +21,15 @@ export class MyOutFitPage implements OnInit {
   }
 
   async openFilterModal() {
-    const modal = await this.modalController.create({
-      component: FilterModalPage
-    });
-
-    modal.onDidDismiss().then((result) => {
-      if (result.data) {
-        this.applyFilters(result.data);
-      }
-    });
-
-    return await modal.present();
+    return
   }
 
  
 
   loadOutfits(): void {
     this.isLoading = true;
-    this.anagraficaService.getOutfits('user_0001').subscribe(newOutfits => {
-      this.outfits = [...this.outfits, ...newOutfits];
+    this.anagraficaService.getOutfits('user_0001').subscribe((newOutfits:outfit[]) => {
+      this.outfits = newOutfits
       this.isLoading = false;
     });
   }

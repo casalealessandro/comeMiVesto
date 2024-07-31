@@ -15,6 +15,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ComponentsModule } from './components/components.module';
 import { CommonModule } from '@angular/common';
 
+import { FotoOutfitPage } from './views/foto-outfit/foto-outfit.page';
+
 
 
 @NgModule({
@@ -28,6 +30,7 @@ import { CommonModule } from '@angular/common';
     AngularFireAuthModule ,// Aggiunge AngularFireAuthModule come modulo importato
     ReactiveFormsModule,
     ComponentsModule,
+   
     
     provideFirebaseApp(() => initializeApp(environment.firebase)), // Inizializza AngularFireModule con la configurazione di Firebase
     

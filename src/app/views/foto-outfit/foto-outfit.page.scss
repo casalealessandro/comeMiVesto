@@ -1,0 +1,89 @@
+.image-container {
+
+    /* Stile per il contenitore dell'immagine */
+  
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  
+    flex-direction: column;
+    //border: 2px solid #ccc;
+    /* Colore del contorno quando l'immagine è vuota */
+    //border-radius: 8px;
+    /* Angoli arrotondati */
+    background-color: #424242;
+    /* Colore di sfondo per il caso in cui non ci sia un'immagine */
+    position: relative;
+    /* Per posizionare il messaggio di upload */
+  
+  
+    /* Stile per l'immagine stessa */
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: cover;
+      /* Assicura che l'immagine si adatti bene senza distorsioni */
+      border-radius: 8px;
+      
+      &.darken {
+        opacity: 0.5;
+      }
+    }
+  
+    /* Stile per il messaggio di upload */
+    &::before {
+      content: 'Carica un\'immagine';
+      color: #888;
+      /* Colore del testo del messaggio di upload */
+      font-size: 14px;
+      /* Dimensione del testo */
+      position: absolute;
+      text-align: center;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      /* Assicura che il messaggio non interferisca con gli eventi di clic */
+      display: none;
+      /* Nascosto di default */
+    }
+  
+    /* Mostra il messaggio di upload solo se non ci sono immagini */
+    &:empty {
+      &::before {
+        display: block;
+      }
+  
+  
+    }
+  
+    .select-photo{
+      --background: rgba(66, 66, 66, 1); // Sfondo semi-trasparente per il pulsante
+      --color: #fff; // Colore del testo bianco
+    }   
+  
+    #toggle-button {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      z-index: 10; // Assicuriamoci che il pulsante sia sopra l'immagine e i tag
+      --background: rgba(0, 0, 0, 0.6); // Sfondo semi-trasparente per il pulsante
+      --color: #fff; // Colore del testo bianco
+    }
+  
+    .tag {
+      background-color: rgba(255, 255, 255, 0.8);
+      color: #333;
+      padding: 7px;
+      margin-right: 5px;
+      margin-bottom: 5px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+      position: absolute;
+      display: inline-block;
+    }
+  
+  }

@@ -4,7 +4,7 @@
       <ng-container *ngFor="let field of fields">
         <ion-item *ngIf="field.type === 'textBox'">
           <ion-label>{{ field.label }}</ion-label>
-          <ion-input [formControlName]="field.name" [type]="field.type" [placeholder]="field.placeholder"></ion-input>
+          <ion-input [formControlName]="field.name"  [type]="!field.typeInput ? 'text' : field.typeInput " [placeholder]="field.placeholder"></ion-input>
         </ion-item>
         <ion-item *ngIf="field.type === 'textArea'">
           <ion-label>{{ field.label }}</ion-label>
@@ -13,10 +13,17 @@
         <ion-item *ngIf="field.type === 'selectBox'">
           <ion-label>{{ field.label }}</ion-label>
           <ion-select [formControlName]="field.name" [placeholder]="field.placeholder">
-            <!--  <ion-option *ngFor="let option of field.options" [value]="option.value">{{ option.label }}</ion-option> -->
+            <ng-container *ngIf="field.options">
+              <ion-select-option *ngFor="let option of field.options" 
+              [value]="!option.value ? option:option.value">{{ !option.text ? option : option.text }}
+
+             </ion-select-option> 
+            </ng-container> 
+            
           </ion-select>
         </ion-item>
       </ng-container>
+    
     </ion-list>
     <ion-button expand="block" type="submit">Invia</ion-button>
   </form>

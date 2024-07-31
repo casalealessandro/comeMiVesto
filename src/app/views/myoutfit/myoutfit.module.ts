@@ -9,6 +9,7 @@ import { MyoutfitPageRoutingModule } from './myoutfit-routing.module';
 import { MyOutFitPage } from './myoutfit.page';
 import { ComponentsModule } from 'src/app/components/components.module';
 import { ScrollingModule } from '@angular/cdk/scrolling';
+import { FotoOutfitPageModule } from "../foto-outfit/foto-outfit.module";
 
 
 @NgModule({
@@ -17,8 +18,9 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
     IonicModule,
     ComponentsModule,
     ScrollingModule,
-    MyoutfitPageRoutingModule
-  ],
+    MyoutfitPageRoutingModule,
+    FotoOutfitPageModule
+],
   declarations: [MyOutFitPage,]
 })
 export class MyOutFitPageModule {}
