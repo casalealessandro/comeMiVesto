@@ -1,0 +1,32 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss($event)">Chiudi</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let item of items" (click)="onItemSelected(item)">
+      <ion-thumbnail slot="start" *ngIf="getImageUrl(item)">
+        <img [src]="getImageUrl(item)" />
+      </ion-thumbnail>
+      <ion-label>
+        <h2>{{ item[displayExpr] }}</h2>
+        <p *ngIf="item.description">{{ item.description }}</p>
+      </ion-label>
+      <ng-container *ngFor="let buttonItem of optionbuttonsItem">
+        <ion-button slot="end" fill="clear" (click)="onButtonGenericClick(buttonItem,item)">
+
+
+          <ion-icon [name]="buttonItem.icon" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ng-container>
+
+
+
+    </ion-item>
+  </ion-list>
+</ion-content>

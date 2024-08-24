@@ -1,0 +1,92 @@
+<ion-header >
+  <ion-toolbar>
+    <ion-title class="outfit-header-title"><ion-img
+      src="../../../assets/images/logo.png"
+      alt="come mi vesto?"
+    ></ion-img></ion-title>
+    <ion-buttons slot="end">
+      
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="profile-header">
+    <div class="profile-header-content">
+      <div class="profile-avatar-container">
+        <ion-avatar class="profile-avatar" (click)="changeProfilePicture()">
+          <img *ngIf="userProfile$ | async as userProfile" class="profile-pic" [src]="userProfile.photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+        </ion-avatar>
+   
+          <ion-icon name="add-circle" class="add-icon" (click)="changeProfilePicture()" ></ion-icon>
+        
+       
+      </div>
+      <div class="profile-stats">
+        <div class="stat">
+          <span class="stats-number">{{outfitNumber}}</span>
+          <span class="stats-label">Outfit creati</span>
+        </div>
+        <div class="stat">
+          <span class="stats-number">{{wardrobesNumber}}</span>
+          <span class="stats-label">Vestiti nell'armadio</span>
+        </div>
+        <div class="stat">
+          <span class="stats-number">{{faveUserOutfitsNumber}}</span>
+          <span class="stats-label">Desiderati</span>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="userProfile$ | async as userProfile">
+      <h2 class="profile-name" >{{userProfile.displayName}}</h2>
+      <p class="profile-bio">{{userProfile.bio}}</p>
+  
+    </div>
+    
+    <div class="profile-buttons">
+      <ion-button class="profile-btn outfit-button"  size="small" (click)="editProfile()"><ion-icon slot="start" name="pencil-outline" ></ion-icon> Modifica profilo</ion-button>
+      <ion-button class="profile-btn outfit-button"  size="small" (click)="editUserPreference()"><ion-icon name="ice-cream-outline"></ion-icon>Modifica preferenze</ion-button>
+      <ion-button class="profile-btn outfit-button"  size="small"><ion-icon name="share-outline"></ion-icon></ion-button>
+      
+    </div>
+  </div>
+  
+  <ion-grid>
+    <ion-text color="primary">
+      <h2 class="profile-name">Outfit <i class="fa fa-creative-commons" aria-hidden="true"></i></h2>
+    </ion-text>
+    <ion-row >
+      <ion-col size="4" *ngFor="let userOutfit of userOutfits">
+        <div class="post-image"
+        (click)="openEditOutfit(userOutfit)">
+          <ion-thumbnail>
+            <img class="" [src]="userOutfit.imageUrl" [alt]="userOutfit.title">
+          </ion-thumbnail>
+          
+        </div>
+        
+      </ion-col>
+      
+    </ion-row>
+    <!-- Aggiungi altre righe se necessario -->
+  </ion-grid>
+</ion-content>
+
+
+<ion-footer>
+  <div class="outfit-bottom-bar">
+    <ion-button class="outfit-bar-button" routerLink="/myoutfit" routerDirection="root">
+      <ion-icon name="home"></ion-icon>
+    </ion-button>
+    <ion-button class="outfit-bar-button outfit-center-button" routerLink="/add-outfit" >
+      <ion-icon name="add-circle"></ion-icon>
+    </ion-button>
+
+    <ion-button class="outfit-bar-button" routerLink="/my-wardrobes"  routerDirection="root">
+      <ion-icon name="shirt-outline"></ion-icon>
+    </ion-button>
+    <ion-button class="outfit-bar-button" routerLink="/my-profile"  routerDirection="root">
+      <ion-icon name="person-outline"></ion-icon>
+    </ion-button>
+  </div>
+</ion-footer>

@@ -1,41 +1,74 @@
-<ion-header>
+<ion-header >
   <ion-toolbar>
-    <ion-title>I mie Ourfit</ion-title>
+    <ion-title class="outfit-header-title"><ion-img
+      src="../../../assets/images/logo.png"
+      alt="come mi vesto?"
+    ></ion-img></ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="openFilterModal()">Filter</ion-button>
+      <ion-button size="small" fill="clear" (click)="openFilterModal()">
+        <ion-icon  name="search-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-
 <ion-content>
-  <div class="outfit-gallery-container">
-    <cdk-virtual-scroll-viewport itemSize="10" class="outfit-virtual-scroll">
-      <div class="outfit-masonry-grid" *ngIf="outfits.length>0">
-        <div *cdkVirtualFor="let outfit of outfits" class="outfit-masonry-item">
-          <ion-card class="outfit-pin-card">
-            <app-foto-outfit
-            [image]="outfit.imageUrl"
-            [enableNewImagecaptured]="false"
-            [enableSetTagsImage]="false"
-            [tags]="outfit.tags"
-            >
-
-            </app-foto-outfit>
+  <ion-grid [fixed]="true" *ngIf="isLoading">
+    <ion-row>
+      <ion-col size="12" class="col-spinner">
+        <ion-spinner ></ion-spinner>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+  
+  <cdk-virtual-scroll-viewport itemSize="570" class="viewport cdk-virtual-scroll-viewport">
+    
+    
+   
+    <ion-grid [fixed]="true" *ngIf="!isLoading">
+      <ion-row>
+        <ion-col size="12"  *cdkVirtualFor="let outfit of outfits">
+          <ion-card class="outfit-card" >
+           <app-foto-outfit [image]="outfit.imageUrl" [enableNewImagecaptured]="false" [enableSetTagsImage]="false"
+                [tags]="outfit.tags">
+              </app-foto-outfit>
             
-       
-            <ion-card-content>
-              <h2 class="outfit-pin-title">{{ outfit.title }}</h2>
-              <p class="outfit-pin-description">{{ outfit.description }}</p>
+            <ion-card-header class="outfit-card-header">
+              <div class="outfit-header-wrapper-title">
+                <ion-avatar slot="start" class="outfit-card-avatar">
+                  <img [alt]="userProfile.displayName" [src]="userProfile.photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+                </ion-avatar>
+                <ion-card-title class="outfit-card-title">
+                  
+                {{ userProfile.displayName }}
+              </ion-card-title>
+              </div>
               
+               
+              <div class="outfit-header-wrapper">
+                <ion-card-subtitle class="outfit-card-subTitle">{{ outfit.title }}</ion-card-subtitle>
+                <section class="outfit-card-action">
+                  <ion-button  size="small" fill="clear" (click)="addFavoriteOutfit(outfit.id)">
+                    <ion-icon  slot="icon-only"  [name]="isFavorite(outfit.id) ? 'heart' : 'heart-outline'" aria-label="Mi piace"></ion-icon>
+                  </ion-button>
+                  <ion-button   size="small" fill="clear" (click)="showOutfitComposition(outfit.tags)">
+                    <ion-icon name="shirt-outline" aria-label="Salva otfit"></ion-icon>
+                  </ion-button>
+                  
+                </section>
+                
+              </div>
+              
+              
+            </ion-card-header>
+            <ion-card-content class="outfit-card-content">
+              <p class="outfit-description">{{ outfit.description }}</p>
+             
             </ion-card-content>
           </ion-card>
-        </div>
-      </div>
-      <div *ngIf="outfits.length==0">
-        Pippo
-      </div>
-    </cdk-virtual-scroll-viewport>
-  </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </cdk-virtual-scroll-viewport>
 </ion-content>
 
 <ion-footer>
@@ -46,9 +79,12 @@
     <ion-button class="outfit-bar-button outfit-center-button" routerLink="/add-outfit" routerDirection="root">
       <ion-icon name="add-circle"></ion-icon>
     </ion-button>
-    
-    <ion-button class="outfit-bar-button">
+
+    <ion-button class="outfit-bar-button" routerLink="/my-wardrobes"  routerDirection="root">
       <ion-icon name="shirt-outline"></ion-icon>
+    </ion-button>
+    <ion-button class="outfit-bar-button" routerLink="/my-profile"  routerDirection="root">
+      <ion-icon name="person-outline"></ion-icon>
     </ion-button>
   </div>
 </ion-footer>

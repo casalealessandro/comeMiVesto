@@ -20,11 +20,12 @@
   
     /* Stile per l'immagine stessa */
     img {
-      max-width: 100%;
-      max-height: 100%;
+      width: 100%;
+      
       object-fit: cover;
+      border-bottom: 2px solid #e0e0e0;
       /* Assicura che l'immagine si adatti bene senza distorsioni */
-      border-radius: 8px;
+      
       
       &.darken {
         opacity: 0.5;
@@ -65,11 +66,12 @@
   
     #toggle-button {
       position: absolute;
-      bottom: 10px;
-      right: 10px;
+      bottom: 3px;
+      right: 3px;
       z-index: 10; // Assicuriamoci che il pulsante sia sopra l'immagine e i tag
       --background: rgba(0, 0, 0, 0.6); // Sfondo semi-trasparente per il pulsante
       --color: #fff; // Colore del testo bianco
+      font-size: 10px;
     }
   
     .tag {
@@ -79,7 +81,7 @@
       margin-right: 5px;
       margin-bottom: 5px;
       border-radius: 16px;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: bold;
       transition: background-color 0.3s ease;
       position: absolute;

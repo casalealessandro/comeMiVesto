@@ -6,11 +6,7 @@ const routes: Routes = [
     path: 'myoutfit',
     loadChildren: () => import('./views/myoutfit/myoutfit.module').then( m => m.MyOutFitPageModule)
   },
-  {
-    path: '',
-    redirectTo: 'myoutfit',
-    pathMatch: 'full'
-  },
+  
   {
     path: 'register',
     loadChildren: () => import('./views/register/register.module').then( m => m.RegisterPageModule)
@@ -24,6 +20,15 @@ const routes: Routes = [
     path: 'add-outfit',
     loadChildren: () => import('./views/add-outfit/add-outfit.module').then( m => m.AddOutfitPageModule)
   },
+  {
+    path: 'my-wardrobes',
+    loadChildren: () => import('./views/my-wardrobes/my-wardrobes.module').then( m => m.MyWardrobesPageModule)
+  },  {
+    path: 'my-profile',
+    loadChildren: () => import('./views/my-profile/my-profile.module').then( m => m.MyProfilePageModule)
+  },
+
+
   
 
 

@@ -1,21 +1,40 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Capture Outfit</ion-title>
+    <ion-buttons slot="start">
+      <ion-button  (click)="handleBackButton()" size="small"><ion-icon slot="icon-only"  name="chevron-back-outline"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>Crea Outfit</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
 
  
-  
+  <!--eventBeforeFotoCaptured al momento non usato-->
   <app-foto-outfit
   (eventFotoCaptured)="setImageCaptured($event)"
   (eventImageTags)="setImageTagSet($event)"
+  (eventBeforeFotoCaptured)="setImageCaptured($event)" 
+  
+  [enableNewImagecaptured]="true"
+  [enableSetTagsImage]="true"
+  [image]="isEditMode===true?imgUrl:undefined"
+  [tags]="isEditMode===true?tags:[]"
   >
 
   </app-foto-outfit>
+  <section class="chips">
+    <ion-chip *ngFor="let tag of tags" (click)="editTag(tag)">
+      <ion-thumbnail slot="start">
+        <img alt="Silhouette of a person's head" src="https://ionicframework.com/docs/img/demos/avatar.svg" />
+      </ion-thumbnail>
+      <ion-label>{{tag.name}}</ion-label> 
+      <ion-button class="tag-btn" fill="clear" size="small" (click)="delTag($event,tag.id)"><ion-icon slot="icon-only" name="close-circle"></ion-icon></ion-button>
+    </ion-chip>
+  </section>
   <app-dynamic-form
     [service]="'outfitForm'"
+    [editData]="outfitData"
     (submitFormEvent)="saveOutfit($event)"
 
     >

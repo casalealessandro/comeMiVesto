@@ -8,7 +8,8 @@ import { ModalController } from '@ionic/angular';
 })
 export class ModalFormComponent  implements OnInit {
   @Input() service: any = null;
-
+  @Input() title: string = '-';
+  @Input() editData: any = {};
   constructor(private modalController: ModalController) {}
 
   ngOnInit(): void {

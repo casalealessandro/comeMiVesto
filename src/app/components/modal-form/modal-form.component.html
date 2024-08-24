@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Filtri</ion-title>
+    <ion-title>{{title}}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="dismiss()">Chiudi</ion-button>
     </ion-buttons>
@@ -10,6 +10,7 @@
 <ion-content>
   <app-dynamic-form
   [service]="service"
+  [editData]="editData"
   (submitFormEvent)="applyData($event)"
 
   >

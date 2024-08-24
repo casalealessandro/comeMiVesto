@@ -10,4 +10,20 @@ export interface DynamicFormField {
     maxlength?: number; // Lunghezza massima per il campo
     placeholder?: string; // Lunghezza massima per il campo
     options?:any[]
+    selectOptions?: SelectOptions;
 }
+
+
+interface SelectOptions {
+    displayExp: string;
+    valueExp: string;
+    options: Option[];
+    multiple: boolean;
+    parent: string | null;
+  }
+
+  interface Option {
+    id: string;
+    value: string;
+    parent: string | null;
+  }

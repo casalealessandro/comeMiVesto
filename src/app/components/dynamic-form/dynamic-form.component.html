@@ -4,13 +4,16 @@
       <ng-container *ngFor="let field of fields">
         <ion-item *ngIf="field.type === 'textBox'">
           <ion-label>{{ field.label }}</ion-label>
-          <ion-input [formControlName]="field.name"  [type]="!field.typeInput ? 'text' : field.typeInput " [placeholder]="field.placeholder"></ion-input>
+          <ion-input [formControlName]="field.name"  [type]="!field.typeInput ? 'text' : field.typeInput " [placeholder]="field.placeholder"
+            [(ngModel)]="formValues[field.name]"
+            (ngModelChange)="onValueChange(field.name, $event)"
+          ></ion-input>
         </ion-item>
         <ion-item *ngIf="field.type === 'textArea'">
           <ion-label>{{ field.label }}</ion-label>
-          <ion-textarea [formControlName]="field.name" [placeholder]="field.placeholder" rows="4"></ion-textarea>
+          <ion-textarea [formControlName]="field.name" [placeholder]="field.placeholder" rows="4" [(ngModel)]="formValues[field.name]"></ion-textarea>
         </ion-item>
-        <ion-item *ngIf="field.type === 'selectBox'">
+       <!--  <ion-item *ngIf="field.type === 'selectBox'">
           <ion-label>{{ field.label }}</ion-label>
           <ion-select [formControlName]="field.name" [placeholder]="field.placeholder">
             <ng-container *ngIf="field.options">
@@ -21,9 +24,19 @@
             </ng-container> 
             
           </ion-select>
-        </ion-item>
+        </ion-item> -->
+
+        <app-dynamic-select-box
+          *ngIf="field.type === 'selectBox'"
+          [config]="field"
+          
+          [parentValue]="formValues[field.selectOptions?.parent || '']"
+          [value]="formValues[field.name]"
+          [values]="field.selectOptions?.multiple ? formValues[field.name] : []"
+          (valueChange)="onValueChange(field.name, $event)">
+        </app-dynamic-select-box>
       </ng-container>
     
     </ion-list>
-    <ion-button expand="block" type="submit">Invia</ion-button>
+    <ion-button expand="block" type="submit" class="outfit-button">Salva</ion-button>
   </form>
