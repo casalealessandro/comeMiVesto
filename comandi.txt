@@ -1,0 +1,58 @@
+Ecco una lista dei principali comandi Git per eseguire un commit:
+
+1. **Configurare Git (una sola volta)**
+   Prima di iniziare a fare commit, devi configurare Git con il tuo nome e la tua email:
+   ```bash
+   git config --global user.name "Il Tuo Nome"
+   git config --global user.email "la_tua_email@example.com"
+   ```
+
+2. **Inizializzare un repository Git**
+   Se non hai ancora un repository Git, puoi inizializzarne uno:
+   ```bash
+   git init
+   ```
+
+3. **Aggiungere file al repository**
+   Aggiungi i file che vuoi includere nel commit:
+   ```bash
+   git add nomefile      # Aggiunge un singolo file
+   git add .             # Aggiunge tutti i file nella directory corrente
+   ```
+
+4. **Creare un commit**
+   Dopo aver aggiunto i file, puoi creare un commit:
+   ```bash
+   git commit -m "Messaggio del commit"
+   ```
+
+5. **Verificare lo stato del repository**
+   Puoi controllare lo stato del repository per vedere quali file sono stati modificati o aggiunti:
+   ```bash
+   git status
+   ```
+
+6. **Aggiungere tutti i file modificati e committare in un unico passaggio**
+   Se vuoi aggiungere tutti i file modificati e committare in un unico comando:
+   ```bash
+   git commit -am "Messaggio del commit"
+   ```
+
+7. **Visualizzare la cronologia dei commit**
+   Per vedere la cronologia dei commit:
+   ```bash
+   git log
+   ```
+
+8. **Inviare i commit al repository remoto**
+   Dopo aver fatto un commit, puoi inviare le modifiche a un repository remoto (ad esempio su GitHub):
+   ```bash
+   git push origin nome-branch
+   ```
+
+   Se non hai ancora collegato un repository remoto, puoi aggiungerlo con:
+   ```bash
+   git remote add origin https://github.com/user/repo.git
+   ```
+
+Questi sono i comandi di base per lavorare con Git e committare i tuoi cambiamenti.
