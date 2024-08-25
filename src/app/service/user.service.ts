@@ -38,7 +38,7 @@ export class UserService {
       }
       return false
     } catch (error) {
-
+      console.error(error)
       return false
     }
    

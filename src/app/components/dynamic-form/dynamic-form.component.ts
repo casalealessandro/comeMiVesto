@@ -36,7 +36,9 @@ export class DynamicFormComponent implements OnInit {
     if (!this.service) {
       return
     }
-
+    if (typeof this.editData === 'undefined') {
+      this.editData = {};
+    }
     this.templateService.getFormFields(this.service).subscribe(fields => {
       this.fields = fields;
       this.initializeForm();
@@ -46,39 +48,45 @@ export class DynamicFormComponent implements OnInit {
   }
 
   initializeForm() {
-    let formGroup = new FormGroup({});
+    // Inizializza editData come oggetto vuoto se è undefined
+    this.editData = this.editData || {};
+  
+    const formGroup = new FormGroup({});
+  
     this.fields.forEach(field => {
-      const validators = [];
-      if (field.required) {
-        validators.push(Validators.required);
-      }
-      if (typeof field.minlength != 'undefined') {
-        validators.push(Validators.minLength(field.minlength));
-      }
-      if (typeof field.maxlength != 'undefined') {
-        validators.push(Validators.maxLength(field.maxlength));
-      }
-      let value = null;
-
-      if (field.type === 'selectBox') {
-
-      }
-      if(typeof this.editData != 'undefined'){
-
-        value = !this.editData[field.name] ? null : this.editData[field.name]
-      }
-       
-
+      let validators = this.getValidators(field);
+      
+      // Recupera il valore dall'editData o imposta null come valore predefinito
+      const value = this.editData[field.name] || null;
+  
+      // Aggiungi il controllo al formGroup con i validatori come terzo argomento
       formGroup.addControl(field.name, new FormControl(value, validators));
-      
+  
+      // Inizializza i valori del form
       this.initializeFormValues(field);
-      
     });
-
-    this.form = formGroup
-    
-
+  
+    this.form = formGroup;
   }
+  
+  // Metodo separato per gestire i validatori
+  private getValidators(field: DynamicFormField) {
+    const validators = [];
+  
+    if (field.required) {
+      validators.push(Validators.required);
+    }
+    if (typeof field.minlength !== 'undefined') {
+      validators.push(Validators.minLength(field.minlength));
+    }
+    if (typeof field.maxlength !== 'undefined') {
+      validators.push(Validators.maxLength(field.maxlength));
+    }
+  
+    return validators;
+  }
+  
+  
 
   initializeFormValues(field: any) {
 

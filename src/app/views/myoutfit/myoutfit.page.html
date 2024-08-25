@@ -35,11 +35,11 @@
             <ion-card-header class="outfit-card-header">
               <div class="outfit-header-wrapper-title">
                 <ion-avatar slot="start" class="outfit-card-avatar">
-                  <img [alt]="userProfile.displayName" [src]="userProfile.photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+                  <img [alt]="outfitUserProfile[outfit.userId].displayName" [src]="outfitUserProfile[outfit.userId].photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
                 </ion-avatar>
                 <ion-card-title class="outfit-card-title">
                   
-                {{ userProfile.displayName }}
+                {{ outfitUserProfile[outfit.userId].displayName }}
               </ion-card-title>
               </div>
               

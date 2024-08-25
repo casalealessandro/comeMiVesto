@@ -6,7 +6,7 @@ export interface Tag {
   x: number;
   y: number;
   link?: string;
-  color?: string;
+  color: string;
   brend?: string;
   outfitCategory: string;
   outfitSubCategory?: string;

@@ -19,12 +19,13 @@ export class MyOutFitPage implements OnInit {
 
   outfits: outfit[] = []
   isLoading: boolean = true;
-  userID: string | undefined;
-  userInfo: any;
+  cUserID: string | undefined;
+  cUserInfo: any;
   favorites: Set<string> = new Set();
-  userProfile$!: Observable<UserProfile | null>;
-  userProfile!: UserProfile;
-  userPreference!:UserPreference[]
+  currentUserProfile$!: Observable<UserProfile | null>;
+  outfitUserProfile$!: Observable<UserProfile>;
+  outfitUserProfile!: UserProfile[];
+  cUserPreference!:UserPreference[]
   constructor(private appService: AppService, private afAuth: AngularFireAuth, private userProfileService: UserService, private modalController: ModalController, private alertController: AlertController) {
 
   }
@@ -35,18 +36,18 @@ export class MyOutFitPage implements OnInit {
     this.afAuth.authState.subscribe(user => {
       if (user) {
      
-        
+       
        
         
-        this.userProfile$ = this.userProfileService.getUserProfile();
+        this.currentUserProfile$ = this.userProfileService.getUserProfile();
 
-        this.userProfile$.subscribe(async userProfile => {
+        this.currentUserProfile$.subscribe(async userProfile => {
           if (userProfile)
-            this.userProfile = userProfile;
-            this.userInfo = userProfile;
-            this.userID = this.userProfile.uid;
+           
+            this.cUserInfo = userProfile;
+            this.cUserID = this.cUserInfo.uid;
 
-            this.userPreference = await this.userProfileService.getUserPreference();
+            this.cUserPreference = await this.userProfileService.getUserPreference();
             this.loadOutfits();  // Carica gli outfit solo se l'utente è loggato
         })
 
@@ -116,7 +117,7 @@ export class MyOutFitPage implements OnInit {
         "saveInCloset":
         let data = {
           id: item.id,
-          userId: this.userID,
+          userId: this.cUserID,
           name: item.name,
           outfitCategory: category,
           outfitSubCategory: subCategory,
@@ -152,8 +153,13 @@ export class MyOutFitPage implements OnInit {
     this.appService.getOutfits('user_0001').subscribe((newOutfits: outfit[]) => {
       
       this.outfits = newOutfits.filter(outfit => this.matchesPreferences(outfit));
-      this.outfits.forEach(rr => {
-        this.heartIcon(rr.id)
+      this.outfitUserProfile = []
+      this.outfits.forEach(async rr => {
+        this.heartIcon(rr.id);
+        this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
+        this.outfitUserProfile$.subscribe(outfitUserProfile=>{
+          this.outfitUserProfile[rr.userId] = outfitUserProfile
+        })
       })
       if (this.outfits.length > 0) {
         this.isLoading = false;
@@ -165,12 +171,12 @@ export class MyOutFitPage implements OnInit {
   matchesPreferences(outfit: any): boolean {
     // Logica per confrontare l'outfit con le preferenze dell'utente
     // Se userPreferences non è definito o è un array vuoto, restituisci true per mostrare tutti gli outfit
-  if (!this.userPreference || this.userPreference.length === 0) {
+  if (!this.cUserPreference || this.cUserPreference.length === 0) {
     return true;
   }
 
   // Scorri l'array userPreferences e controlla se l'outfit corrisponde a una delle preferenze
-  return this.userPreference.some(preference => {
+  return this.cUserPreference.some(preference => {
 
     const colors = preference.color || [];
     const brend = preference.brend || [];
@@ -190,7 +196,7 @@ export class MyOutFitPage implements OnInit {
         field: 'outfitId', operator: '==', value: outfitId
       },
       {
-        field: 'userId', operator: '==', value: this.userID
+        field: 'userId', operator: '==', value: this.cUserID
       }
     ]
     if (this.favorites.has(outfitId)) {
@@ -203,7 +209,7 @@ export class MyOutFitPage implements OnInit {
 
     let data = {
       outfitId: outfitId,
-      userId: this.userID
+      userId: this.cUserID
     }
 
     let res = await this.appService.saveInCollection('faveUserOutfits', undefined, data)
@@ -219,7 +225,7 @@ export class MyOutFitPage implements OnInit {
         field: 'outfitId', operator: '==', value: id
       },
       {
-        field: 'userId', operator: '==', value: this.userID
+        field: 'userId', operator: '==', value: this.cUserID
       }
     ]
 

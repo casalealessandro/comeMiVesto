@@ -238,14 +238,15 @@ export class AddOutfitPage {
 
 
     let indexTag = this.tags.findIndex(r => r.id == tag.id)
-
+    let link = !data.link ? '#' : data.link
+    
     this.tags[indexTag] =
     {
       id: tag.id,
       name: data.name,
       x: tag.x,
       y: tag.y,
-      link: data.link,
+      link: link,
       color: data.color,
       brend: data.brend,
       outfitCategory: data.outfitCategory,

@@ -92,14 +92,19 @@ export class MyProfilePage {
         buttons: ['Ok'],
       })
     }
+
+    let displayName = !data.displayName ? `${data.name } ${data.cognome}` :  data.displayName
+    let bio = !data.bio ? '' : data.bio;
+    let nome = !data.nome ? data.name : '';
+
     let profileData:UserProfile ={
       uid:this.uid ,
-      displayName: data.displayName,
+      displayName: displayName,
       cognome: data.cognome,
       name: data.name,
-      nome:data.name,
+      nome:nome,
       email: this.userProfile.email,
-      bio:data.bio
+      bio:bio
     }
     let isOk = await this.userProfileService.updateUserProfile(profileData)
     if(isOk){
@@ -108,6 +113,7 @@ export class MyProfilePage {
         message: `Profilo aggiornato`,
         buttons: ['Ok'],
       })
+      this.userProfile = profileData;
     }
     
   }

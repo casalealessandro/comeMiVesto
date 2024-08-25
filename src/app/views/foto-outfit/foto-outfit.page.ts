@@ -202,15 +202,19 @@ export class FotoOutfitPage implements OnInit {
       const rect = image.getBoundingClientRect();
       const x = (event.clientX - rect.left) / rect.width;
       const y = (event.clientY - rect.top) / rect.height;
-
+      let link = !result.link ? '#' : result.link
+      let brend = !result.brend ? null : result.brend
       let id = result.name.replace(' ', '_')
+      
       this.tags.push(
         {
           id: id,
           name: result.name,
           x: x,
           y: y,
-          link: result.link,
+          link: link,
+          color:result.color,
+          brend:brend,
           outfitCategory: result.outfitCategory,
           outfitSubCategory: result.outfitSubCategory
 

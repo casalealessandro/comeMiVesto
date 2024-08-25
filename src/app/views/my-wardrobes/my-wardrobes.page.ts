@@ -31,8 +31,12 @@ export class MyWardrobesPage  {
 
   async groupItemsByCategory() {
 
-
-    let dataR = await this.appService.getFilteredCollection('wardrobes', [])
+    let filer =[{
+      field:'userId',
+      operator:'==',
+      value:this.userID 
+    }]
+    let dataR = await this.appService.getFilteredCollection('wardrobes', filer)
 
 
     this.wardrobesItems = dataR.reduce((group: any, item: wardrobesItem) => {
