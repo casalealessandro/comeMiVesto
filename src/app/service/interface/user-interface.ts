@@ -17,3 +17,4 @@ export interface UserPreference {
   brend?: string[]
   style?: string[],
 }
+
