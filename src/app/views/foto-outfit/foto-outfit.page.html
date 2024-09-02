@@ -6,7 +6,7 @@
        <span (click)="openItmClothing(tag)">{{ tag.name }}</span>
       </div>
     </ng-container>
-      <ion-button *ngIf="tags.length>0" (click)="toggleTags()" id="toggle-button" [ngStyle]="tagToggleButton" fill="clear">
+      <ion-button class="tag-toggle-button" *ngIf="tags.length>0" (click)="toggleTags()" id="toggle-button" [ngStyle]="tagToggleButton" fill="clear">
         <ion-icon  slot="icon-only"   name="pricetags-outline"></ion-icon>
         <!-- {{ showTag ? 'Nascondi Tags' : 'Mostra Tags' }} -->
       </ion-button>

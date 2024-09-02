@@ -1,59 +1,65 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { LayoutTabsPage } from './views/layout-tabs/layout-tabs.page';
+import { authGuard } from './auth.guard';
 
 const routes: Routes = [
   {
     path: 'tabs',
     component: LayoutTabsPage,
-   
+    canActivate: [authGuard],
     children: [
-
-
-
       {
         path: 'myoutfit',
-        loadChildren: () => import('./views/myoutfit/myoutfit.module').then(m => m.MyOutFitPageModule)
+        loadChildren: () => import('./views/myoutfit/myoutfit.module').then(m => m.MyOutFitPageModule),
+        
       },
-
-      {
-        path: 'register',
-        loadChildren: () => import('./views/register/register.module').then(m => m.RegisterPageModule)
-      },
-      {
-        path: 'login',
-        loadChildren: () => import('./views/login/login.module').then(m => m.LoginPageModule)
-      },
-
       {
         path: 'add-outfit',
-        loadChildren: () => import('./views/add-outfit/add-outfit.module').then(m => m.AddOutfitPageModule)
+        loadChildren: () => import('./views/add-outfit/add-outfit.module').then(m => m.AddOutfitPageModule),
+        canActivate: [authGuard]
       },
       {
         path: 'my-wardrobes',
-        loadChildren: () => import('./views/my-wardrobes/my-wardrobes.module').then(m => m.MyWardrobesPageModule)
+        loadChildren: () => import('./views/my-wardrobes/my-wardrobes.module').then(m => m.MyWardrobesPageModule),
+        
       },
       {
         path: 'my-profile',
-        loadChildren: () => import('./views/my-profile/my-profile.module').then(m => m.MyProfilePageModule)
+        loadChildren: () => import('./views/my-profile/my-profile.module').then(m => m.MyProfilePageModule),
+        
       },
       {
         path: 'layout-tabs',
-        loadChildren: () => import('./views/layout-tabs/layout-tabs.module').then(m => m.LayoutTabsPageModule)
+        loadChildren: () => import('./views/layout-tabs/layout-tabs.module').then(m => m.LayoutTabsPageModule),
+        
       },
       {
         path: '',
-        redirectTo: '/tabs/home',
+        redirectTo: '/tabs/myoutfit',
         pathMatch: 'full'
       }
     ]
-
+  },
+  {
+    path: 'register',
+    loadChildren: () => import('./views/register/register.module').then(m => m.RegisterPageModule),
+    
+  },
+  {
+    path: 'login',
+    loadChildren: () => import('./views/login/login.module').then(m => m.LoginPageModule),
+    
   },
 
   {
     path: '',
     redirectTo: 'tabs/myoutfit',
     pathMatch: 'full'
+  },
+  {
+    path: '**',  // Aggiungi una wildcard per gestire eventuali rotte non valide
+    redirectTo: 'tabs/myoutfit'
   }
 
 ];

@@ -74,6 +74,18 @@
   --ion-color-light-contrast-rgb: 0, 0, 0;
   --ion-color-light-shade: #d7d8da;
   --ion-color-light-tint: #f5f6f9;
+
+  /**Customizzed**/
+  --text-color: rgb(29, 28, 28);
+  --outfit-primary-color:#424242;
+  --color-selected:#003366;
+  --outfit-buttons-color:#424242;
+  --outfit-buttons-activated-color:#272727;
+  --outfit-padding-size-2:2px;
+  --outfit-background:#f6f6f6;
+  --ion-toolbar-background:#fff;
+  --ion-tab-bar-color-selected:#003366;
+  --ion-toolbar-color:var(--outfit-buttons-color);
 }
 
 @media (prefers-color-scheme: dark) {

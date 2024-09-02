@@ -1,6 +1,8 @@
 import { EmitterVisitorContext } from '@angular/compiler';
 import { Component, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-login',
@@ -13,15 +15,23 @@ export class LoginPage {
   email: string = '';
   password: string = '';
 
-  constructor(private afAuth: AngularFireAuth) {}
+  constructor(private afAuth: AngularFireAuth,private router: Router, private alert:AlertController) {}
 
   login() {
+
     this.afAuth.signInWithEmailAndPassword(this.email, this.password)
-      .then(() => {
-        alert('utene')
+      .then((userCredential:any) => {
+        console.log('userCredential-->',userCredential)
+        //this.router.navigate(['/myoutfit'], { skipLocationChange: true, replaceUrl: true })
       })
       .catch(error => {
-        console.error(error)
+        this.alert.create(
+         { 
+          header:'Attenzione!',
+          message:'Credenziali non valide!',
+          buttons: ['Ok'],
+          }
+        )
       });
   }
 

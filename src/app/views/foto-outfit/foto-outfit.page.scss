@@ -21,7 +21,7 @@
     /* Stile per l'immagine stessa */
     img {
       width: 100%;
-      
+      max-height: 388px;
       object-fit: cover;
       border-bottom: 2px solid #e0e0e0;
       /* Assicura che l'immagine si adatti bene senza distorsioni */
@@ -88,4 +88,8 @@
       display: inline-block;
     }
   
-  }
+}
+
+.tag-toggle-button{
+  color: #fff;
+}
