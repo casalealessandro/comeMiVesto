@@ -1,21 +1,13 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>L'armadio</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="addClothModal()">
-        <ion-icon name="add-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true" class="ion-padding">
-
+ <ion-fab horizontal="end" vertical="bottom" slot="fixed" >
+    <ion-fab-button >
+      <ion-icon name="add-outline"  (click)="addClothModal()"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
   <ion-list>
 
     <ion-item-group *ngFor="let wardrobesCategory of wardrobesGrupped">
       <ion-item-divider>
-        <ion-label>{{ wardrobesCategory.wardrobesName }}</ion-label>
+        <ion-label>{{ wardrobesCategory.value }}</ion-label>
       </ion-item-divider>
 
       <ion-item-sliding *ngFor="let item of wardrobesItems[wardrobesCategory.id]">
@@ -34,20 +26,3 @@
     </ion-item-group>
   </ion-list>
 
-
-</ion-content>
-
-<ion-footer>
-  <div class="outfit-bottom-bar">
-    <ion-button class="outfit-bar-button" routerLink="/myoutfit" routerDirection="root">
-      <ion-icon name="home"></ion-icon>
-    </ion-button>
-    <ion-button class="outfit-bar-button outfit-center-button" routerLink="/add-outfit" routerDirection="root">
-      <ion-icon name="add-circle"></ion-icon>
-    </ion-button>
-
-    <ion-button class="outfit-bar-button" routerLink="/my-wardrobes">
-      <ion-icon name="shirt-outline"></ion-icon>
-    </ion-button>
-  </div>
-</ion-footer>

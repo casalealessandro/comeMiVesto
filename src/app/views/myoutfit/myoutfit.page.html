@@ -1,17 +1,16 @@
-<ion-header >
+
+
+  
+
   <ion-toolbar>
-    <ion-title class="outfit-header-title"><ion-img
-      src="../../../assets/images/logo.png"
-      alt="come mi vesto?"
-    ></ion-img></ion-title>
+    <ion-title class="outfit-header-title">Ispirazioni</ion-title>
     <ion-buttons slot="end">
       <ion-button size="small" fill="clear" (click)="openFilterModal()">
         <ion-icon  name="search-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-</ion-header>
-<ion-content>
+
   <ion-grid [fixed]="true" *ngIf="isLoading">
     <ion-row>
       <ion-col size="12" class="col-spinner">
@@ -20,10 +19,9 @@
     </ion-row>
   </ion-grid>
   
-  <cdk-virtual-scroll-viewport itemSize="570" class="viewport cdk-virtual-scroll-viewport">
+  <cdk-virtual-scroll-viewport itemSize="400" class="viewport cdk-virtual-scroll-viewport">
     
-    
-   
+       
     <ion-grid [fixed]="true" *ngIf="!isLoading">
       <ion-row>
         <ion-col size="12"  *cdkVirtualFor="let outfit of outfits">
@@ -69,9 +67,9 @@
       </ion-row>
     </ion-grid>
   </cdk-virtual-scroll-viewport>
-</ion-content>
 
-<ion-footer>
+
+<!-- <ion-footer>
   <div class="outfit-bottom-bar">
     <ion-button class="outfit-bar-button">
       <ion-icon name="home"></ion-icon>
@@ -87,4 +85,4 @@
       <ion-icon name="person-outline"></ion-icon>
     </ion-button>
   </div>
-</ion-footer>
+</ion-footer> -->

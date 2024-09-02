@@ -38,7 +38,7 @@ export class MyWardrobesPage  {
     }]
     let dataR = await this.appService.getFilteredCollection('wardrobes', filer)
 
-
+    this.wardrobesGrupped = categoryCloth;
     this.wardrobesItems = dataR.reduce((group: any, item: wardrobesItem) => {
       const category = item.outfitCategory;
 
@@ -47,19 +47,22 @@ export class MyWardrobesPage  {
       group[category] = group[category] ?? [];
       group[category].push(item);
 
-      this.wardrobesGrupped.push({
+     /*  this.wardrobesGrupped.push({
         id:filter[0].id,
         wardrobesName:filter[0].value
-      })
+      }) */
 
       return group;
 
     }, {});
 
+    
+
     // Utilizza un Set per rimuovere i duplicati
-    this.wardrobesGrupped = this.wardrobesGrupped.filter((obj: { id: any; }, index: any, self: any[]) =>
+
+   /*  this.wardrobesGrupped = this.wardrobesGrupped.filter((obj: { id: any; }, index: any, self: any[]) =>
       index === self.findIndex((o) => o.id === obj.id)
-    );
+    ); */
     
   }
   objectKeys(obj: any): string[] {
@@ -95,7 +98,7 @@ export class MyWardrobesPage  {
       component: ModalFormComponent,
       componentProps: {
         service: 'tagForm',
-        
+       
       }
     });
     await modal.present();
