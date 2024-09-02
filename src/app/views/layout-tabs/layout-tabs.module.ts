@@ -11,7 +11,6 @@ import { LayoutTabsPage } from './layout-tabs.page';
 @NgModule({
   imports: [
     CommonModule,
-    FormsModule,
     IonicModule,
     LayoutTabsPageRoutingModule
   ],

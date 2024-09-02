@@ -11,7 +11,7 @@ import { FotoOutfitPage } from './foto-outfit.page';
 @NgModule({
   imports: [
     CommonModule,
-    FormsModule,
+    
     IonicModule,
     
   ],

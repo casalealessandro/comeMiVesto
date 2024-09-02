@@ -15,7 +15,6 @@ import { ComponentsModule } from 'src/app/components/components.module';
     declarations: [LoginPage],
     imports: [
         CommonModule,
-        FormsModule,
         IonicModule,
         LoginPageRoutingModule,
         ComponentsModule
