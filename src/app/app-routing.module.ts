@@ -35,10 +35,16 @@ const routes: Routes = [
         
       },
       {
+        path: 'filter-outfits',
+        loadChildren: () => import('./views/filter-outfits/filter-outfits.module').then( m => m.FilterOutfitsPageModule)
+      },
+    
+      {
         path: '',
         redirectTo: '/tabs/myoutfit',
         pathMatch: 'full'
       }
+
     ]
   },
   {
@@ -60,7 +66,8 @@ const routes: Routes = [
   {
     path: '**',  // Aggiungi una wildcard per gestire eventuali rotte non valide
     redirectTo: 'tabs/myoutfit'
-  }
+  },
+  
 
 ];
 

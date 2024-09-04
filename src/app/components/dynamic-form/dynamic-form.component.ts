@@ -26,6 +26,7 @@ export class DynamicFormComponent implements OnInit {
   fields: DynamicFormField[] = [];
   formShow: boolean = false
   fieldConfigs: any = [];
+  labelplacement:'fixed' | 'stacked' | 'floating' = 'stacked';
   constructor(private templateService: AppService, private formBuilder: FormBuilder,private toastController: ToastController) {
 
 

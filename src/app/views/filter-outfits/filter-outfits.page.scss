@@ -1,0 +1,25 @@
+.card-filter-cloth {
+    .cloth-label {
+        display: flex;
+
+
+        .del-itm-cloth {
+            color: var(--outfit-btn-text-color);
+           
+        }
+    }
+}
+
+.color-hex {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    display: block;
+    border: 1px solid var(--outfit-primary-color);
+}
+
+.styleselcted {
+    //border: 2px solid var(--ion-tab-bar-color-selected);
+    background-color: var(--ion-tab-bar-color-selected);
+
+}

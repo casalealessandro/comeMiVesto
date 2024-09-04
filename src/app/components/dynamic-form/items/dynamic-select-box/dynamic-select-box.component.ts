@@ -15,6 +15,7 @@ export class DynamicSelectBoxComponent implements OnChanges {
   @Input() disabled = false;
   @Input() value:any;
   @Input() values:any = [];
+  @Input() labelPlacement:'fixed' | 'stacked' | 'floating' = 'fixed';
   @Output() valueChange = new EventEmitter<string | string[]>();
 
   

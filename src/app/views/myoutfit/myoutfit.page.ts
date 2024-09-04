@@ -5,11 +5,12 @@ import { AlertController, ModalController } from '@ionic/angular';
 
 
 import { AppService } from 'src/app/service/app-service';
-import { buttons, outfit, Tag } from 'src/app/service/interface/outfit-all-interface';
+import { buttons, FireBaseConditions, outfit, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
 import { Observable } from 'rxjs';
 import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
+import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
 @Component({
   selector: 'app-myoutfit',
   templateUrl: './myoutfit.page.html',
@@ -18,6 +19,7 @@ import { UserPreference, UserProfile } from 'src/app/service/interface/user-inte
 export class MyOutFitPage implements OnInit {
 
   outfits: outfit[] = []
+  filteredOutfits: outfit[] = []; // Array per gli outfit filtrati
   isLoading: boolean = true;
   cUserID: string | undefined;
   cUserInfo: any;
@@ -26,6 +28,7 @@ export class MyOutFitPage implements OnInit {
   outfitUserProfile$!: Observable<UserProfile>;
   outfitUserProfile!: UserProfile[];
   cUserPreference!:UserPreference[]
+  isOutfitCompositionOpen: boolean = false;
   constructor(private appService: AppService, private afAuth: AngularFireAuth, private userProfileService: UserService, private modalController: ModalController, private alertController: AlertController) {
 
   }
@@ -60,27 +63,62 @@ export class MyOutFitPage implements OnInit {
 
   }
 
-  async openFilterModal(): Promise<{}> {
+  async openFilterModal() {
 
     const modal = await this.modalController.create({
-      component: ModalFormComponent,
+      component: FilterOutfitsPage,
       componentProps: {
-        service: 'filtersForm',
+        
 
       }
     });
     await modal.present();
 
     const { data } = await modal.onDidDismiss();
-    console.log('Modal data:', data);
+    console.log( data);
 
-    return data
-
+  
+    
+    this.filterOutfits(data)
+   
+    
+    
   }
 
-  async showOutfitComposition(tags: Tag) {
+  
+  filterOutfits(filter:any) {
+    
+    this.filteredOutfits =this.outfits.filter(outfit => {
+        const matchesColor = !filter.color || outfit.color === filter.color;
+        const matchesStyle = !filter.style || outfit.style === filter.style;
+        const matchesSeason = !filter.season || outfit.season === filter.season;
+        const matchesTags = filter.tag ? this.matchesTags(filter.tag,outfit.tags) : true;
+  
+        return matchesColor && matchesStyle && matchesSeason && matchesTags;
+      });
+  }
 
+  // Metodo per verificare se i tags dell'outfit corrispondono ai filtri
+  matchesTags(filterTags: Tag[], outfitTags: Tag[]): boolean {
+    return outfitTags.every(filterTag => {
+      return filterTags.some(tag => {
+        const matchesColor = !tag.color ? true : tag.color === filterTag.color;
+        const matchesOutfitCategory = !tag.outfitCategory ? true : tag.outfitCategory === filterTag.outfitCategory;
+        const matchesOutfitSubCategory = !tag.outfitSubCategory ? true : tag.outfitSubCategory === filterTag.outfitSubCategory;
 
+        return matchesColor && matchesOutfitCategory && matchesOutfitSubCategory;
+      });
+    });
+  }
+  async showOutfitComposition(tags: any) {
+
+      // Verifica se il modale è già aperto
+    if (this.isOutfitCompositionOpen) {
+      return; // Evita di aprire un altro modale se uno è già aperto
+    }
+
+  // Imposta la variabile a true quando il modale viene aperto
+  this.isOutfitCompositionOpen = true;
 
     const modal = await this.modalController.create({
       component: ModalListComponent,
@@ -107,7 +145,7 @@ export class MyOutFitPage implements OnInit {
 
     const { data } = await modal.onDidDismiss();
     console.log('Modal data:', data);
-
+    this.isOutfitCompositionOpen = false
     let nameEv = data.name;
     let item = data.item;
     let category = !item.outfitCategory ? '' : item.outfitCategory
@@ -147,20 +185,24 @@ export class MyOutFitPage implements OnInit {
 
   async loadOutfits(): Promise<void> {
 
-
+    let conditions:FireBaseConditions[] = []
+    //this.createQueryConditions()
 
     this.isLoading = true;
-    this.appService.getOutfits('user_0001').subscribe((newOutfits: outfit[]) => {
+    let newOutfits = await this.appService.getFilteredCollection('outfits',conditions) 
+      console.log(JSON.stringify(newOutfits))
+      //.filter(outfit => this.matchesPreferences(outfit));
       
-      this.outfits = newOutfits.filter(outfit => this.matchesPreferences(outfit));
       this.outfitUserProfile = []
+      this.outfits = newOutfits;
+      this.filteredOutfits = [...this.outfits];
       this.outfits.forEach(async rr => {
         this.heartIcon(rr.id);
         this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
         this.outfitUserProfile$.subscribe(outfitUserProfile=>{
           this.outfitUserProfile[rr.userId] = outfitUserProfile
         })
-      })
+     
       if (this.outfits.length > 0) {
         this.isLoading = false;
       }
@@ -168,6 +210,41 @@ export class MyOutFitPage implements OnInit {
     });
   }
 
+ 
+  
+  
+
+  createQueryConditions():FireBaseConditions[]{
+    
+    let conditions: FireBaseConditions[] = []
+    this.cUserPreference.forEach(pref=>{
+     
+        // Itero sulle proprietà di ogni oggetto
+        (Object.keys(pref) as (keyof UserPreference)[]).forEach(key => {
+          const value = pref[key];
+          
+          let filedK = key == 'color' || key ==  'brend' ? `tags.${key}` : key
+
+          // Controllo se il valore è un array non vuoto
+          if (Array.isArray(value) && value.length > 0) {
+            value.forEach((val: string) => {
+              // Aggiungo una nuova condizione per ogni elemento dell'array
+              conditions.push({
+                field: filedK,       // Il nome della proprietà come campo
+                operator: "==",   // L'operatore può essere dinamico se necessario
+                value: val        // L'elemento dell'array come valore
+              });
+            });
+          }
+        });
+     
+    
+    })
+
+    return conditions
+    
+  }
+  
   matchesPreferences(outfit: any): boolean {
     // Logica per confrontare l'outfit con le preferenze dell'utente
     // Se userPreferences non è definito o è un array vuoto, restituisci true per mostrare tutti gli outfit

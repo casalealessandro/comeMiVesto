@@ -10,7 +10,7 @@ export interface Tag {
   brend?: string;
   outfitCategory: string;
   outfitSubCategory?: string;
-}
+}[]
 
 // Interfaccia principale per l'oggetto
 export interface outfit {
@@ -36,75 +36,104 @@ export interface wardrobesItem {
   color:string;
   images: string[];
 }
-
+export interface filterItmClothing{
+  
+  image?:string;
+  outfitCategory?:string;
+  outfitSubCategoryName?:string;
+  outfitSubCategory?:string;
+  colorName?:string;
+  color?: string;
+  style?:string
+ 
+}
 export interface buttons {
   icon: string;
   text: string;
   actionName: string;
 }[]
 
+export interface FireBaseConditions {
+  field: string; 
+  operator: string; 
+  value: string 
+}[]
+
 export const colors = [
   {
-    "id": "N",
-    "value": "Nero",
-    "parent": null
+    id: "N",
+    value: "Nero",
+    parent: null,
+    hex: "#000000"
   },
   {
-    "id": "B",
-    "value": "Bianco",
-    "parent": null
+    id: "B",
+    value: "Bianco",
+    parent: null,
+    hex: "#FFFFFF"
   },
   {
-    "id": "G",
-    "value": "Grigio",
-    "parent": null
+    id: "G",
+    value: "Grigio",
+    parent: null,
+    hex: "#808080"
   },
   {
-    "id": "Bg",
-    "value": "Beige",
-    "parent": null
+    id: "Bg",
+    value: "Beige",
+    parent: null,
+    hex: "#F5F5DC"
   },
   {
-    "id": "BN",
-    "value": "Blu navy",
-    "parent": null
+    id: "BN",
+    value: "Blu navy",
+    parent: null,
+    hex: "#000080"
   },
   {
-    "id": "R",
-    "value": "Rosso",
-    "parent": null
+    id: "R",
+    value: "Rosso",
+    parent: null,
+    hex: "#FF0000"
   },
   {
-    "id": "VO",
-    "value": "Verde oliva",
-    "parent": null
+    id: "VO",
+    value: "Verde oliva",
+    parent: null,
+    hex: "#808000"
   },
   {
-    "id": "GS",
-    "value": "Giallo senape",
-    "parent": null
+    id: "GS",
+    value: "Giallo senape",
+    parent: null,
+    hex: "#FFDB58"
   },
   {
-    "id": "RP",
-    "value": "Rosa pallido",
-    "parent": null
+    id: "RP",
+    value: "Rosa pallido",
+    parent: null,
+    hex: "#FFD1DC"
   },
   {
-    "id": "A",
-    "value": "Azzurro",
-    "parent": null
+    id: "A",
+    value: "Azzurro",
+    parent: null,
+    hex: "#ADD8E6"
   },
   {
-    "id": "M",
-    "value": "Marrone",
-    "parent": null
+    id: "M",
+    value: "Marrone",
+    parent: null,
+    hex: "#964B00"
   },
   {
-    "id": "O",
-    "value": "Arancione",
-    "parent": null
+    id: "O",
+    value: "Arancione",
+    parent: null,
+    hex: "#FFA500"
   }
 ]
+
 
 export const style=[
   {
@@ -247,7 +276,7 @@ export const brend=[
   }
 ]
 
-export const categoryCloth = [
+export const categoryCloth =[
   {
     id: "M",
     value: "Maglieria",
@@ -277,7 +306,17 @@ export const categoryCloth = [
     id: "AI",
     value: "Abbigliamento intimo",
     parent: null
-}]
+  },
+  {
+    id: "ABC",
+    value: "Completi",
+    parent: null
+  },
+  {
+    value: "Giacche",
+    id: "G"
+  }
+]
 
 export const subCategoryCloth= [
   {
@@ -419,5 +458,58 @@ export const subCategoryCloth= [
     id: "SHK",
     value: "Fazzoletti da taschino",
     parent: "A"
+  },
+  {
+    id: "CDC",
+    value: "Completo da cerimonia",
+    parent: "ABC"
+  },
+  {
+    id: "CS",
+    value: "Completo sposo",
+    parent: "ABC"
+  },
+  {
+    id: "SMK",
+    value: "Smoking",
+    parent: "ABC"
+  },
+  {
+    id: "MG",
+    value: "Maglioncini",
+    parent: "M"
+  },
+  {
+    id: "GAE",
+    value: "Gicche eleganti",
+    parent: "G"
+  },
+  {
+    id: "GAV",
+    value: "Giacche a vento",
+    parent: "G"
   }
+]
+
+export const seasons=  [
+	{
+	  id: "E",
+	  value: "Estate",
+	  parent: null
+	},
+	{
+	  id: "P",
+	  value: "Primavera",
+	  parent: null
+	},
+	{
+	  id: "A",
+	  value: "Autunno",
+	  parent: null
+	},
+	{
+	  id: "I",
+	  value: "Inverno",
+	  parent: null
+	}
 ]

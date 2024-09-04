@@ -3,15 +3,26 @@
     <ion-list>
       <ng-container *ngFor="let field of fields">
         <ion-item *ngIf="field.type === 'textBox'">
-          <ion-label>{{ field.label }}</ion-label>
-          <ion-input [formControlName]="field.name"  [type]="!field.typeInput ? 'text' : field.typeInput " [placeholder]="field.placeholder"
+          
+          <ion-input 
+            [formControlName]="field.name" 
+            [type]="!field.typeInput ? 'text' : field.typeInput " [placeholder]="field.placeholder"
             [(ngModel)]="formValues[field.name]"
+            [label]="field.label"
+            [labelPlacement]="labelplacement"
             (ngModelChange)="onValueChange(field.name, $event)"
           ></ion-input>
         </ion-item>
         <ion-item *ngIf="field.type === 'textArea'">
-          <ion-label>{{ field.label }}</ion-label>
-          <ion-textarea [formControlName]="field.name" [placeholder]="field.placeholder" rows="4" [(ngModel)]="formValues[field.name]"></ion-textarea>
+       
+          <ion-textarea 
+            [formControlName]="field.name" 
+            [placeholder]="field.placeholder" rows="4" 
+            [(ngModel)]="formValues[field.name]"
+            [label]="field.label"
+            [labelPlacement]="labelplacement"
+            >
+          </ion-textarea>
         </ion-item>
        <!--  <ion-item *ngIf="field.type === 'selectBox'">
           <ion-label>{{ field.label }}</ion-label>
@@ -29,7 +40,7 @@
         <app-dynamic-select-box
           *ngIf="field.type === 'selectBox'"
           [config]="field"
-          
+          [labelPlacement]="labelplacement"
           [parentValue]="formValues[field.selectOptions?.parent || '']"
           [value]="formValues[field.name]"
           [values]="field.selectOptions?.multiple ? formValues[field.name] : []"

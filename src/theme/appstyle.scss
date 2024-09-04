@@ -77,8 +77,8 @@ ion-button {
     --background-focused: transparent; /* Colore di sfondo quando il pulsante è focalizzato */
     max-height: 25px;
     border-radius: 4px;
-    padding: var(--outfit-padding-size-2);
-    color: var(--outfit-primary-color);
+  
+    
 }
 
 ion-fab-button{
@@ -102,7 +102,8 @@ ion-chip{
 }
 
 .outfit-button{
-    background:var(--outfit-buttons-color)
+    background:var(--outfit-buttons-color);
+    color: var(--outfit-btn-text-color);
 }
 
 .header-background{
@@ -127,7 +128,7 @@ ion-chip{
 
    
     //background: var(--outfit-primary-color);
-    
+   
    
     .outfit-bar-button {
         /* --background: transparent;*/
@@ -138,10 +139,18 @@ ion-chip{
         font-size: 18px;
         max-height: 25px;
         min-height: 25px;
+
+        &.outfit-center-button{
+            ion-icon{
+                font-size: 24px;
+                font-weight: 600;
+            }
+           
+        }
     }
 
 
-    .outfit-bar-button ion-icon {
-        font-size: inherit;
-    }
+   
+
+    
 }

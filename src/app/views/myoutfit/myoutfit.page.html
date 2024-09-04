@@ -19,28 +19,28 @@
     </ion-row>
   </ion-grid>
   
-  <cdk-virtual-scroll-viewport itemSize="400" class="viewport cdk-virtual-scroll-viewport">
+  <cdk-virtual-scroll-viewport itemSize="56" minBufferPx="900" maxBufferPx="1350" class="viewport cdk-virtual-scroll-viewport">
     
        
     <ion-grid [fixed]="true" *ngIf="!isLoading">
       <ion-row>
-        <ion-col size="12"  *cdkVirtualFor="let outfit of outfits">
+        <ion-col size="12"  *cdkVirtualFor="let outfit of filteredOutfits">
           <ion-card class="outfit-card" >
+            <div class="outfit-header-wrapper-title">
+              <ion-avatar slot="start" class="outfit-card-avatar">
+                <img [alt]="outfitUserProfile[outfit.userId].displayName" [src]="outfitUserProfile[outfit.userId].photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+              </ion-avatar>
+              <ion-card-title class="outfit-card-title">
+                
+              {{ outfitUserProfile[outfit.userId].displayName }}
+            </ion-card-title>
+            </div>
            <app-foto-outfit [image]="outfit.imageUrl" [enableNewImagecaptured]="false" [enableSetTagsImage]="false"
                 [tags]="outfit.tags">
-              </app-foto-outfit>
+            </app-foto-outfit>
             
             <ion-card-header class="outfit-card-header">
-              <div class="outfit-header-wrapper-title">
-                <ion-avatar slot="start" class="outfit-card-avatar">
-                  <img [alt]="outfitUserProfile[outfit.userId].displayName" [src]="outfitUserProfile[outfit.userId].photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
-                </ion-avatar>
-                <ion-card-title class="outfit-card-title">
-                  
-                {{ outfitUserProfile[outfit.userId].displayName }}
-              </ion-card-title>
-              </div>
-              
+                           
                
               <div class="outfit-header-wrapper">
                 <ion-card-subtitle class="outfit-card-subTitle">{{ outfit.title }}</ion-card-subtitle>

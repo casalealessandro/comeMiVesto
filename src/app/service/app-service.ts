@@ -5,6 +5,7 @@ import { Observable, finalize, from, lastValueFrom, map, switchMap } from 'rxjs'
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { AlertController } from '@ionic/angular';
 import { UserProfile } from './interface/user-interface';
+import { FireBaseConditions } from './interface/outfit-all-interface';
 
 
 
@@ -29,17 +30,16 @@ export class AppService {
       );
   }
 
-  getOutfits(userOutFit?: string): Observable<any[]> {
-    return this.firestore.collection('outfits').valueChanges()
-      .pipe(
-
-        map((outfit: any) => {
-          return outfit
-          const data = JSON.parse(outfit.oufitJson)
-          return data;
-        })
-      );
-
+  getOutfits(userOutFit?: string) {
+      let c= this.firestore.collection('outfits').ref
+        c.where('tags', 'array-contains', [{
+          
+          outfitSubCategory: 'SNK'
+      }]).get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            console.log(doc, " => ", doc.data());
+        });
+    });
 
   }
 
@@ -54,14 +54,16 @@ export class AppService {
     );
   }
 
-  async getFilteredCollection(collection: string, conditions: { field: string; operator: string; value: string }[]): Promise<any[]> {
+  async getFilteredCollection(collection: string, conditions:FireBaseConditions[]): Promise<any[]> {
     let query: any = this.firestore.collection(collection).ref;
 
     // Applica tutte le condizioni alla query
     conditions.forEach(condition => {
-      query = query.where(condition.field, condition.operator, condition.value);
-    });
 
+      query = query.where(condition.field, condition.operator, condition.value);
+      //console.log('conditions-->',query)
+    });
+    
     try {
       const querySnapshot = await query.get();
       const results = querySnapshot.docs.map((doc: any) => doc.data());

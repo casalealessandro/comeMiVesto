@@ -6,6 +6,11 @@
   align-items: center;
 }
 
+.outfits-viewport{
+  height: 400px;
+}
+
+
 ion-grid {
   padding: 0 10px;
 }
@@ -24,7 +29,25 @@ ion-row {
   margin-bottom: 20px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 
-
+  .outfit-header-wrapper-title{
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+    align-items: center;
+    margin: 1rem;
+    margin-left: 0;
+    .outfit-card-avatar{
+      margin-right: 12px;
+      max-width: 35px;
+      max-height: 35px;
+    }
+    .outfit-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin: 0;
+      width: 70%;
+    }
+  }
 
   .outfit-card-header {
     color: var(--text-color);
@@ -38,8 +61,8 @@ ion-row {
       flex-direction: row;
       flex-wrap: nowrap;
       align-content: center;
-      align-items: flex-start;
-
+      align-items: center;
+      margin-top: 0.3rem;
       .outfit-card-subTitle {
         font-size: 14px;
         font-weight: 600;
@@ -59,7 +82,7 @@ ion-row {
 
         ion-icon {
           color: var(--text-color);
-          font-size: 15px;
+          font-size: 1rem;
           max-height: 20px;
         }
 
@@ -68,32 +91,18 @@ ion-row {
       }
 
     }
-    .outfit-header-wrapper-title{
-      display: flex;
-      justify-content: flex-start;
-      flex-direction: row;
-      align-items: center;
-      .outfit-card-avatar{
-        margin-right: 12px;
-        max-width: 35px;
-        max-height: 35px;
-      }
-      .outfit-card-title {
-        font-size: 13px;
-        font-weight: 700;
-        margin: 0;
-        width: 70%;
-      }
-    }
+   
     
 
 
   }
 
   .outfit-card-content {
+    padding: 13px 10px;
     .outfit-description {
       font-size: 14px;
       font-weight: 400;
+      
     }
 
     .ion-card-tags {
