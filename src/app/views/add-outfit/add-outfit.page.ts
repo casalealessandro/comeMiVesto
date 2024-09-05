@@ -121,18 +121,43 @@ export class AddOutfitPage {
     this.tags = event.tags as Tag[];
 
     if (this.isEditMode) {
+      let mappedTag:any[] = [...this.tags];
+
+      mappedTag = mappedTag.reduce(
+        (acc, tag) => {
+          // Se l'elemento non è già presente nell'array, aggiungilo
+          if (!acc.outfitCategory.includes(tag.outfitCategory)) {
+            acc.outfitCategory.push(tag.outfitCategory);
+          }
+          if (!acc.outfitSubCategory.includes(tag.outfitSubCategory)) {
+            acc.outfitSubCategory.push(tag.outfitSubCategory);
+          }
+          if (!acc.color.includes(tag.color)) {
+            acc.color.push(tag.color);
+          }
+          return acc;
+        },
+        { outfitCategory: [], outfitSubCategory: [], color: [] }
+      );
+
       let data = {
-        tags: this.tags
+        tags: this.tags,
+        ...mappedTag
       }
       let responseSave = await this.editOutfit(data)
       if (responseSave) {
         this.outfit.tags = this.tags;
         this.outfitData.tags = this.tags;
+
+        this.outfit = {
+          ...this.outfit,
+          ...mappedTag
+        }
       }
     }
   }
 
-  saveOutfit(event: any) {
+  async saveOutfit(event: any) {
 
     this.title = event.title;
     this.color = event.color;
@@ -141,7 +166,30 @@ export class AddOutfitPage {
     this.season = event.season;
     this.style = event.style;
 
+    let mappedTag:any[] = [...this.tags];
+
+    mappedTag = mappedTag.reduce(
+      (acc, tag) => {
+        // Se l'elemento non è già presente nell'array, aggiungilo
+        if (!acc.outfitCategory.includes(tag.outfitCategory)) {
+          acc.outfitCategory.push(tag.outfitCategory);
+        }
+        if (!acc.outfitSubCategory.includes(tag.outfitSubCategory)) {
+          acc.outfitSubCategory.push(tag.outfitSubCategory);
+        }
+        if (!acc.color.includes(tag.color)) {
+          if(typeof tag.color != 'undefined'){
+            acc.color.push(tag.color);
+          }
+          
+        }
+        return acc;
+      },
+      { outfitCategory: [], outfitSubCategory: [], color: [] }
+    );
+
     if (!this.isEditMode) {
+
       this.confirmOutfit()
     } else {
       let oartialOutfit = {
@@ -153,9 +201,13 @@ export class AddOutfitPage {
         style: this.style,
         season: this.season,
         color: this.color,
-
+        ...mappedTag
       };
-      this.editOutfit(oartialOutfit)
+      let outfitSaveed =  await this.editOutfit(oartialOutfit);
+
+      if(outfitSaveed){
+        this.handleBackButton()
+      }
     }
 
 
@@ -190,7 +242,24 @@ export class AddOutfitPage {
     const user = await this.afAuth.currentUser;
     const id = this.generateGUID()
     if (user) {
+      let mappedTag:any[] = [...this.tags];
 
+    mappedTag = mappedTag.reduce(
+      (acc, tag) => {
+        // Se l'elemento non è già presente nell'array, aggiungilo
+        if (!acc.outfitCategory.includes(tag.outfitCategory)) {
+          acc.outfitCategory.push(tag.outfitCategory);
+        }
+        if (!acc.outfitSubCategory.includes(tag.outfitSubCategory)) {
+          acc.outfitSubCategory.push(tag.outfitSubCategory);
+        }
+        if (!acc.color.includes(tag.color)) {
+          acc.color.push(tag.color);
+        }
+        return acc;
+      },
+      { outfitCategory: [], outfitSubCategory: [], color: [] }
+    );
       this.outfit = {
         id: id,
         title: this.title,
@@ -201,7 +270,8 @@ export class AddOutfitPage {
         style: this.style,
         season: this.season,
         color: this.color,
-        userId: user.uid
+        userId: user.uid,
+        ...mappedTag
       };
     }
 

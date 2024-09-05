@@ -77,6 +77,68 @@ export class AppService {
 
   }
 
+  async getFilteredOutfits(conditions: FireBaseConditions[]): Promise<any[]> {
+    
+    const db: any = this.firestore.collection('outfits').ref;
+    
+    if(conditions.length==0){
+      try {
+        const querySnapshot = await db.get();
+        const results = querySnapshot.docs.map((doc: any) => doc.data());
+        return results;
+      } catch (error) {
+        console.error('Error getting filtered collection:', error);
+        return [];
+      }
+    }
+    
+    const queryPromises: Promise<any>[] = [];
+
+    // Raggruppa le condizioni in base all'operatore
+    const simpleConditions = conditions.filter(c => c.operator === '==');
+    const arrayConditions = conditions.filter(c => c.operator === 'array-contains-any');
+
+    // Esegui query per condizioni semplici (==)
+    let baseQuery 
+    if (simpleConditions.length > 0) {
+      simpleConditions.forEach((condition:any) => {
+       // query =  query.where(condition.field, condition.operator, condition.value);
+        const query = db.where(condition.field, condition.operator, condition.value);
+        queryPromises.push(query.get());
+      });
+    }
+    
+    
+
+    // Esegui query separate per ciascuna condizione con 'array-contains-any'
+    arrayConditions.forEach((condition:any) => {
+      const query = db.where(condition.field, condition.operator, condition.value);
+      queryPromises.push(query.get());
+    });
+
+    try {
+      // Attendi tutte le query
+      const querySnapshots = await Promise.all(queryPromises);
+
+      // Estrai i dati da ogni querySnapshot
+      let combinedResults: any[] = [];
+      querySnapshots.forEach(snapshot => {
+        snapshot.docs.forEach((doc:any) => {
+          combinedResults.push(doc.data());
+        });
+      });
+
+      // Rimuovi i duplicati basandoti sull'id del documento
+      const uniqueResults = Array.from(new Set(combinedResults.map(item => item.id)))
+        .map(id => combinedResults.find(item => item.id === id));
+
+      return uniqueResults;
+    } catch (error) {
+      console.error("Error getting filtered collection: ", error);
+      return [];
+    }
+  }
+
   //Salvataggio in FireStone
 
   async saveInCollection(collection: string, nameDoc: string | undefined, data: any): Promise<boolean> {

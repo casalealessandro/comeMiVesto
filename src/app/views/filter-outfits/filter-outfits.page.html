@@ -35,8 +35,8 @@
       <ion-button size="small"  class="outfit-button" (click)="openColor(i)">
         <ion-label>
           {{filterItmCloth!['colorName']}} 
-          <span (click)="delItmColor($event,i)">
-            <ion-icon class="del-itm-cloth" name="close-circle-outline"></ion-icon>
+          <span  class="del-itm-cloth" (click)="delItmColor($event,i)">
+            <ion-icon  name="close-circle-outline"></ion-icon>
           </span>
         </ion-label>
        
@@ -93,7 +93,7 @@
         <ion-toolbar>
           <ion-title>Scegli la gategoria </ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="selectedSubCat()">Close</ion-button>
+            <ion-button (click)="selectedSubCat()">Chiudi</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
@@ -106,15 +106,24 @@
               </ion-item-divider>
           
             
-            <ion-col size="4" *ngFor="let itemSub of oufitSubCategories[oufitCategory.id]">
-              <div (click)="selectedSubCat(itemSub)">
-                <ion-thumbnail>
-                  <img class="" [src]="itemSub.image || 'https://ionicframework.com/docs/img/demos/avatar.svg' " [alt]="itemSub.value">
-                </ion-thumbnail>
-                <ion-label>{{itemSub.value}}</ion-label>
-              </div>
-
-            </ion-col>
+            <!-- Verifica se ci sono sub-categorie per la categoria corrente -->
+            <ng-container *ngIf="oufitSubCategories[oufitCategory.id] && oufitSubCategories[oufitCategory.id].length > 0; else noSubCategories">
+              <ion-col size="3" *ngFor="let itemSub of oufitSubCategories[oufitCategory.id]" class="sub-categories">
+                <div (click)="selectedSubCat(itemSub)">
+                  <ion-thumbnail class="thumb-sub-categories">
+                    <img [src]="itemSub.image || '../../../assets/images/sub_categories/generic.jpg'" [alt]="itemSub.value">
+                  </ion-thumbnail>
+                  <ion-label class="label-categories">{{itemSub.value}}</ion-label>
+                </div>
+              </ion-col>
+            </ng-container>
+            
+            <!-- Template per mostrare "nessun risultato" per una categoria specifica -->
+            <ng-template #noSubCategories>
+              <ion-col>
+                <p class="no-results">Nessun prodotto.</p>
+              </ion-col>
+            </ng-template>
           </ion-row>
 
         </ion-grid>

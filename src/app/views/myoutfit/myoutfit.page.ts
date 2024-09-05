@@ -29,6 +29,9 @@ export class MyOutFitPage implements OnInit {
   outfitUserProfile!: UserProfile[];
   cUserPreference!:UserPreference[]
   isOutfitCompositionOpen: boolean = false;
+  currentFilterSel:any;
+  filterColor:any[] = [];
+  isFiltersSel:boolean=false
   constructor(private appService: AppService, private afAuth: AngularFireAuth, private userProfileService: UserService, private modalController: ModalController, private alertController: AlertController) {
 
   }
@@ -64,11 +67,11 @@ export class MyOutFitPage implements OnInit {
   }
 
   async openFilterModal() {
-
+    this.isFiltersSel = false
     const modal = await this.modalController.create({
       component: FilterOutfitsPage,
       componentProps: {
-        
+        currentFilterSel:this.currentFilterSel
 
       }
     });
@@ -76,38 +79,42 @@ export class MyOutFitPage implements OnInit {
 
     const { data } = await modal.onDidDismiss();
     console.log( data);
+    this.filterColor = data.color;
+    this.currentFilterSel = {...data};
+    
 
-  
+    //Non cerco nel colore del capo di abbiglimento trami firebase, quindi estraggo il colori se sono presenti nella scelta e li filtro poi a mano.
+    delete data.color
+    delete data.outfitCategory
     
-    this.filterOutfits(data)
-   
+      
+    const cond = this.createFirestoreConditions(data)
     
+    let respoA = await this.appService.getFilteredOutfits(cond);
+
+    const outfitColor = respoA.filter(outfit => this.matchColorPreference(outfit)); 
+    console.log('outfitColor',outfitColor)
+    if(outfitColor.length >0){
+      this.filteredOutfits = outfitColor;
+      this.isFiltersSel = true
+      return
+    }
+    this.filteredOutfits = respoA;
     
   }
 
   
-  filterOutfits(filter:any) {
-    
-    this.filteredOutfits =this.outfits.filter(outfit => {
-        const matchesColor = !filter.color || outfit.color === filter.color;
-        const matchesStyle = !filter.style || outfit.style === filter.style;
-        const matchesSeason = !filter.season || outfit.season === filter.season;
-        const matchesTags = filter.tag ? this.matchesTags(filter.tag,outfit.tags) : true;
   
-        return matchesColor && matchesStyle && matchesSeason && matchesTags;
-      });
-  }
+  matchColorPreference(outfit:outfit){
+    return this.filterColor.some(color => {
 
-  // Metodo per verificare se i tags dell'outfit corrispondono ai filtri
-  matchesTags(filterTags: Tag[], outfitTags: Tag[]): boolean {
-    return outfitTags.every(filterTag => {
-      return filterTags.some(tag => {
-        const matchesColor = !tag.color ? true : tag.color === filterTag.color;
-        const matchesOutfitCategory = !tag.outfitCategory ? true : tag.outfitCategory === filterTag.outfitCategory;
-        const matchesOutfitSubCategory = !tag.outfitSubCategory ? true : tag.outfitSubCategory === filterTag.outfitSubCategory;
-
-        return matchesColor && matchesOutfitCategory && matchesOutfitSubCategory;
-      });
+      const colors = color 
+      
+  
+      const matchesColor = outfit.tags.some((tag: any) => colors.includes(tag.color));
+      
+      // Restituisce true se almeno una delle preferenze corrisponde all'outfit
+      return matchesColor 
     });
   }
   async showOutfitComposition(tags: any) {
@@ -202,7 +209,7 @@ export class MyOutFitPage implements OnInit {
         this.outfitUserProfile$.subscribe(outfitUserProfile=>{
           this.outfitUserProfile[rr.userId] = outfitUserProfile
         })
-     
+        
       if (this.outfits.length > 0) {
         this.isLoading = false;
       }
@@ -210,10 +217,41 @@ export class MyOutFitPage implements OnInit {
     });
   }
 
- 
+  createFirestoreConditions(filters: any): FireBaseConditions[] {
+    const conditions: FireBaseConditions[] = [];
   
+    for (const key in filters) {
+      if (filters.hasOwnProperty(key)) {
+        const value = filters[key];
+        
+        // Controlla se il valore è un array vuoto e salta questa iterazione
+        if (Array.isArray(value) && value.length === 0) {
+          continue;  // Salta questa iterazione se l'array è vuoto
+        }
+        // Se il valore è un array con più di un elemento, usa "array-contains-any"
+        if (Array.isArray(value) && value.length > 0) {
+          
+            // usa l'operatore "array-contains-any"
+            conditions.push({
+              field: key,
+              operator: 'array-contains-any',
+              value:  filters[key]
+            });
+         
+        } else if (value !== null && value !== undefined && value !== '') {
+          // Se non è un array e ha un valore valido, usa "=="
+          conditions.push({
+            field: key,
+            operator: '==',
+            value: value
+          });
+        }
+      }
+    }
   
-
+    return conditions;
+  }
+  
   createQueryConditions():FireBaseConditions[]{
     
     let conditions: FireBaseConditions[] = []
@@ -244,6 +282,8 @@ export class MyOutFitPage implements OnInit {
     return conditions
     
   }
+
+  
   
   matchesPreferences(outfit: any): boolean {
     // Logica per confrontare l'outfit con le preferenze dell'utente

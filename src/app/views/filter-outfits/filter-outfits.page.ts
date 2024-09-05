@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
 import { categoryCloth, colors, filterItmClothing, seasons, style, subCategoryCloth } from 'src/app/service/interface/outfit-all-interface';
@@ -15,12 +15,15 @@ export class FilterOutfitsPage implements OnInit {
 
   constructor(private modalController: ModalController,private appService:AppService) { }
 
+  @Input() currentFilterSel: any
+
   oufitCategories:{
     id:string;
     value:string;
     parent:string;
   }[] = [];
   oufitSubCategories:any;
+  simpleOufitSubCategories:any;
 
   itmColor:any;
   itmStyles:any;
@@ -42,7 +45,7 @@ export class FilterOutfitsPage implements OnInit {
     
     this.oufitCategories =  await this.appService.getFilteredCollection('outfitsCategories',[])
     let dataR =   await this.appService.getFilteredCollection('outfitsSubCategories',[])
-    
+    this.simpleOufitSubCategories = dataR
     this.oufitSubCategories = dataR.reduce((subCategories: any, item: any) => {
       const category = item.parent;
    
@@ -72,11 +75,58 @@ export class FilterOutfitsPage implements OnInit {
         colorName:'Seleziona colore',
         color: ''
       }
-  )
+    )
 
-  this.itmColor = colors
-  this.itmStyles = style
-  this.itmSeasons = seasons
+    this.itmColor = colors
+    this.itmStyles = style
+    this.itmSeasons = seasons;
+
+    console.log(this.currentFilterSel);
+    if(typeof this.currentFilterSel.season != 'undefined'){
+      this.selectedFilterSeasonIndex =  this.itmSeasons.findIndex((r:any)=>r.id == this.currentFilterSel.season)
+    }
+    
+    if(typeof this.currentFilterSel.style != 'undefined'){
+      this.selectedFilterStyleIndex =  this.itmStyles.findIndex((r:any)=>r.id == this.currentFilterSel.style)
+    }
+
+    if(typeof this.currentFilterSel.outfitCategory != 'undefined' && this.currentFilterSel.outfitCategory.length>0){
+      console.log(this.currentFilterSel.tags);
+      const filterOutfitCategory =  this.currentFilterSel.outfitCategory
+      const outfitCategory = this.oufitCategories.filter(category=>filterOutfitCategory.includes(category.id)) 
+      
+      outfitCategory.forEach((res,i)=>{
+        this.filterItmClothing[i]={
+          ...this.filterItmClothing[i],
+          outfitCategory:res.id
+        }
+      })
+    }
+
+    if(typeof this.currentFilterSel.outfitSubCategory != 'undefined' ){
+      const filterOutfitSubCategory = this.currentFilterSel.outfitSubCategory
+      const outfitSubCategory = this.simpleOufitSubCategories.filter((subCategory:any)=>filterOutfitSubCategory.includes(subCategory.id)) 
+      console.log(outfitSubCategory)
+      outfitSubCategory.forEach((res: any,i:any)=>{
+        this.filterItmClothing[i]={
+          ...this.filterItmClothing[i],  
+          outfitSubCategory:res.id,
+          outfitSubCategoryName:res.value,
+        }
+      })
+    }
+    if(this.currentFilterSel.color != 'undefined' ){
+      const colors = this.currentFilterSel.color
+      const outfitColor = this.itmColor.filter((color:any)=>colors.includes(color.id)) 
+      console.log(outfitColor)
+      outfitColor.forEach((res: any,i:any)=>{
+        this.filterItmClothing[i]={
+          ...this.filterItmClothing[i],  
+          color:res.id,
+          colorName:res.value,
+        }
+      })
+    }
   }
   
   selectedSubCat(itemSub?:any){
@@ -141,6 +191,7 @@ export class FilterOutfitsPage implements OnInit {
     this.selectedFilterStyleIndex = indexStyle
     this.filterItmStyle = selStyle
   }
+
   selSeason(indexSeason:any,selSeason:any){
     
     if(this.selectedFilterSeasonIndex == indexSeason){
@@ -183,26 +234,37 @@ export class FilterOutfitsPage implements OnInit {
   }
   
   closeFilter(){
-    let tag: { color: string | undefined; outfitCategory: string | undefined; outfitSubCategory: string | undefined; }[] = []
+   let tags 
     if(this.filterItmClothing){
-      this.filterItmClothing.forEach(itmC=>{
-        if(itmC?.color == '' &&  itmC?.outfitCategory=='' && itmC?.outfitSubCategory=='' ){
-          return
-        }
-        tag.push({
-          color:itmC?.color,
-          outfitCategory:itmC?.outfitCategory,
-          outfitSubCategory:itmC?.outfitSubCategory,
-        });
-      })
+      tags = this.filterItmClothing.reduce(
+        (acc: { outfitCategory: string[], outfitSubCategory: string[], color: string[] }, tag) => {
+          if (tag) {
+            if (tag.outfitCategory && !acc.outfitCategory.includes(tag.outfitCategory)) {
+              acc.outfitCategory.push(tag.outfitCategory);
+            }
+            if (tag.outfitSubCategory && !acc.outfitSubCategory.includes(tag.outfitSubCategory)) {
+              acc.outfitSubCategory.push(tag.outfitSubCategory);
+            }
+            if (tag.color && !acc.color.includes(tag.color)) {
+              acc.color.push(tag.color);
+            }
+          }
+          return acc;
+        },
+        { outfitCategory: [], outfitSubCategory: [], color: [] }
+      );
+      
       
     }
+    const season =  !this.filterItmSeason ? '' : this.filterItmSeason.id
+    const style =  !this.filterItmStyle ? '' : this.filterItmStyle.id
 
     let createItmEl={
-      color:this.filterItmColor,
-      tag:tag,
-      style:this.filterItmStyle,
-      season:this.filterItmSeason
+      color:'',
+      
+      style:style,
+      season:season,
+      ...tags
     }
     this.modalController.dismiss(createItmEl);
   }

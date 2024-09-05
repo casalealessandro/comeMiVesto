@@ -4,8 +4,11 @@
 
   <ion-toolbar class="outfit-toolbar">
     <ion-title class="outfit-toolbar-title">Ispirazioni</ion-title>
+    
     <ion-buttons slot="end">
+      
       <ion-button size="small" fill="clear" (click)="openFilterModal()">
+        
         <ion-icon  name="filter-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -28,7 +31,7 @@
           <ion-card class="outfit-card" >
             <div class="outfit-header-wrapper-title">
               <ion-avatar slot="start" class="outfit-card-avatar">
-                <img [alt]="outfitUserProfile[outfit.userId].displayName" [src]="outfitUserProfile[outfit.userId].photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+                <img [alt]="outfitUserProfile[outfit.userId]!.displayName || ''" [src]="outfitUserProfile![outfit.userId].photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
               </ion-avatar>
               <ion-card-title class="outfit-card-title">
                 
