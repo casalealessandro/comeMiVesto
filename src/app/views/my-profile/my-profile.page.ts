@@ -7,6 +7,7 @@ import { outfit, wardrobesItem } from 'src/app/service/interface/outfit-all-inte
 import { AlertController, ModalController } from '@ionic/angular';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { AddOutfitPage } from '../add-outfit/add-outfit.page';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-my-profile',
   templateUrl: './my-profile.page.html',
@@ -27,7 +28,7 @@ export class MyProfilePage {
   userProfile!: UserProfile;
   uid: string = '';
   userPreference!:any
-  constructor(private userProfileService: UserService,private modalController:ModalController, private alert:AlertController) { }
+  constructor(private userProfileService: UserService,private modalController:ModalController, private alert:AlertController,private ruote:Router) { }
 
   ngOnInit() {
     this.userProfile$ = this.userProfileService.getUserProfile();
@@ -167,5 +168,13 @@ export class MyProfilePage {
     const { data } = await modal.onDidDismiss();
 
     
+  }
+
+  async logOut(){
+    let logout = await this.userProfileService.logOut()
+
+    if(logout){
+      this.ruote.navigate(['/login'])
+    }
   }
 }

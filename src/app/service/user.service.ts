@@ -117,4 +117,15 @@ export class UserService {
     return result  
     
   }
+
+  async logOut(): Promise<boolean>{
+    try {
+      await this.afAuth.signOut();
+      console.log('Logout effettuato con successo');
+      return true; // Logout completato con successo
+    } catch (error) {
+      console.error('Errore durante il logout:', error);
+      return false; // Errore durante il logout
+    }
+  }
 }

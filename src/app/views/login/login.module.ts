@@ -16,6 +16,7 @@ import { ComponentsModule } from 'src/app/components/components.module';
     imports: [
         CommonModule,
         IonicModule,
+        FormsModule,
         LoginPageRoutingModule,
         ComponentsModule
     ]

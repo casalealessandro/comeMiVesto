@@ -1,11 +1,29 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Registration</ion-title>
+    <ion-buttons slot="start">
+      <ion-button  (click)="handleBackButton()" size="small"><ion-icon slot="icon-only"  name="chevron-back-outline"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>Registrati</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <ion-item>
+  <!--registerForm-->
+    <div class="register-img">
+      <img alt="Silhouette of mountains" src="../../../assets/images/193683350.png" />
+    </div>
+    
+    <div class="register-wrapper">
+      <app-dynamic-form 
+      [service]="'registerForm'" 
+      
+      (submitFormEvent)="register($event)">
+    </app-dynamic-form>
+    </div>
+     
+   
+ 
+ <!--  <ion-item>
     <ion-label position="floating">Email</ion-label>
     <ion-input type="email" [(ngModel)]="email"></ion-input>
   </ion-item>
@@ -31,5 +49,5 @@
     </ion-select>
   </ion-item>
 
-  <ion-button expand="block" (click)="register()">Register</ion-button>
+  <ion-button expand="block" (click)="register()">Register</ion-button> -->
 </ion-content>

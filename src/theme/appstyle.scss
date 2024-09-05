@@ -12,9 +12,14 @@ body,
 html {
     font-family: 'Neue Helvetica', sans-serif !important;
     color: var(--text-color);
+    --ion-background-color: #ffffff; /* Sovrascrive la modalità dark con il bianco */
+    background-color: #ffffff !important; /* Forza lo sfondo bianco */
 }
 
-
+body.dark {
+    --ion-background-color: #ffffff; /* Sovrascrive la modalità dark con il bianco */
+    background-color: #ffffff !important; /* Forza lo sfondo bianco */
+  }
 p,
 h1,
 h2,
