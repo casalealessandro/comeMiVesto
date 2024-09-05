@@ -193,15 +193,17 @@ export class MyOutFitPage implements OnInit {
   async loadOutfits(): Promise<void> {
 
     let conditions:FireBaseConditions[] = []
-    //this.createQueryConditions()
+    const preferencC = this.createQueryConditions()
 
     this.isLoading = true;
     let newOutfits = await this.appService.getFilteredCollection('outfits',conditions) 
-      console.log(JSON.stringify(newOutfits))
+      //console.log(JSON.stringify(newOutfits))
       //.filter(outfit => this.matchesPreferences(outfit));
       
-      this.outfitUserProfile = []
-      this.outfits = newOutfits;
+      this.outfitUserProfile = [];
+      const copyOutfit = await this.appService.getFilteredOutfits(preferencC) ;
+      console.log('matchesPreferences-->',copyOutfit)
+      this.outfits = newOutfits
       this.filteredOutfits = [...this.outfits];
       this.outfits.forEach(async rr => {
         this.heartIcon(rr.id);
@@ -260,16 +262,17 @@ export class MyOutFitPage implements OnInit {
         // Itero sulle proprietà di ogni oggetto
         (Object.keys(pref) as (keyof UserPreference)[]).forEach(key => {
           const value = pref[key];
-          
-          let filedK = key == 'color' || key ==  'brend' ? `tags.${key}` : key
+          let operator = '=='
+          //operator = key == 'color' ? operator = 'array-contains-any'  : '==';
+           
 
           // Controllo se il valore è un array non vuoto
           if (Array.isArray(value) && value.length > 0) {
             value.forEach((val: string) => {
               // Aggiungo una nuova condizione per ogni elemento dell'array
               conditions.push({
-                field: filedK,       // Il nome della proprietà come campo
-                operator: "==",   // L'operatore può essere dinamico se necessario
+                field: key,       // Il nome della proprietà come campo
+                operator: operator,   // L'operatore può essere dinamico se necessario
                 value: val        // L'elemento dell'array come valore
               });
             });
