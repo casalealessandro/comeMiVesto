@@ -21,7 +21,9 @@
       </ion-col>
     </ion-row>
   </ion-grid>
-  
+  <ion-refresher slot="fixed" (ionRefresh)="loadOutfits()">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
   <cdk-virtual-scroll-viewport itemSize="56" minBufferPx="900" maxBufferPx="1350" class="viewport cdk-virtual-scroll-viewport">
     
        
