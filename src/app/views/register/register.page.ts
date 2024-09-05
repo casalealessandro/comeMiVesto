@@ -29,7 +29,7 @@ export class RegisterPage {
         const displayName = !registerData.displayName ? `${this.nome} ${this.cognome}`:registerData.displayName
         const user = userCredential.user;
         const bio = !registerData.bio ? '' : registerData.bio
-        const name = !registerData.name ? '' : registerData.name
+        const name = !registerData.nome ? '' : registerData.nome
         const cognome = !registerData.cognome ? '' : registerData.cognome
         let userProfile:UserProfile ={
           uid:user.uid,
