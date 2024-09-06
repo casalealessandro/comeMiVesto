@@ -120,7 +120,6 @@ export class MyOutFitPage implements OnInit {
       return matchesColor 
     });
   }
-
   async showOutfitComposition(tags: any) {
 
       // Verifica se il modale è già aperto

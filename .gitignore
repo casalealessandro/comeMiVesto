@@ -66,5 +66,8 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+<<<<<<< HEAD
 
 template-bundle-ionic-6-starter-ionic.zip
+=======
+>>>>>>> e088221984c6c877cfacd26f3eed2dacea2e83df

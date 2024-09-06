@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 <ion-header *ngIf="!showLogin">
 
   <ion-toolbar>
     <ion-button  fill="clear" slot="start" (click)="showRecupPassword()">
+=======
+<ion-header>
+
+  <ion-toolbar>
+    <ion-button *ngIf="!showLogin" fill="clear" slot="start" (click)="showRecupPassword()">
+>>>>>>> e088221984c6c877cfacd26f3eed2dacea2e83df
       <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
     </ion-button>
     <ion-title>Login</ion-title>
@@ -9,6 +16,7 @@
 
 </ion-header>
 
+<<<<<<< HEAD
 
 <ion-content>
   <ng-container *ngIf="showLogin; else recupPassword">
@@ -78,6 +86,56 @@
         </form>
       </div>
       
+=======
+<ion-content>
+
+  <ng-container *ngIf="showLogin; else recupPassword">
+
+
+    <app-dynamic-form [service]="'loginForm'" (submitFormEvent)="submitFormEvent($event)">
+    </app-dynamic-form>
+
+
+    <ion-item class="pass" >
+
+      <span class="recupPassword" (click)="showRecupPassword()">Password dimenticata</span>
+      
+
+    </ion-item>
+    <ion-button [routerLink]="'/register'" expand="full" class="outfit-button">
+      Registrati
+    </ion-button>
+
+  </ng-container>
+
+  <ng-template #recupPassword>
+    <div class="ion-padding">
+      <form #recoveryForm="ngForm" (ngSubmit)="recuperaPassword(recoveryForm)">
+
+
+        <ion-input 
+          type="email" 
+          labelPlacement="stacked"
+          label="Email" 
+          placeholder="Inserisci email per di recupero"
+          name="emailRecup"
+          [(ngModel)]="emailRecup"
+          required
+          email
+          #emailInput="ngModel"
+          >
+
+        </ion-input>
+        <div *ngIf="emailInput.invalid && emailInput.touched" class="error-message">
+          <ion-text color="danger">{{recupPasswordError}}</ion-text>
+        </div>
+
+
+
+        <ion-button class="outfit-button" expand="full" fill="clear"  type="submit" >Invia
+          password</ion-button>
+      </form>
+>>>>>>> e088221984c6c877cfacd26f3eed2dacea2e83df
     </div>
 
   </ng-template>
