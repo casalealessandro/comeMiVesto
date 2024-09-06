@@ -32,7 +32,7 @@
         [service]="'loginForm'" 
         [btnFormText]="'Login'"
         (submitFormEvent)="submitFormEvent($event)">
-        
+
         </app-dynamic-form>
         <div class="login-heading">
                  
@@ -64,7 +64,7 @@
         <form #recoveryForm="ngForm" (ngSubmit)="recuperaPassword(recoveryForm)">
 
 
-          <ion-input  class="textbox" type="email" labelPlacement="stacked" label="Email" placeholder="Inserisci email per di recupero"
+          <ion-input class="textbox" type="email" labelPlacement="stacked" label="Email" placeholder="Inserisci email per di recupero"
             name="emailRecup" [(ngModel)]="emailRecup" required email #emailInput="ngModel">
 
           </ion-input>
@@ -74,7 +74,7 @@
 
 
 
-          <ion-button class="outfit-button" class="outfit-button" expand="full" fill="clear" type="submit">Invia
+          <ion-button class="outfit-button" expand="block" class="btn outfit-button" type="submit">Invia
             password</ion-button>
         </form>
       </div>
