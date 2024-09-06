@@ -3,7 +3,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 
 import { AppService } from 'src/app/service/app-service';
-import { outfit, Tag } from 'src/app/service/interface/outfit-all-interface';
+import { outfit, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
 
 import { AlertController, LoadingController, ModalController, NavController } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -204,8 +204,24 @@ export class AddOutfitPage {
         ...mappedTag
       };
       let outfitSaveed =  await this.editOutfit(oartialOutfit);
-
+      const user = await this.afAuth.currentUser;
+      const uid = !user?.uid ? '' : user?.uid
       if(outfitSaveed){
+        this.tags.forEach(async (itm:any)=>{
+          let wardrobesItem:wardrobesItem = {
+            id: itm.id,
+            userId: uid,
+            name: itm.name,
+            outfitCategory: itm.outfitCategory,
+            outfitSubCategory: itm.outfitSubCategory,
+            brend: itm.brend,
+            color:itm.color,
+            images:[]
+          }
+          let res = await this.appService.saveInCollection('wardrobes', undefined, wardrobesItem)
+        })
+        
+
         this.handleBackButton()
       }
     }

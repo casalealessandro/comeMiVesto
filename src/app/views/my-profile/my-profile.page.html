@@ -49,7 +49,7 @@
     </div>
  
     <ion-row class="style">
-      <ion-col class="post-col" size="auto" *cdkVirtualFor="let userOutfit of userOutfits">
+      <ion-col class="post-col" size="auto" *ngFor="let userOutfit of userOutfits">
         <div class="post-image" (click)="openEditOutfit(userOutfit)">
           <ion-thumbnail>
             <img class="" [src]="userOutfit.imageUrl" [alt]="userOutfit.title">
