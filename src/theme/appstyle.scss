@@ -1,0 +1,158 @@
+/* ion-header {
+    ion-toolbar {
+        --font-size: 1rem
+    }
+}
+
+ion-button {
+    --background: transparent;
+    
+    --background-activated: transparent;
+   
+    --background-focused: transparent;
+   
+    max-height: 25px;
+    border-radius: 4px;
+
+
+}
+
+ion-fab-button {
+    --background: var(--outfit-buttons-color);
+  
+}
+
+ion-chip {
+    padding: var(--outfit-padding-size-2);
+}
+ */
+
+/* .outfit-toolbar {
+    --background: var(--outfit-background);
+    font-size: 1rem;
+    min-height: 30px;
+
+    .outfit-toolbar-title {
+        font-size: 1rem;
+    }
+}
+
+.outfit-button {
+    background: var(--outfit-buttons-color);
+    color: var(--outfit-btn-text-color);
+}
+
+.header-background {
+    display: none;
+}
+
+.outfit-header-title {
+    align-items: center;
+    margin: 0;
+    padding: 5px;
+    margin-left: 0.3rem;
+    text-align: start;
+
+
+    ion-img {
+        max-width: 260px;
+        object-fit: cover;
+    }
+}
+
+.outfit-bottom-bar {
+
+
+    .outfit-bar-button {
+        --color: var(--outfit-buttons-color);
+        --border-radius: 50%;
+        --padding-start: 5px;
+        --padding-end: 5px;
+        font-size: 18px;
+        max-height: 25px;
+        min-height: 25px;
+
+        &.outfit-center-button {
+            ion-icon {
+                font-size: 24px;
+                font-weight: 600;
+            }
+
+        }
+    }
+
+
+
+
+
+} */
+
+
+
+
+ion-button {
+    border-radius: 2px;
+    margin: 10px 3px;
+
+}
+
+ion-input {
+    margin: 10px 3px;
+
+}
+
+.textbox {
+    border: 2px solid var(--ion-color-light);
+    //border-radius: 15px;
+    font-size: 16px;
+    //font-weight: 600;
+
+    label {
+        //font-size: 22px;
+        color: var(--ion-color-medium);
+        margin: 0px 10px;
+    }
+
+
+    img {
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+    }
+}
+
+.btn,
+.outfit-button {
+    margin: 15px 14px;
+}
+
+.main-content {
+    .title {
+    display: flex;
+    justify-content: space-between;
+    ion-label {
+        font-size: 18px;
+        font-weight: 600;
+    }
+    .text {
+        font-size: 14px;
+        color: gray;
+    }
+    }
+
+    
+    .slot {
+        ion-chip {
+            background-color: white;
+            border: 2px solid lightgray;
+            border-radius: 8px;
+            padding: 5px 8px;
+            font-weight: 500;
+            font-size: 13px;
+        }
+    }
+}
+
+.style-main{
+    padding: 20px 2px;
+  }

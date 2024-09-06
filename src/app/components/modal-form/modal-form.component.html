@@ -1,0 +1,19 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">Chiudi</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <app-dynamic-form
+  [service]="service"
+  [editData]="editData"
+  (submitFormEvent)="applyData($event)"
+
+  >
+ </app-dynamic-form>
+
+</ion-content>

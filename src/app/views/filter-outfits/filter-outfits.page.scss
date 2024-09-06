@@ -1,0 +1,47 @@
+.slot {
+    padding: 5px 14px;
+
+    ion-chip {
+
+        background-color: white;
+        border: 2px solid lightgray;
+        border-radius: 8px;
+        padding: 5px 8px;
+        font-weight: 500;
+        font-size: 13px;
+
+        &.styleselcted {
+            //border: 2px solid var(--ion-tab-bar-color-selected);
+            background-color:lightgray;
+        
+        }
+    }
+}
+
+.card-filter-cloth {
+    .cloth-label {
+        display: flex;
+
+
+        .del-itm-cloth {
+            color: var(--outfit-btn-text-color);
+
+        }
+    }
+}
+
+.color-hex {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    display: block;
+    border: 1px solid lightgray;
+}
+
+
+
+.sub-categories {
+    .label-categories {
+        font-size: 0.8rem;
+    }
+}

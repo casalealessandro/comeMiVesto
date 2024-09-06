@@ -1,0 +1,14 @@
+<ion-item>
+  
+  <ion-select 
+    [multiple]="selectOptions.multiple"
+    [value]="selectedValue"
+    [label]="config.label"
+    [labelPlacement]="labelPlacement"
+    (ionChange)="onValueChange($event)"
+    [disabled]="disabled"> <!-- Disabilita la selectbox se necessario -->
+    <ion-select-option *ngFor="let option of availableOptions" [value]="option[valueExp]">
+      {{ option[displayExp] }}
+    </ion-select-option>
+  </ion-select>
+</ion-item>

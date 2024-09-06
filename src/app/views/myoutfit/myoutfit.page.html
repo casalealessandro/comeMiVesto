@@ -1,0 +1,105 @@
+<ion-content>
+
+  <div class="main-content">
+    <div class="heading">
+      <!--  <div class="location">
+        <ion-icon name="location"></ion-icon>
+        <ion-label class="text"></ion-label>
+      </div> -->
+      <div class="wish">
+  
+        <div class="searchbox">
+          <ion-input type="text" readonly placeholder="Cerichi qualcosa di particolare?"
+            class="ion-no-padding"></ion-input>
+          <ion-button size="small" fill="clear" (click)="openFilterModal()">
+  
+            <ion-icon class="icon" name="filter-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+  
+      <div class="banner">
+        <div class="menu">
+          <div class="card" *ngFor="let item of [1,2,3,4]" (click)="openFilterModal()">
+            <div class="img" [style.backgroundImage]="'url(assets/images/fallback-image.jpg)'">
+              <ion-label class="text">Groomy</ion-label>
+              <ion-label class="title">Stylist</ion-label>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+  
+      <div class="style-main">
+        <ion-grid [fixed]="true" *ngIf="isLoading">
+          <ion-row>
+            <ion-col size="12" class="col-spinner">
+              <ion-spinner></ion-spinner>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
+  
+      <div class="style-main" *ngIf="!isLoading">
+        <div class="title">
+          <ion-label>Ultimi outifit</ion-label>
+          <!-- <ion-label class="text">See All</ion-label -->
+        </div>
+  
+        <ion-row class="style">
+          <ion-col size="12"  *ngFor="let outfit of filteredOutfits">
+            
+              <ion-card class="outfit-card">
+                <div class="outfit-header-wrapper-title">
+                  <ion-avatar slot="start" class="outfit-card-avatar">
+                    <img [alt]="outfitUserProfile[outfit.userId]!.displayName || ''"
+                      [src]="outfitUserProfile![outfit.userId].photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+                  </ion-avatar>
+                  <ion-card-title class="outfit-card-title">
+  
+                    {{ outfitUserProfile[outfit.userId].displayName }}
+                  </ion-card-title>
+                </div>
+                <app-foto-outfit [image]="outfit.imageUrl" [enableNewImagecaptured]="false" [enableSetTagsImage]="false"
+                  [tags]="outfit.tags">
+                </app-foto-outfit>
+  
+                <ion-card-header class="outfit-card-header">
+  
+  
+                  <div class="outfit-header-wrapper">
+                    <ion-card-subtitle class="outfit-card-subTitle">{{ outfit.title }}</ion-card-subtitle>
+                    <section class="outfit-card-action">
+                      <ion-button size="small" fill="clear" (click)="addFavoriteOutfit(outfit.id)">
+                        <ion-icon slot="icon-only" [name]="isFavorite(outfit.id) ? 'heart' : 'heart-outline'"
+                          aria-label="Mi piace"></ion-icon>
+                      </ion-button>
+                      <ion-button size="small" fill="clear" (click)="showOutfitComposition(outfit.tags)">
+                        <ion-icon name="shirt-outline" aria-label="Salva otfit"></ion-icon>
+                      </ion-button>
+  
+                    </section>
+  
+                  </div>
+  
+  
+                </ion-card-header>
+                <ion-card-content class="outfit-card-content">
+                  <p class="outfit-description">{{ outfit.description }}</p>
+  
+                </ion-card-content>
+              </ion-card>
+           
+          </ion-col>
+        </ion-row>
+  
+
+      </div>
+ 
+  </div>
+  </div>
+     <!-- <ion-refresher slot="fixed" (ionRefresh)="refreshOutfits($event)">
+        <ion-refresher-content></ion-refresher-content>
+      </ion-refresher> -->
+    
+</ion-content>

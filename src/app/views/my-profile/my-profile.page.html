@@ -1,0 +1,66 @@
+<div class="main-content">
+  <div class="profile-header">
+    <div class="profile-header-content">
+      <div class="profile-avatar-container">
+        <ion-avatar class="profile-avatar" (click)="changeProfilePicture()">
+          <img *ngIf="userProfile$ | async as userProfile" class="profile-pic"
+            [src]="userProfile.photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+        </ion-avatar>
+
+        <ion-icon name="add-circle" class="add-icon" (click)="changeProfilePicture()"></ion-icon>
+
+
+      </div>
+      <div class="profile-stats">
+        <div class="stat">
+          <span class="stats-number">{{outfitNumber}}</span>
+          <span class="stats-label">Outfit creati</span>
+        </div>
+        <div class="stat">
+          <span class="stats-number">{{wardrobesNumber}}</span>
+          <span class="stats-label">Vestiti nell'armadio</span>
+        </div>
+        <div class="stat">
+          <span class="stats-number">{{faveUserOutfitsNumber}}</span>
+          <span class="stats-label">Desiderati</span>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="userProfile$ | async as userProfile">
+      <h2 class="profile-name">{{userProfile.displayName}}</h2>
+      <p class="profile-bio">{{userProfile.bio}}</p>
+
+    </div>
+
+    <div class="profile-buttons">
+      <ion-button class="btn profile-btn outfit-button" size="small" (click)="editProfile()"><ion-icon slot="start"
+          name="pencil-outline"></ion-icon> Modifica profilo</ion-button>
+      <ion-button class="btn profile-btn outfit-button" size="small" (click)="editUserPreference()"><ion-icon
+          name="ice-cream-outline"></ion-icon>Modifica preferenze</ion-button>
+      <ion-button class="btn profile-btn outfit-button" size="small" (click)="logOut()"><ion-icon
+          name="log-out-outline"></ion-icon></ion-button>
+
+    </div>
+  </div>
+  <div class="style-main">
+    <div class="title">
+      <ion-label>Outfit</ion-label>
+      <!-- <ion-label class="text">See All</ion-label -->
+    </div>
+ 
+    <ion-row class="style">
+      <ion-col class="post-col" size="auto" *cdkVirtualFor="let userOutfit of userOutfits">
+        <div class="post-image" (click)="openEditOutfit(userOutfit)">
+          <ion-thumbnail>
+            <img class="" [src]="userOutfit.imageUrl" [alt]="userOutfit.title">
+          </ion-thumbnail>
+
+        </div>
+
+      </ion-col>
+
+    </ion-row>
+    <!-- Aggiungi altre righe se necessario -->
+  </div>
+
+</div>
