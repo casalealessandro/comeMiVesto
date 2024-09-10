@@ -75,9 +75,16 @@ export class FotoOutfitPage implements OnInit {
   
     const image = await Camera.getPhoto({
       quality: 90,
-      allowEditing: true,
-      resultType: CameraResultType.DataUrl,
-      source: CameraSource.Camera,
+    
+        
+      
+      allowEditing: true, // Per abilitare la modifica della foto
+      resultType: CameraResultType.DataUrl, // Può essere Uri, Base64 o DataUrl
+      source: CameraSource.Camera, // Può essere Camera, Photos o Prompt
+      correctOrientation: true, // Per correggere l'orientamento dell'immagine
+      promptLabelPhoto: 'Seleziona dalla galleria ',
+      promptLabelPicture: 'Scatta una foto',
+      promptLabelCancel: 'Cancella',
     });
   
     if (image && image.dataUrl) {  // Aggiungi un controllo per verificare che dataUrl non sia undefined
