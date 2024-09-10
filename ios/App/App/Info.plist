@@ -18,6 +18,12 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>L&apos;app accede alla camera per scarre foto degli outfit da creare</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>L&apos;app accede alla camera per scarre foto degli outfit da creare</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>L&apos;app accede alla camera per scarre foto degli outfit da creare</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
