@@ -65,7 +65,10 @@ export class MyProfilePage {
       quality: 90,
       allowEditing: false,
       resultType: CameraResultType.DataUrl,
-      source: CameraSource.Prompt
+      source: CameraSource.Prompt,
+      promptLabelPhoto: 'Seleziona dalla galleria ',
+      promptLabelPicture: 'Scatta una foto',
+      promptLabelCancel: 'Cancella',
     });
 
     if (image && image.dataUrl) {

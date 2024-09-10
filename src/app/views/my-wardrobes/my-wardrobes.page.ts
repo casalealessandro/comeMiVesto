@@ -109,13 +109,7 @@ export class MyWardrobesPage  {
     const categoryID = data.category;
     const subCategoryID = data.subCategory;
 
-    
-
-    /*
-    
-    
-    */
-
+   
     const id = Math.floor(Math.random() * (5 - 1 + 1)) + 1;;
     let saveData:wardrobesItem = {
       brend: data.brend,
