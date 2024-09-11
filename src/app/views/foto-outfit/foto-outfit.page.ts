@@ -97,13 +97,13 @@ export class FotoOutfitPage implements OnInit {
   
       const contentType = resizedImage.dataUrl.substring(resizedImage.dataUrl.indexOf(":") + 1, resizedImage.dataUrl.indexOf(";"));
   
-      // Salvataggio dell'immagine nel filesystem
+      /* // Salvataggio dell'immagine nel filesystem
       await Filesystem.writeFile({
         path: path,
         data: this.blobImg,
         directory: Directory.Data,
       });
-  
+   */
       this.image = resizedImage.dataUrl;
   
       let eventToEmit = {
