@@ -28,17 +28,17 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        color: #9d9fa6;
+        color: var(--color);
       }
       
-      .option ion-icon {
+      /* .option ion-icon {
         font-size: 3rem;
       }
-      
+       */
       p {
         margin-top: 0.5rem;
-        font-size: 1rem;
-        color: #9d9fa6;
+        //font-size: 1rem;
+        color: var(--color);
       }
       
       .updated-label {
