@@ -21,6 +21,7 @@ export class DynamicFormComponent implements OnInit {
   @Input() btnFormText:string ='Salva';
 
   @Output() submitFormEvent: EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
+  @Output() functionalInputFormEvent: EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
   form: FormGroup = new FormGroup({});
   formValues: { [key: string]: any } = {};
   dataSet: any = []
@@ -151,28 +152,39 @@ export class DynamicFormComponent implements OnInit {
   }
 
   // Metodo per ottenere i campi non validi
-getInvalidFields(formGroup: FormGroup): string[] {
-  const invalidFields: string[] = [];
+  getInvalidFields(formGroup: FormGroup): string[] {
+    const invalidFields: string[] = [];
 
-  Object.keys(formGroup.controls).forEach(field => {
-    const control = formGroup.get(field);
-    if (control && control.invalid) {
+    Object.keys(formGroup.controls).forEach(field => {
+      const control = formGroup.get(field);
+      if (control && control.invalid) {
 
-      let ff = this.fieldConfigs[field].label
-      invalidFields.push(ff);
+        let ff = this.fieldConfigs[field].label
+        invalidFields.push(ff);
+      }
+    });
+
+    return invalidFields;
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 4500, // Tempo di visualizzazione in millisecondi
+      position: 'bottom', // Può essere 'top', 'middle' o 'bottom'
+    });
+    toast.present();
+  }
+
+  onFucBtnClick(evt:any){
+
+    let send ={
+      name:'functionalInputClick',
+      nomeCampo:evt.name,
+      allFields:evt
     }
-  });
 
-  return invalidFields;
-}
-
-async presentToast(message: string) {
-  const toast = await this.toastController.create({
-    message: message,
-    duration: 4500, // Tempo di visualizzazione in millisecondi
-    position: 'bottom', // Può essere 'top', 'middle' o 'bottom'
-  });
-  toast.present();
-}
+    this.functionalInputFormEvent.emit(send)
+  }
 
 }

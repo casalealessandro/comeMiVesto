@@ -18,12 +18,12 @@
         </div>
       </div>
   
-      <div class="banner">
+      <div class="banner" *ngIf="trendingOutfits.length>0">
         <div class="menu">
-          <div class="card" *ngFor="let item of [1,2,3,4]" (click)="openFilterModal()">
-            <div class="img" [style.backgroundImage]="'url(assets/images/fallback-image.jpg)'">
-              <ion-label class="text">Groomy</ion-label>
-              <ion-label class="title">Stylist</ion-label>
+          <div class="card" *ngFor="let item of trendingOutfits" (click)="openFilterModal()">
+            <div class="img" [style.backgroundImage]="'url({{item.imageUrl}})'">
+              <ion-label class="text">{{item.title}}</ion-label>
+              <ion-label class="title">{{outfitUserProfile[item.userId].displayName}}</ion-label>
             </div>
           </div>
         </div>
@@ -52,7 +52,7 @@
               <ion-card class="outfit-card">
                 <div class="outfit-header-wrapper-title">
                   <ion-avatar slot="start" class="outfit-card-avatar">
-                    <img [alt]="outfitUserProfile[outfit.userId]!.displayName || ''"
+                    <img 
                       [src]="outfitUserProfile![outfit.userId].photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
                   </ion-avatar>
                   <ion-card-title class="outfit-card-title">
@@ -61,7 +61,9 @@
                   </ion-card-title>
                 </div>
                 <app-foto-outfit [image]="outfit.imageUrl" [enableNewImagecaptured]="false" [enableSetTagsImage]="false"
-                  [tags]="outfit.tags">
+                  [tags]="outfit.tags"
+                  (eventImageShowFull)="hasOutfitVisitFull(outfit)"
+                  >
                 </app-foto-outfit>
   
                 <ion-card-header class="outfit-card-header">
@@ -70,7 +72,7 @@
                   <div class="outfit-header-wrapper">
                     <ion-card-subtitle class="outfit-card-subTitle">{{ outfit.title }}</ion-card-subtitle>
                     <section class="outfit-card-action">
-                      <ion-button size="small" fill="clear" (click)="addFavoriteOutfit(outfit.id)">
+                      <ion-button size="small" fill="clear" (click)="addFavoriteOutfit(outfit)">
                         <ion-icon slot="icon-only" [name]="isFavorite(outfit.id) ? 'heart' : 'heart-outline'"
                           aria-label="Mi piace"></ion-icon>
                       </ion-button>

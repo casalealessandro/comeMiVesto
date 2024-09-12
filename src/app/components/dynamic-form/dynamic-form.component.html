@@ -13,7 +13,12 @@
             line="none"
             [labelPlacement]="labelplacement"
             (ngModelChange)="onValueChange(field.name, $event)"
-          ></ion-input>
+          >
+          <ion-button *ngIf="field.funcButton" fill="clear" slot="end" (click)="onFucBtnClick(field)">
+            <ion-icon name="open-outline"></ion-icon>
+          </ion-button>
+        </ion-input>
+         
         </ion-item>
         <ion-item *ngIf="field.type === 'textArea'">
        

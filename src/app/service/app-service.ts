@@ -54,19 +54,29 @@ export class AppService {
     );
   }
 
-  async getFilteredCollection(collection: string, conditions:FireBaseConditions[]): Promise<any[]> {
+  async getFilteredCollection(collection: string, conditions:FireBaseConditions[],orderBy?:any[]): Promise<any[]> {
     let query: any = this.firestore.collection(collection).ref;
 
     // Applica tutte le condizioni alla query
     conditions.forEach(condition => {
-
+      
       query = query.where(condition.field, condition.operator, condition.value);
       //console.log('conditions-->',query)
     });
+
+    if(orderBy){
+       // Applica l'ordinamento alla query
+       orderBy.forEach(order => {
+        query = query.orderBy(order.field, order.by);
+      });
+    }
+     
     
     try {
       const querySnapshot = await query.get();
+
       const results = querySnapshot.docs.map((doc: any) => doc.data());
+      console.log(conditions,results)
       return results;
     } catch (error) {
       console.error('Error getting filtered collection:', error);

@@ -23,7 +23,12 @@ export interface outfit {
   style: '' | 'casual' | 'elegant' | 'sporty' | 'formal'; // Assumendo alcuni stili possibili
   season: '' | 'winter' | 'spring' | 'summer' | 'autumn'; // Assumendo alcune stagioni possibili
   color?: string;
-  userId: any
+  userId: any;
+  visits?:number;
+  likes?:number;
+  createdAt?:any;
+  editedAt?:any;
+
 }
 
 export interface wardrobesItem {
@@ -56,7 +61,12 @@ export interface buttons {
 export interface FireBaseConditions {
   field: string; 
   operator: string; 
-  value: string 
+  value: any 
+}[]
+
+export interface FireBaseOrderBy{
+  field: string;
+  by: 'asc' | 'desc'
 }[]
 
 export const colors = [

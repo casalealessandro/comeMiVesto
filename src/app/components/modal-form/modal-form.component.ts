@@ -8,7 +8,7 @@ import { ModalController } from '@ionic/angular';
 })
 export class ModalFormComponent  implements OnInit {
   @Input() service: any = null;
-  @Input() title: string = '-';
+  @Input() title: string = '';
   @Input() editData: any = {};
   constructor(private modalController: ModalController) {}
 
@@ -21,6 +21,10 @@ export class ModalFormComponent  implements OnInit {
 
   applyData(event:any) {
     this.modalController.dismiss(event);
+  }
+
+  functionalInputFormEvent(evet:any){
+    this.modalController.dismiss(evet);
   }
 
 }

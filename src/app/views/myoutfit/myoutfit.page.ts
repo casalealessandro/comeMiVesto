@@ -5,7 +5,7 @@ import { AlertController, ModalController, RefresherEventDetail } from '@ionic/a
 
 
 import { AppService } from 'src/app/service/app-service';
-import { buttons, FireBaseConditions, outfit, Tag } from 'src/app/service/interface/outfit-all-interface';
+import { buttons, FireBaseConditions, FireBaseOrderBy, outfit, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
 import { Observable } from 'rxjs';
@@ -21,6 +21,7 @@ export class MyOutFitPage implements OnInit {
 
 
   outfits: outfit[] = []
+  trendingOutfits: outfit[] = []
   filteredOutfits: outfit[] = []; // Array per gli outfit filtrati
   isLoading: boolean = true;
   cUserID: string | undefined;
@@ -45,9 +46,6 @@ export class MyOutFitPage implements OnInit {
     this.afAuth.authState.subscribe(user => {
       if (user) {
      
-       
-       
-        
         this.currentUserProfile$ = this.userProfileService.getUserProfile();
 
         this.currentUserProfile$.subscribe(async userProfile => {
@@ -58,9 +56,11 @@ export class MyOutFitPage implements OnInit {
 
             this.cUserPreference = await this.userProfileService.getUserPreference();
             this.loadOutfits();  // Carica gli outfit solo se l'utente è loggato
-        })
 
+            
+        })
         
+
       }
     });
     // this.loadOutfits();
@@ -211,6 +211,9 @@ export class MyOutFitPage implements OnInit {
      
       this.outfits.forEach(async rr => {
         this.heartIcon(rr.id);
+
+
+
         this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
         this.outfitUserProfile$.subscribe(outfitUserProfile=>{
           this.outfitUserProfile[rr.userId] = outfitUserProfile
@@ -219,11 +222,55 @@ export class MyOutFitPage implements OnInit {
       if (this.outfits.length > 0) {
         this.isLoading = false;
       }
-      console.log('filteredOutfits-->',this.filteredOutfits)
-    });
+//      console.log('filteredOutfits-->',this.filteredOutfits)
+      });
+
+      this.getTrendingOutfits()
   }
 
+  async getTrendingOutfits() {
+    //const oneWeekAgo = new Date();
+    //oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    //oneWeekAgo.setDate(oneWeekAgo.getDate());
+    
+    // Ottieni la data di oggi
+    const today = new Date();
 
+    // Calcola la data di una settimana fa
+    const oneWeekAgo = new Date(today);
+    oneWeekAgo.setDate(today.getDate() - 7);
+
+    // Ottieni il timestamp della data di una settimana fa
+    const timestampOneWeekAgo = oneWeekAgo.getTime();
+        
+    const conditions: FireBaseConditions[] = [];
+  
+    
+    conditions.push(
+      {
+        field: 'createdAt',
+        operator: '>=',
+        value:  timestampOneWeekAgo
+      }
+    )
+    const orderBy: FireBaseOrderBy[] = [
+      { field: 'visits', by: 'desc' },
+      { field: 'likes', by: 'asc' }
+    ];
+
+  
+    
+  this.trendingOutfits = await this.appService.getFilteredCollection('outfits',conditions)
+  console.log('trendingOutfits',this.trendingOutfits);
+   // console.log('trendingOutfits-->',this.trendingOutfits)
+    
+    /* return this.firestore.collection('outfits', ref => 
+      ref.where('createdAt', '>=', )
+         .orderBy('visits', 'desc')
+         .orderBy('likes', 'desc')
+         .limit(10)
+    ).valueChanges(); */
+  }
 
   createFirestoreConditions(filters: any): FireBaseConditions[] {
     const conditions: FireBaseConditions[] = [];
@@ -316,32 +363,58 @@ export class MyOutFitPage implements OnInit {
   });
   }
 
-  async addFavoriteOutfit(outfitId: any) {
+  async addFavoriteOutfit(outfit: any) {
+    
+
+
     let coditions = [
       {
-        field: 'outfitId', operator: '==', value: outfitId
+        field: 'outfitId', operator: '==', value: outfit.id
       },
       {
         field: 'userId', operator: '==', value: this.cUserID
       }
     ]
-    if (this.favorites.has(outfitId)) {
+    let likes = outfit.likes
+    if (this.favorites.has(outfit.id)) {
+      
       let res = await this.appService.deleteDocuments('faveUserOutfits', coditions)
+      
       if (res) {
-        this.favorites.delete(outfitId);
-        return
+        
+        likes = likes -1
+        let data  ={
+          likes: likes
+        }
+        this.appService.updateInCollection('outfits',outfit.id,data)
+        this.favorites.delete(outfit.id);
+        return;
       }
+
     }
 
     let data = {
-      outfitId: outfitId,
+      outfitId: outfit.id,
       userId: this.cUserID
     }
 
     let res = await this.appService.saveInCollection('faveUserOutfits', undefined, data)
 
     if (res) {
-      this.favorites.add(outfitId);
+
+      this.favorites.add(outfit.id);
+      
+      if(this.cUserID == outfit.userId){
+        return;
+      }
+
+      likes = likes + 1;
+
+      let data  ={
+        likes: likes
+      }
+
+      this.appService.updateInCollection('outfits',outfit.id,data)
     }
   }
 
@@ -370,6 +443,18 @@ export class MyOutFitPage implements OnInit {
   isFavorite(outfitId: string): boolean {
     // Verifica se l'outfitId è presente nel set dei preferiti
     return this.favorites.has(outfitId);
+  }
+
+  async hasOutfitVisitFull(outfit:any){
+    if(outfit.userId == this.cUserID){
+      return
+    }
+      let visit = outfit.visits + 1;// nVisit++
+      let data = { visits: visit }
+      let update = await this.appService.updateInCollection('outfits',outfit.id,data)
+      if(update){
+        console.log('ok')
+      }
   }
 
   @HostListener('window:scroll', ['$event'])

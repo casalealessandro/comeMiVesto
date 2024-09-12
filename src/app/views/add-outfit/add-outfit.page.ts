@@ -139,9 +139,10 @@ export class AddOutfitPage {
         },
         { outfitCategory: [], outfitSubCategory: [], color: [] }
       );
-
+      let dateEdit = new Date();
       let data = {
         tags: this.tags,
+        editedAt:dateEdit.getTime(),
         ...mappedTag
       }
       let responseSave = await this.editOutfit(data)
@@ -192,6 +193,7 @@ export class AddOutfitPage {
 
       this.confirmOutfit()
     } else {
+      let dateEdit = new Date();
       let oartialOutfit = {
 
         title: this.title,
@@ -201,6 +203,7 @@ export class AddOutfitPage {
         style: this.style,
         season: this.season,
         color: this.color,
+        editedAt:dateEdit.getTime(),
         ...mappedTag
       };
       let outfitSaveed =  await this.editOutfit(oartialOutfit);
@@ -276,6 +279,7 @@ export class AddOutfitPage {
       },
       { outfitCategory: [], outfitSubCategory: [], color: [] }
     );
+    let dateCreate = new Date();
       this.outfit = {
         id: id,
         title: this.title,
@@ -287,6 +291,7 @@ export class AddOutfitPage {
         season: this.season,
         color: this.color,
         userId: user.uid,
+        createdAt:dateCreate.getTime(),
         ...mappedTag
       };
     }
@@ -347,9 +352,12 @@ export class AddOutfitPage {
     if (!id) {
       return
     }
+    
+    let dateEdit = new Date();
 
     let dataS = {
-      tags: this.tags
+      tags: this.tags,
+      editedAt:dateEdit.getTime()
     }
 
     let responseSave = await this.editOutfit(dataS)

@@ -1,28 +1,52 @@
- <ion-fab horizontal="end" vertical="bottom" slot="fixed" >
-    <ion-fab-button >
-      <ion-icon name="add-outline"  (click)="addClothModal()"></ion-icon>
+<ion-content>
+  <div class="add-clothes-options">
+    <ion-grid>
+      <ion-row>
+       
+        <!-- Cerca nei Negozi -->
+        <ion-col size="4" class="option" (click)="addClothModal()">
+          <div class="updated-label">
+            <ion-icon name="globe-outline"></ion-icon>
+            <span class="updated">Aggiornato!</span>
+          </div>
+          <p>Cerca nei Negozi</p>
+        </ion-col>
+
+        <!-- Cerca nella Libreria -->
+        <ion-col size="4" class="option" (click)="searchClothModal()">
+          <ion-icon name="shirt-outline"></ion-icon>
+          <p>Cerca nella Libreria</p>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+  
+    <ion-list>
+
+      <ion-item-group *ngFor="let wardrobesCategory of wardrobesGrupped">
+        <ion-item-divider>
+          <ion-label>{{ wardrobesCategory.value }}</ion-label>
+        </ion-item-divider>
+
+        <ion-item-sliding *ngFor="let item of wardrobesItems[wardrobesCategory.id]">
+
+
+          <ion-item>
+            <ion-label>{{ item.name }}</ion-label>
+          </ion-item>
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="deleteItemWadro(wardrobesCategory, item)">
+
+              <ion-icon name="trash-outline"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ion-item-group>
+    </ion-list>
+<!--   
+
+  <ion-fab horizontal="end" vertical="bottom" slot="fixed">
+    <ion-fab-button>
+    
     </ion-fab-button>
-  </ion-fab>
-  <ion-list>
-
-    <ion-item-group *ngFor="let wardrobesCategory of wardrobesGrupped">
-      <ion-item-divider>
-        <ion-label>{{ wardrobesCategory.value }}</ion-label>
-      </ion-item-divider>
-
-      <ion-item-sliding *ngFor="let item of wardrobesItems[wardrobesCategory.id]">
-
-
-        <ion-item>
-          <ion-label>{{ item.name }}</ion-label>
-        </ion-item>
-        <ion-item-options side="end">
-          <ion-item-option color="danger" (click)="deleteItemWadro(wardrobesCategory, item)">
-
-            <ion-icon name="trash-outline"></ion-icon>
-          </ion-item-option>
-        </ion-item-options>
-      </ion-item-sliding>
-    </ion-item-group>
-  </ion-list>
-
+  </ion-fab> -->

@@ -16,6 +16,7 @@ export class FotoOutfitPage implements OnInit {
   @Output() eventFotoCaptured: EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
   @Output() eventImageTags: EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
   @Output() eventBeforeFotoCaptured: EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
+  @Output() eventImageShowFull: EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
 
   @Input() image!: undefined | string;
   //Abilita l'inserimento dei tag nell'immagine catturata
@@ -28,10 +29,12 @@ export class FotoOutfitPage implements OnInit {
 
 
   showTag: boolean = false
+  imageLoading: boolean = true
   tagToggleButton: any = {};
   blobImg: any;
   fileName: any;
-  format: string = ''
+  format: string = '';
+  openFullScreen:boolean=false
   constructor(private modalController: ModalController,private alert:AlertController) { }
 
 
@@ -52,8 +55,13 @@ export class FotoOutfitPage implements OnInit {
         },1500);
 
       };
-
+      // Nel caso in cui si verifichi un errore nel caricamento dell'immagine
+      this.imageElement.nativeElement.onerror = () => {
+        this.imageLoading = false;  // Nascondi il loader anche in caso di errore
+      };
     }
+
+     
   }
 
   onImageLoad(event: Event): void {
@@ -62,6 +70,8 @@ export class FotoOutfitPage implements OnInit {
       const rect = image.getBoundingClientRect();
       this.setDisplayTag(rect)
     }
+
+    this.imageLoading = false;  // Nasconde il loader
   }
 
 
@@ -97,12 +107,12 @@ export class FotoOutfitPage implements OnInit {
   
       const contentType = resizedImage.dataUrl.substring(resizedImage.dataUrl.indexOf(":") + 1, resizedImage.dataUrl.indexOf(";"));
   
-      // Salvataggio dell'immagine nel filesystem
+     /*  // Salvataggio dell'immagine nel filesystem
       await Filesystem.writeFile({
         path: path,
         data: this.blobImg,
         directory: Directory.Data,
-      });
+      }); */
   
       this.image = resizedImage.dataUrl;
   
@@ -192,7 +202,8 @@ export class FotoOutfitPage implements OnInit {
   async addTag(event: any) {
 
     if (!this.enableSetTagsImage) {
-
+      this.openFullScreen = true;
+      this.eventImageShowFull.emit()
       return
     }
 
@@ -304,9 +315,16 @@ export class FotoOutfitPage implements OnInit {
 
     return new Blob([u8arr], { type: mime });
   }
+ 
   onImageError(event: any) {
 
     event.target.src = 'assets/images/fallback-image.jpg';
 
   }
+
+  closeModalFullScreen(){
+    this.openFullScreen = false;
+  }
+
+  
 }

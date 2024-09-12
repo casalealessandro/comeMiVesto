@@ -98,6 +98,7 @@ export class MyWardrobesPage  {
       component: ModalFormComponent,
       componentProps: {
         service: 'tagForm',
+        title:'Inserisci un nuovo prodotto'
        
       }
     });
@@ -138,6 +139,10 @@ export class MyWardrobesPage  {
       this.wardrobesItems[categoryID].push(saveData)
     }
     return data
+  }
+
+  searchClothModal(){
+    alert('nessun prodotto presente nei nostri archvi')
   }
 
 }

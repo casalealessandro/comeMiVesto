@@ -11,6 +11,7 @@ export interface DynamicFormField {
     placeholder?: string; // Lunghezza massima per il campo
     options?:any[]
     selectOptions?: SelectOptions;
+    funcButton?:boolean
 }
 
 
