@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { AngularFirestore, CollectionReference, Query } from '@angular/fire/compat/firestore';
 import { DynamicFormField } from './interface/dynamic-form-field';
 import { Observable, finalize, from, lastValueFrom, map, switchMap } from 'rxjs';
@@ -17,6 +17,8 @@ import { FireBaseConditions } from './interface/outfit-all-interface';
 export class AppService {
   private batchSize = 20;
   private lastDocument: any | null = null;
+   // Crea un Signal per il wardrobe
+  resultsSignal = signal<any[]>([]);
 
   constructor(private firestore: AngularFirestore, private storage: AngularFireStorage, private alertController: AlertController) { }
 
@@ -54,29 +56,33 @@ export class AppService {
     );
   }
 
-  async getFilteredCollection(collection: string, conditions:FireBaseConditions[],orderBy?:any[]): Promise<any[]> {
+  async getFilteredCollection(collection: string, conditions?:FireBaseConditions[],orderBy?:any[]): Promise<any[]> {
+    
     let query: any = this.firestore.collection(collection).ref;
-
-    // Applica tutte le condizioni alla query
-    conditions.forEach(condition => {
-      
-      query = query.where(condition.field, condition.operator, condition.value);
-      //console.log('conditions-->',query)
-    });
+    
+    if(conditions){
+      // Applica tutte le condizioni alla query 
+      conditions.forEach(condition => {
+        
+        query = query.where(condition.field, condition.operator, condition.value);
+        //console.log('conditions-->',query)
+      });
+    }
 
     if(orderBy){
-       // Applica l'ordinamento alla query
-       orderBy.forEach(order => {
+      // Applica l'ordinamento alla query
+      orderBy.forEach(order => {
         query = query.orderBy(order.field, order.by);
       });
     }
      
     
     try {
+      
       const querySnapshot = await query.get();
 
       const results = querySnapshot.docs.map((doc: any) => doc.data());
-      console.log(conditions,results)
+      this.resultsSignal.set(results);
       return results;
     } catch (error) {
       console.error('Error getting filtered collection:', error);
@@ -95,6 +101,7 @@ export class AppService {
       try {
         const querySnapshot = await db.get();
         const results = querySnapshot.docs.map((doc: any) => doc.data());
+        this.resultsSignal.set(results);
         return results;
       } catch (error) {
         console.error('Error getting filtered collection:', error);
@@ -152,16 +159,19 @@ export class AppService {
   //Salvataggio in FireStone
 
   async saveInCollection(collection: string, nameDoc: string | undefined, data: any): Promise<boolean> {
+    
     try {
       const Collection = await this.firestore.collection(collection)
       if (!nameDoc) {
         Collection.add(data);
+        this.getFilteredCollection(collection,[])
         return true
       } else {
+        this.getFilteredCollection(collection,[])
         Collection.doc(nameDoc).set(data);
         return true
       }
-
+      
     } catch (error) {
 
       const alert = await this.alertController.create({
@@ -184,7 +194,7 @@ export class AppService {
     try {
 
       this.firestore.collection(collection).doc(nameDoc).update(data);
-
+      this.getFilteredCollection(collection)
       return true
 
 
@@ -209,6 +219,7 @@ export class AppService {
       // Elimina tutti i documenti che corrispondono alla query
       const deletePromises = querySnapshot.docs.map((doc: any) => doc.ref.delete());
       await Promise.all(deletePromises);
+      this.getFilteredCollection(collection)
       return true
     } catch (error) {
       console.error('Error deleting documents:', error);

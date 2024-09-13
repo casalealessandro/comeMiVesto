@@ -127,17 +127,22 @@ ion-input {
 }
 
 .main-content {
+    .heading {
+        padding: 5px 10px!important;
+    }
     .title {
-    display: flex;
-    justify-content: space-between;
-    ion-label {
-        font-size: 18px;
-        font-weight: 600;
-    }
-    .text {
-        font-size: 14px;
-        color: gray;
-    }
+        display: flex;
+        justify-content: space-between;
+
+        ion-label {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .text {
+            font-size: 14px;
+            color: gray;
+        }
     }
 
     .slot {
@@ -152,9 +157,6 @@ ion-input {
     }
 }
 
-.style-main{
+.style-main {
     padding: 20px 2px;
-  }
-
-
-  
+}

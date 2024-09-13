@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { ModalController } from '@ionic/angular';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
@@ -12,18 +12,25 @@ import { categoryCloth, Tag, wardrobesItem } from 'src/app/service/interface/out
 })
 export class MyWardrobesPage  {
   [x: string]: any;
-  wardrobesItems: any;
+  wardrobesItems = this.appService.resultsSignal; // Utilizza signal per rendere reattivo l'array
   wardrobesGrupped: any = []
   userID: string =''
   groupedItems: any = {};
+  categoryCloth:categoryCloth[] = [];
+  subCategoryCloth:categoryCloth[] = [];
   constructor(private appService: AppService, private afAuth: AngularFireAuth,private modalController:ModalController,) { }
 
   ngOnInit() {
 
 
-    this.afAuth.authState.subscribe(user => {
+    this.afAuth.authState.subscribe(async user => {
       if (user) {
         this.userID = user.uid;
+        
+        this.categoryCloth =  await this.appService.getFilteredCollection('outfitsCategories',[])
+        
+        this.subCategoryCloth  = await this.appService.getFilteredCollection('outfitsSubCategories',[])
+                
         this.groupItemsByCategory();
       }
     });
@@ -31,47 +38,55 @@ export class MyWardrobesPage  {
 
   async groupItemsByCategory() {
 
-    let filer =[{
+    let filter =[{
       field:'userId',
       operator:'==',
       value:this.userID 
     }]
-    let dataR = await this.appService.getFilteredCollection('wardrobes', filer)
+    let dataR = await this.appService.getFilteredCollection('wardrobes', filter)
 
-    this.wardrobesGrupped = categoryCloth;
-    this.wardrobesItems = dataR.reduce((group: any, item: wardrobesItem) => {
+    this.wardrobesGrupped = this.categoryCloth;
+  
+    const groupedItems =  dataR.reduce((result: any[], item: wardrobesItem) => {
       const category = item.outfitCategory;
-
-      let filter =  categoryCloth.filter(ress=>ress.id == category )
       
-      group[category] = group[category] ?? [];
-      group[category].push(item);
-
-     /*  this.wardrobesGrupped.push({
-        id:filter[0].id,
-        wardrobesName:filter[0].value
-      }) */
-
-      return group;
-
-    }, {});
-
+      // Filtrare la categoria corrispondente dal tuo array `categoryCloth`
+      const filter = this.categoryCloth.find(ress => ress.id == category);
+      const subCategores = this.subCategoryCloth.filter(res => res.parent == category);
+      
+      // Trova l'oggetto della categoria esistente o crea un nuovo oggetto
+      let categoryObject = result.find(cat => cat.wardrobesCategory === (filter ? filter.value : '-'));
+      
+      if (!categoryObject) {
+        categoryObject = {
+          wardrobesCategory: filter ? filter.value : '-',
+          outfitCategoryID:filter?.id,
+          wardrobesSubCategory: subCategores.map(reM => reM.value).join(','),
+          items: []
+        };
+        result.push(categoryObject);
+      }
+      
+      // Aggiungere l'outfit alla categoria corretta
+      categoryObject.items.push(item);
+      
+      return result;
+    }, []);
     
-
-    // Utilizza un Set per rimuovere i duplicati
-
-   /*  this.wardrobesGrupped = this.wardrobesGrupped.filter((obj: { id: any; }, index: any, self: any[]) =>
-      index === self.findIndex((o) => o.id === obj.id)
-    ); */
+    this.wardrobesItems.set(groupedItems); // Aggiorna il segnale con il nuovo array
+    
     
   }
+
+  
   objectKeys(obj: any): string[] {
     let key = Object.keys(obj);
     
     return Object.keys(obj);
   }
 
-  async deleteItemWadro(wardrobesCategory: any, item: any) {
+  async deleteItemWadro(item: any) {
+    
     let coditions = [
 
       {
@@ -84,12 +99,7 @@ export class MyWardrobesPage  {
     let res = await this.appService.deleteDocuments('wardrobes', coditions)
 
     if (res) {
-      this.wardrobesItems[wardrobesCategory] = this.wardrobesItems[wardrobesCategory].filter((i:any) => i.id !== item.id);
-
-      // Se la categoria diventa vuota, puoi anche rimuovere la categoria dal gruppo
-      /* if (this.wardrobesItems[wardrobesCategory].length === 0) {
-        delete this.wardrobesItems[wardrobesCategory];
-      } */
+      this.groupItemsByCategory();
     }
   }
 
@@ -111,11 +121,11 @@ export class MyWardrobesPage  {
     const subCategoryID = data.subCategory;
 
    
-    const id = Math.floor(Math.random() * (5 - 1 + 1)) + 1;;
+    const id = this.generateGUID();
     let saveData:wardrobesItem = {
       brend: data.brend,
       id: id,
-      images: [''],
+      images: [],
       name: data.name,
       outfitCategory: categoryID,
       outfitSubCategory: subCategoryID,
@@ -124,19 +134,16 @@ export class MyWardrobesPage  {
     }
 
     let resSave = await this.appService.saveInCollection('wardrobes',undefined,saveData)
-    if(resSave){
-      if (!this.wardrobesItems[categoryID]) {
-        // Se non esiste, crea un nuovo array per quella categoria
-        this.wardrobesItems[categoryID] = [];
-        
-        let filter =  categoryCloth.filter(ress=>ress.id == categoryID )
+    if (resSave) {
       
-        this.wardrobesGrupped.push({
-          id:filter[0].id,
-          wardrobesName:filter[0].value
-        })
-      }
-      this.wardrobesItems[categoryID].push(saveData)
+
+      this.wardrobesItems.update((groups) => {
+        let group = groups.find((g) => g.outfitCategoryID === categoryID);
+        if (group) {
+          group.items.push(saveData);
+        }
+        return groups;
+      });
     }
     return data
   }
@@ -145,4 +152,12 @@ export class MyWardrobesPage  {
     alert('nessun prodotto presente nei nostri archvi')
   }
 
+  generateGUID(): any {
+    function s4(): any {
+      return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    }
+    return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
+  }
 }

@@ -1,63 +1,82 @@
 //Top Pagina
 .main-content {
-    .heading {
-        padding: 5px 20px;
+  .heading {
+    padding: 5px 20px;
 
-        .location {
-            padding-bottom: 5px;
+    .location {
+      padding-bottom: 5px;
 
-            ion-icon {
-                padding-right: 5px;
-            }
+      ion-icon {
+        padding-right: 5px;
+      }
 
-            .text {
-                font-weight: 400;
-                font-size: 16px;
-                color: var(--ion-color-medium);
-            }
-        }
+      .text {
+        font-weight: 400;
+        font-size: 16px;
+        color: var(--ion-color-medium);
+      }
     }
+  }
 
+  .add-clothes-options {
+    text-align: center;
+  }
 
+  .option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--color);
+  }
+ 
+  p {
+    margin-top: 0.5rem;
+    //font-size: 1rem;
+    color: var(--color);
+  }
 
-    .add-clothes-options {
+  .updated-label {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .updated {
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    background-color: rgba(255, 192, 203, 0.5);
+    /* colore rosa chiaro con trasparenza */
+    border-radius: 10px;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+    color: white;
+  }
+  .item-card{
+    .center-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+  
+      ion-icon,
+      p {
         text-align: center;
       }
+       
+    }
+    .del-item{
+      position: absolute;
+      top: 0;
+      right: 0;
+      background-color: rgba(253, 77, 77, 0.548); // colore rosa chiaro con trasparenza
       
-      .option {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        color: var(--color);
-      }
-      
-      /* .option ion-icon {
-        font-size: 3rem;
-      }
-       */
-      p {
-        margin-top: 0.5rem;
-        //font-size: 1rem;
-        color: var(--color);
-      }
-      
-      .updated-label {
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-      
-      .updated {
-        position: absolute;
-        top: -10px;
-        right: 10px;
-        background-color: rgba(255, 192, 203, 0.5); /* colore rosa chiaro con trasparenza */
-        border-radius: 10px;
-        padding: 0.2rem 0.4rem;
-        font-size: 0.8rem;
-        color: white;
-      }
-      
-
+      border-radius: 10px;
+      padding: 0.2rem 0.4rem;
+      font-size: 0.8rem;
+      color: white;
+    }
+  }
+ 
 }

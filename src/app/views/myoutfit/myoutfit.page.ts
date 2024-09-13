@@ -20,7 +20,7 @@ import { IonRefresherCustomEvent } from '@ionic/core';
 export class MyOutFitPage implements OnInit {
 
 
-  outfits: outfit[] = []
+  outfits = this.appService.resultsSignal;
   trendingOutfits: outfit[] = []
   filteredOutfits: outfit[] = []; // Array per gli outfit filtrati
   isLoading: boolean = true;
@@ -205,11 +205,11 @@ export class MyOutFitPage implements OnInit {
       
       this.outfitUserProfile = [];
       const copyOutfit = await this.appService.getFilteredOutfits(preferencC) ;
-      console.log('matchesPreferences-->',copyOutfit)
-      this.outfits = newOutfits
-      this.filteredOutfits = [...this.outfits];
+      console.log('matchesPreferences-->',newOutfits)
+      this.outfits.set(newOutfits)
+      this.filteredOutfits = [...newOutfits];
      
-      this.outfits.forEach(async rr => {
+      newOutfits.forEach(async rr => {
         this.heartIcon(rr.id);
 
 
@@ -219,9 +219,9 @@ export class MyOutFitPage implements OnInit {
           this.outfitUserProfile[rr.userId] = outfitUserProfile
         })
         
-      if (this.outfits.length > 0) {
-        this.isLoading = false;
-      }
+        if (newOutfits.length > 0) {
+          this.isLoading = false;
+        }
 //      console.log('filteredOutfits-->',this.filteredOutfits)
       });
 

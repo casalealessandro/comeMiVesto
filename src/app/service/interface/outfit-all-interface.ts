@@ -41,6 +41,13 @@ export interface wardrobesItem {
   color:string;
   images: string[];
 }
+
+export interface categoryCloth {
+  id: any,
+  value: any,
+  parent: any
+}[]
+
 export interface filterItmClothing{
   
   image?:string;
