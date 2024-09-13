@@ -38,7 +38,7 @@ export class LoginPage {
           message:'Credenziali non valide!',
           buttons: ['Ok'],
           }
-        )
+        ).then(alert => alert.present());
       });
   }
 

@@ -18,6 +18,7 @@ export class MyWardrobesPage  {
   groupedItems: any = {};
   categoryCloth:categoryCloth[] = [];
   subCategoryCloth:categoryCloth[] = [];
+  
   constructor(private appService: AppService, private afAuth: AngularFireAuth,private modalController:ModalController,) { }
 
   ngOnInit() {

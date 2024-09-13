@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { NavController } from '@ionic/angular';
+import { AlertController, NavController } from '@ionic/angular';
 import { UserProfile } from 'src/app/service/interface/user-interface';
 
 @Component({
@@ -18,7 +18,7 @@ export class RegisterPage {
   cognome: string = '';
   userType: string = 'creator'; // Default to creator
 
-  constructor(private afAuth: AngularFireAuth,private firestore: AngularFirestore,  private navController: NavController) {}
+  constructor(private afAuth: AngularFireAuth,private firestore: AngularFirestore,  private navController: NavController,private alert:AlertController) {}
 
   
   register(registerData:any) {
@@ -45,7 +45,13 @@ export class RegisterPage {
         console.log('Registration successful!');
       })
       .catch(error => {
-        // Handle registration errors
+        this.alert.create(
+          { 
+           header:'Attenzione!',
+           message:`${error}`,
+           buttons: ['Ok'],
+           }
+         ).then(alert => alert.present());
         console.error('Registration error:', error);
       });
   }

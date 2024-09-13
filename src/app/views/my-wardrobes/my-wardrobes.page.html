@@ -46,11 +46,16 @@
           <ion-col size="6" size-md="3" *ngFor="let item of wardrobeItem.items">
             <ion-card class="item-card">
               <ion-card-content class="center-content">
-                
-                <!-- Icona o immagine per l'outfit, se disponibile -->
-                <ion-icon name="shirt-outline" size="large" *ngIf="item!.images.length==0" ></ion-icon>
-                <img *ngIf="item!.images.length>0" [src]="item.images[0]" alt="{{ item.name }}" />
 
+                <!-- Icona o immagine per l'outfit, se disponibile -->
+                
+                <ng-container *ngIf="item && item.images && item.images.length >  0;else icon">
+                 
+                  <img *ngIf="item.images && item.images.length > 0" [src]="item.images[0]" alt="{{ item.name }}" />
+                </ng-container>
+                <ng-template #icon>
+                  <ion-icon name="shirt-outline" size="large"></ion-icon>
+                </ng-template>
                 <!-- Nome dell'outfit -->
                 <p>{{ item.name }}</p>
               </ion-card-content>

@@ -47,6 +47,7 @@ export class FotoOutfitPage implements OnInit {
   }
 
   ngAfterViewInit(): void {
+    
     if (this.imageElement) {
 
       this.imageElement.nativeElement.onload = (event: Event) => {
@@ -59,6 +60,10 @@ export class FotoOutfitPage implements OnInit {
       this.imageElement.nativeElement.onerror = () => {
         this.imageLoading = false;  // Nascondi il loader anche in caso di errore
       };
+    }
+    //Nascondi loader se sto in inserimento
+    if (this.enableNewImagecaptured) {
+      this.imageLoading = false;
     }
 
      

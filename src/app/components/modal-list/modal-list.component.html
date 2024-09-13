@@ -19,7 +19,7 @@
       </ion-label>
       <ng-container *ngFor="let buttonItem of optionbuttonsItem">
         <ion-button slot="end" fill="clear" (click)="onButtonGenericClick(buttonItem,item)">
-
+          <ion-ripple-effect></ion-ripple-effect>
 
           <ion-icon [name]="buttonItem.icon" slot="icon-only"></ion-icon>
         </ion-button>
