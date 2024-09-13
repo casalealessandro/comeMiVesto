@@ -21,17 +21,21 @@
   </div>
 
   <!-- Modal for full screen image -->
-<ion-modal [isOpen]="openFullScreen" (willDismiss)="closeModalFullScreen()">
-  <ion-header>
-    <ion-toolbar>
-      <ion-buttons slot="end">
-        <ion-button (click)="closeModalFullScreen()">Chiudi</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </ion-header>
-  <ion-content class="ion-padding">
-    <ng-template>
-      <img [src]="image" class="full-screen-image" />
-    </ng-template>
-  </ion-content>
+<ion-modal [isOpen]="openFullScreen" class="ion-padding">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeModalFullScreen()">Chiudi</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      
+      <img [src]="image" class="full-screen-image" >
+  
+    </ion-content>
+  
+    
+  </ng-template>
 </ion-modal>
