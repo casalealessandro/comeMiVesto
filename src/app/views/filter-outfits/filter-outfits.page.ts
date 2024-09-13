@@ -76,12 +76,13 @@ export class FilterOutfitsPage implements OnInit {
         color: ''
       }
     )
-
+    console.log('filterItmClothing-->',this.filterItmClothing);
+    
     this.itmColor = colors
     this.itmStyles = style
     this.itmSeasons = seasons;
 
-    console.log(this.currentFilterSel);
+    
     if(typeof this.currentFilterSel.season != 'undefined'){
       this.selectedFilterSeasonIndex =  this.itmSeasons.findIndex((r:any)=>r.id == this.currentFilterSel.season)
     }

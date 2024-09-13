@@ -22,7 +22,16 @@
 
   <!-- Modal for full screen image -->
 <ion-modal [isOpen]="openFullScreen" (willDismiss)="closeModalFullScreen()">
-  <ng-template>
-    <img [src]="image" class="full-screen-image" />
-  </ng-template>
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="end">
+        <ion-button (click)="closeModalFullScreen()">Chiudi</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content class="ion-padding">
+    <ng-template>
+      <img [src]="image" class="full-screen-image" />
+    </ng-template>
+  </ion-content>
 </ion-modal>
