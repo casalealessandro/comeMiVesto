@@ -1,0 +1,13 @@
+<div #imageContainer class="image-container"  >
+  <!-- Loader che viene mostrato durante il caricamento dell'immagine -->
+  <ion-spinner *ngIf="imageLoading" name="crescent"></ion-spinner>
+  <ion-thumbnail slot="start" *ngIf="image">
+    <img  #imageElement [src]="image"  class="form-image" /> 
+  </ion-thumbnail>
+   
+  <ion-button *ngIf="enableNewImagecaptured" expand="full" size="small" class="select-photo" (click)="captureImage()">
+    
+    Seleziona foto
+  
+  </ion-button>
+</div>

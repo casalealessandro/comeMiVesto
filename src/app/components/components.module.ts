@@ -10,15 +10,18 @@ import { DynamicSelectBoxComponent } from './dynamic-form/items/dynamic-select-b
 import { ModalListComponent } from './modal-list/modal-list.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ScrollingModule } from '@angular/cdk/scrolling';
+import { DynamicFileBoxComponent } from './dynamic-form/items/dynamic-file-box/dynamic-file-box.component';
+
 
 
 @NgModule({
-	imports: [CommonModule,ScrollingModule,IonicModule,FormsModule,ReactiveFormsModule],
+	imports: [CommonModule, ScrollingModule, IonicModule, FormsModule, ReactiveFormsModule],
 	declarations: [
 		DynamicFormComponent,
 		DynamicSelectBoxComponent,
+		DynamicFileBoxComponent,
 		ModalFormComponent,
-		ModalListComponent
+		ModalListComponent,
 		
 	],
 	exports: [DynamicFormComponent,ModalFormComponent,ModalListComponent]

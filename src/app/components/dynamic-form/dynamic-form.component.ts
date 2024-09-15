@@ -124,6 +124,26 @@ export class DynamicFormComponent implements OnInit {
       this.updateCascadeOptions(fieldName, value);
     }
   }
+  onValueChangeFile(fieldName: string, value: any) {
+   
+    
+    
+    const control = this.form.get(fieldName);
+
+    if (control && control.value !== value) {
+    /*
+    { emitEvent: false }, Angular non emette l'evento valueChanges per il controllo specificato. Questo è utile in diverse situazioni come  Evitare Loop Ricorsivi
+    */
+      let blobFile
+      if(value.img){
+          blobFile = value.img
+      }
+      control.setValue(blobFile, { emitEvent: false });
+      this.formValues[fieldName] = blobFile;
+    }
+   
+    
+  }
 
   updateCascadeOptions(fieldName: string, value: any) {
     const fieldConfig = this.fieldConfigs[fieldName];

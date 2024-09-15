@@ -7,7 +7,7 @@
           <!-- Cerca nei Negozi -->
           <ion-col size="4" class="option" (click)="searchClothModal()">
             <div class="updated-label">
-
+              <ion-ripple-effect></ion-ripple-effect>
               <ion-icon size="large"  name="storefront-outline"></ion-icon>
               <!-- <span class="updated">Aggiornato!</span> -->
             </div>
@@ -16,11 +16,13 @@
 
           <!-- Cerca nella Libreria -->
           <ion-col size="4" class="option" (click)="searchClothModal()">
+            <ion-ripple-effect></ion-ripple-effect>
             <ion-icon size="large" name="globe-outline"></ion-icon>
             <p>Aggiungi per brend</p>
           </ion-col>
 
           <ion-col size="4" class="option" (click)="addClothModal()">
+            <ion-ripple-effect></ion-ripple-effect>
             <ion-icon size="large" name="add-outline"></ion-icon>
             <p>Aggiungi Prodotto</p>
           </ion-col>
@@ -49,9 +51,9 @@
 
                 <!-- Icona o immagine per l'outfit, se disponibile -->
                 
-                <ng-container *ngIf="item && item.images && item.images.length >  0;else icon">
+                <ng-container *ngIf="item && item.images && item.images;else icon">
                  
-                  <img *ngIf="item.images && item.images.length > 0" [src]="item.images[0]" alt="{{ item.name }}" />
+                  <img *ngIf="item.images && item.images" [src]="item.images" alt="{{ item.name }}" />
                 </ng-container>
                 <ng-template #icon>
                   <ion-icon name="shirt-outline" size="large"></ion-icon>
@@ -60,6 +62,7 @@
                 <p>{{ item.name }}</p>
               </ion-card-content>
               <span class="del-item" (click)="deleteItemWadro(item)">
+                <ion-ripple-effect></ion-ripple-effect>
                 <ion-icon name="trash-outline"></ion-icon>
               </span>
             </ion-card>

@@ -94,7 +94,7 @@ export class MyWardrobesPage  {
         field: 'userId', operator: '==', value: this.userID
       },
       {
-        field: 'outfitSubCategory', operator: '==', value: item.outfitSubCategory
+        field: 'id', operator: '==', value: item.id
       }
     ]
     let res = await this.appService.deleteDocuments('wardrobes', coditions)
@@ -118,15 +118,15 @@ export class MyWardrobesPage  {
     const { data } = await modal.onDidDismiss();
     console.log('Modal data:', data);
     
-    const categoryID = data.category;
-    const subCategoryID = data.subCategory;
+    const categoryID = data.outfitCategory;
+    const subCategoryID = data.outfitSubCategory;
 
    
     const id = this.generateGUID();
     let saveData:wardrobesItem = {
       brend: data.brend,
       id: id,
-      images: [],
+      images: data.Images,
       name: data.name,
       outfitCategory: categoryID,
       outfitSubCategory: subCategoryID,
@@ -137,14 +137,14 @@ export class MyWardrobesPage  {
     let resSave = await this.appService.saveInCollection('wardrobes',undefined,saveData)
     if (resSave) {
       
-
-      this.wardrobesItems.update((groups) => {
+      this.groupItemsByCategory()
+      /* this.wardrobesItems.update((groups) => {
         let group = groups.find((g) => g.outfitCategoryID === categoryID);
         if (group) {
           group.items.push(saveData);
         }
         return groups;
-      });
+      }); */
     }
     return data
   }

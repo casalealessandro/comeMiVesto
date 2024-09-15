@@ -100,6 +100,9 @@ ion-input {
     margin: 10px 3px;
 
 }
+ion-select{
+    margin: 10px 3px;
+}
 
 .textbox {
     border: 2px solid var(--ion-color-light);
@@ -119,6 +122,14 @@ ion-input {
         width: 30px;
         height: 30px;
     }
+}
+
+.selectbox{
+    border: 2px solid var(--ion-color-light);
+    font-size: 16px;
+    color: var(--ion-color-medium)!important;
+    padding: 0 10px;
+    
 }
 
 .btn,

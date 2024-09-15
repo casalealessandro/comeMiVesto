@@ -34,18 +34,12 @@
             >
           </ion-textarea>
         </ion-item>
-       <!--  <ion-item *ngIf="field.type === 'selectBox'">
-          <ion-label>{{ field.label }}</ion-label>
-          <ion-select [formControlName]="field.name" [placeholder]="field.placeholder">
-            <ng-container *ngIf="field.options">
-              <ion-select-option *ngFor="let option of field.options" 
-              [value]="!option.value ? option:option.value">{{ !option.text ? option : option.text }}
-
-             </ion-select-option> 
-            </ng-container> 
-            
-          </ion-select>
-        </ion-item> -->
+        <ion-item *ngIf="field.type === 'fileBox'">
+            <app-dynamic-file-box
+            [image]="formValues[field.name]"
+            (eventFotoCaptured)="onValueChangeFile(field.name, $event)"
+            ></app-dynamic-file-box> 
+        </ion-item>
 
         <app-dynamic-select-box
           *ngIf="field.type === 'selectBox'"
