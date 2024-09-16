@@ -31,6 +31,7 @@ export class MyProfilePage {
   constructor(private userProfileService: UserService,private modalController:ModalController, private alert:AlertController,private ruote:Router) { }
 
   ngOnInit() {
+    
     this.userProfile$ = this.userProfileService.getUserProfile();
     this.userOutfits$ = this.userProfileService.getUserOutfits();
     this.userWardrobes$ = this.userProfileService.getUserWardrobes();

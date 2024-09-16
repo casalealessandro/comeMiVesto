@@ -73,6 +73,7 @@ export class UserService {
   }
 
   getUserOutfits(): Observable<any[]> {
+    
     return this.afAuth.authState.pipe(
       switchMap(user => {
         if (user) {
