@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, signal } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { ModalController } from '@ionic/angular';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
@@ -11,6 +11,9 @@ import { categoryCloth, Tag, wardrobesItem } from 'src/app/service/interface/out
   styleUrls: ['./my-wardrobes.page.scss'],
 })
 export class MyWardrobesPage  {
+
+  @Output() selectedItem:EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
+
   [x: string]: any;
   wardrobesItems = this.appService.resultsSignal; // Utilizza signal per rendere reattivo l'array
   wardrobesGrupped: any = []
@@ -18,6 +21,7 @@ export class MyWardrobesPage  {
   groupedItems: any = {};
   categoryCloth:categoryCloth[] = [];
   subCategoryCloth:categoryCloth[] = [];
+  openModal:any = null
   
   constructor(private appService: AppService, private afAuth: AngularFireAuth,private modalController:ModalController,) { }
 
@@ -33,6 +37,10 @@ export class MyWardrobesPage  {
         this.subCategoryCloth  = await this.appService.getFilteredCollection('outfitsSubCategories',[])
                 
         this.groupItemsByCategory();
+
+       this.openModal = await this.modalController.getTop();
+
+        console.log('pmodal',this.openModal)
       }
     });
   }
@@ -137,14 +145,18 @@ export class MyWardrobesPage  {
     let resSave = await this.appService.saveInCollection('wardrobes',undefined,saveData)
     if (resSave) {
       
-      this.groupItemsByCategory()
-      /* this.wardrobesItems.update((groups) => {
-        let group = groups.find((g) => g.outfitCategoryID === categoryID);
-        if (group) {
-          group.items.push(saveData);
-        }
-        return groups;
-      }); */
+      this.groupItemsByCategory();
+
+      //Mando i dati on uscita
+      const modal = await this.modalController.getTop();
+      if (modal) {
+        this.modalController.dismiss(saveData)
+      }else{
+        this.selectedItem.emit(saveData);
+      }
+      
+
+      
     }
     return data
   }
@@ -160,5 +172,20 @@ export class MyWardrobesPage  {
         .substring(1);
     }
     return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
+  }
+
+  async selectItem(item:any){
+    // Controlla se la pagina è aperta in un modale
+    const modal = await this.modalController.getTop();
+    if (modal) {
+     this.modalController.dismiss(item)
+    }else{
+      this.selectedItem.emit(item)
+    }
+    
+  }
+
+  dismissModal(evet:any){
+    this.modalController.dismiss()
   }
 }

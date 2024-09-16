@@ -5,6 +5,7 @@ import { Tag, outfit } from 'src/app/service/interface/outfit-all-interface';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { AlertController, ModalController } from '@ionic/angular';
 import { Directory, Filesystem } from '@capacitor/filesystem';
+import { MyWardrobesPage } from '../my-wardrobes/my-wardrobes.page';
 
 @Component({
   selector: 'app-foto-outfit',
@@ -283,9 +284,9 @@ export class FotoOutfitPage implements OnInit {
 
   async openModal(): Promise<{}> {
     const modal = await this.modalController.create({
-      component: ModalFormComponent,
+      component: MyWardrobesPage,
       componentProps: {
-        service: 'tagForm',
+       
 
       }
     });

@@ -1,3 +1,11 @@
+<ion-header *ngIf="openModal">
+  <ion-toolbar>
+    <ion-title>il mio Armadio</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismissModal($event)">Chiudi</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
 <ion-content>
   <div class="main-content">
     <div class="add-clothes-options">
@@ -48,18 +56,20 @@
           <ion-col size="6" size-md="3" *ngFor="let item of wardrobeItem.items">
             <ion-card class="item-card">
               <ion-card-content class="center-content">
-
-                <!-- Icona o immagine per l'outfit, se disponibile -->
+                <div class="div-item" (click)="selectItem(item)">
+                    <!-- Icona o immagine per l'outfit, se disponibile -->
                 
-                <ng-container *ngIf="item && item.images && item.images;else icon">
-                 
-                  <img *ngIf="item.images && item.images" [src]="item.images" alt="{{ item.name }}" />
-                </ng-container>
-                <ng-template #icon>
-                  <ion-icon name="shirt-outline" size="large"></ion-icon>
-                </ng-template>
-                <!-- Nome dell'outfit -->
-                <p>{{ item.name }}</p>
+                  <ng-container *ngIf="item && item.images && item.images;else icon">
+                  
+                    <img *ngIf="item.images && item.images" [src]="item.images" alt="{{ item.name }}" />
+                  </ng-container>
+                  <ng-template #icon>
+                    <ion-icon name="shirt-outline" size="large"></ion-icon>
+                  </ng-template>
+                  <!-- Nome dell'outfit -->
+                  <p>{{ item.name }}</p>
+                </div>
+                
               </ion-card-content>
               <span class="del-item" (click)="deleteItemWadro(item)">
                 <ion-ripple-effect></ion-ripple-effect>
