@@ -16,6 +16,7 @@ export class MyWardrobesPage  {
 
   [x: string]: any;
   wardrobesItems = this.appService.resultsSignal; // Utilizza signal per rendere reattivo l'array
+  userWardrobes: any[] = []; // Array per gli outfit filtrati
   wardrobesGrupped: any = []
   userID: string =''
   groupedItems: any = {};
@@ -26,8 +27,8 @@ export class MyWardrobesPage  {
   constructor(private appService: AppService, private afAuth: AngularFireAuth,private modalController:ModalController,) { }
 
   ngOnInit() {
-
-
+    
+    console.log('pmodal',this.wardrobesItems)
     this.afAuth.authState.subscribe(async user => {
       if (user) {
         this.userID = user.uid;
@@ -40,7 +41,7 @@ export class MyWardrobesPage  {
 
        this.openModal = await this.modalController.getTop();
 
-        console.log('pmodal',this.openModal)
+       // console.log('pmodal',this.openModal)
       }
     });
   }
@@ -83,7 +84,7 @@ export class MyWardrobesPage  {
     }, []);
     
     this.wardrobesItems.set(groupedItems); // Aggiorna il segnale con il nuovo array
-    
+    this.userWardrobes = [...groupedItems]
     
   }
 
@@ -124,7 +125,9 @@ export class MyWardrobesPage  {
     await modal.present();
 
     const { data } = await modal.onDidDismiss();
-    console.log('Modal data:', data);
+    if(!data){
+      return
+    }
     
     const categoryID = data.outfitCategory;
     const subCategoryID = data.outfitSubCategory;

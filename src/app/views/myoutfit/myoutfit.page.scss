@@ -4,92 +4,6 @@
 
 //Top Pagina
 .main-content {
-  .heading {
-    padding: 5px 20px;
-
-    .location {
-      padding-bottom: 5px;
-
-      ion-icon {
-        padding-right: 5px;
-      }
-
-      .text {
-        font-weight: 400;
-        font-size: 16px;
-        color: var(--ion-color-medium);
-      }
-    }
-
-    .wish {
-      font-size: 22px;
-      font-weight: 600;
-    }
-
-    .searchbox {
-      width: 100%;
-      border: 1px solid lightgray;
-      border-radius: 15px;
-      font-size: 14px;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-
-      align-items: center;
-      margin: 15px 0px 5px 0px;
-
-      ion-input {
-        margin: 2px 3px;
-      }
-
-      .icon {
-        font-size: 20px;
-        color: gray;
-        padding-right: 10px;
-      }
-    }
-  }
-
-  .banner {
-    overflow: scroll;
-    display: flex;
-    flex-direction: row;
-
-    .menu {
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-
-      .card {
-        padding-left: 20px;
-
-        .img {
-          width: 300px;
-          height: 20vh;
-          background-position: center center;
-          background-size: cover;
-          background-repeat: no-repeat;
-          border-radius: 15px;
-          margin: 10px 0px 10px 0px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          flex-direction: column;
-          color: white;
-
-          .text {
-            font-size: 16px;
-          }
-
-          .title {
-            font-size: 35px;
-            font-weight: 700px;
-          }
-        }
-      }
-    }
-  }
-
   // Griglia e layout
   .outfit-header-title {
     align-items: center;
@@ -107,18 +21,7 @@
   .style-main{
     padding: 20px 2px;
   }
-  .title {
-    display: flex;
-    justify-content: space-between;
-    ion-label {
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .text {
-      font-size: 14px;
-      color: gray;
-    }
-  }
+  
   // Card dell'outfit
   .outfit-card {
     position: relative;
@@ -142,17 +45,7 @@
         max-width: 35px;
         max-height: 35px;
       }
-/*
-.text {
-              font-size: 16px;
-            }
-            .title {
-              font-size: 24px;
-              font-weight: 700px;
-            }
-
-*/
-      .outfit-card-title {
+    .outfit-card-title {
         font-size: 24px;
         font-weight: 700;
         margin: 0;
@@ -227,27 +120,8 @@
 }
 
 
-
-
 .col-spinner {
   justify-content: center;
   display: flex;
   align-items: center;
-}
-
-.outfits-viewport {
-  height: 400px;
-}
-
-.outfit-filter {
-  color: var(--ion-tab-bar-color-selected);
-}
-
-
-ion-grid {
-  padding: 0 10px;
-}
-
-ion-row {
-  margin: 0;
 }
