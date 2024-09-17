@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
 import { ModalController, NavController } from '@ionic/angular';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-layout-tabs',
@@ -7,11 +9,23 @@ import { ModalController, NavController } from '@ionic/angular';
   styleUrls: ['./layout-tabs.page.scss'],
 })
 export class LayoutTabsPage implements OnInit {
-
-  constructor(private modalController: ModalController,private navController: NavController) { }
-
+  canGoBack:boolean=false
+  constructor(private modalController: ModalController,private navController: NavController,private router: Router) { }
+  private initialRoutes: Set<string> = new Set(['/tabs/myoutfit']);
   ngOnInit() {
+
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+     this.shouldShowBackButton();
+    });
   }
+
+  shouldShowBackButton() {
+    const currentUrl = this.router.url;
+    this.canGoBack = !this.initialRoutes.has(currentUrl);
+  }
+
   async handleBackButton() {
     // Controlla se la pagina è aperta in un modale
     const modal = await this.modalController.getTop();
