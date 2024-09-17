@@ -264,6 +264,7 @@ export class MyOutFitPage implements OnInit {
   console.log('trendingOutfits',this.trendingOutfits);
    // console.log('trendingOutfits-->',this.trendingOutfits)
     
+   
     /* return this.firestore.collection('outfits', ref => 
       ref.where('createdAt', '>=', )
          .orderBy('visits', 'desc')
