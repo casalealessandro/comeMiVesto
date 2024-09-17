@@ -19,6 +19,7 @@
       </div>
   
       <div class="banner" *ngIf="trendingOutfits.length>0">
+        
         <div class="menu">
           <div class="card" *ngFor="let item of trendingOutfits">
             <div class="img" [style.backgroundImage]="'url(' + item.imageUrl + ')'">
