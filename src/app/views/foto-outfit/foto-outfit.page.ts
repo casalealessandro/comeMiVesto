@@ -306,6 +306,7 @@ export class FotoOutfitPage implements OnInit {
       await Browser.open({ url: link });
     }
   }
+  
   /**utility**/
 
   // Funzione per convertire dataURL (BASE64) in Blob
