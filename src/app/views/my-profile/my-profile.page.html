@@ -64,7 +64,10 @@
             <ion-thumbnail>
               <img class="" [src]="userOutfit.imageUrl" [alt]="userOutfit.title">
             </ion-thumbnail>
-  
+            <span class="del-item" (click)="deleteOutfit($event,userOutfit)">
+              <ion-ripple-effect></ion-ripple-effect>
+              <ion-icon name="trash-outline"></ion-icon>
+            </span>
           </div>
   
         </ion-col>

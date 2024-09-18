@@ -8,6 +8,7 @@ import { AlertController, ModalController } from '@ionic/angular';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { AddOutfitPage } from '../add-outfit/add-outfit.page';
 import { Router } from '@angular/router';
+import { AppService } from 'src/app/service/app-service';
 @Component({
   selector: 'app-my-profile',
   templateUrl: './my-profile.page.html',
@@ -28,7 +29,7 @@ export class MyProfilePage {
   userProfile!: UserProfile;
   uid: string = '';
   userPreference!:any
-  constructor(private userProfileService: UserService,private modalController:ModalController, private alert:AlertController,private ruote:Router) { }
+  constructor(private userProfileService: UserService,private appService:AppService ,private modalController:ModalController, private alert:AlertController,private ruote:Router) { }
 
   ngOnInit() {
     
@@ -170,6 +171,28 @@ export class MyProfilePage {
     await modal.present();
 
     const { data } = await modal.onDidDismiss();
+
+    
+  }
+  async deleteOutfit(event:any,outfitData:outfit){
+
+    event.stopPropagation();
+    event.preventDefault();
+    
+    let coditions = [
+
+      {
+        field: 'userId', operator: '==', value: outfitData.userId
+      },
+      {
+        field: 'id', operator: '==', value: outfitData.id
+      }
+    ]
+    let res = await this.appService.deleteDocuments('outfits', coditions)
+
+    if (res) {
+      this.userOutfits$ = this.userProfileService.getUserOutfits();
+    }
 
     
   }

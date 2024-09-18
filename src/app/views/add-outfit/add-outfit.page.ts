@@ -36,7 +36,7 @@ export class AddOutfitPage {
   imgUrl: string = "";
   contentType!: any;
   myOutfit: any = MyOutFitPage
-
+  openModal:any = null
   constructor(
 
     private appService: AppService,
@@ -45,13 +45,14 @@ export class AddOutfitPage {
     private loading: LoadingController,
     private modalController: ModalController,
     private alert: AlertController,
-    private navController: NavController
+    private navController: NavController,
+    
   ) {
 
   }
 
 
-  ngOnInit() {
+  async ngOnInit() {
     
     this.resetOutfit();
 
@@ -60,6 +61,8 @@ export class AddOutfitPage {
       this.imgUrl = this.outfit.imageUrl
       this.tags = this.outfit.tags
     }
+
+    this.openModal = await this.modalController.getTop();
   }
 
   /* ionViewWillEnter() {
@@ -452,5 +455,9 @@ export class AddOutfitPage {
       // Altrimenti, esegui il comportamento predefinito del back button
       this.navController.back();
     }
+  }
+
+  dismissModal(evet:any){
+    this.modalController.dismiss()
   }
 }

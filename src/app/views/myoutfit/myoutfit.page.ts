@@ -257,7 +257,17 @@ export class MyOutFitPage implements OnInit {
         field: 'createdAt',
         operator: '>=',
         value:  timestampOneWeekAgo
+      },
+      
+        
+    )
+    conditions.push(
+      {
+        field: 'status',
+        operator: '==',
+        value: 'approved'
       }
+        
     )
     const orderBy: FireBaseOrderBy[] = [
       { field: 'visits', by: 'desc' },

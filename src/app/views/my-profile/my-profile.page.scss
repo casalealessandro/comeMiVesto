@@ -98,6 +98,21 @@
         --size: 100px;
        
       }
+
+      .del-item{
+        position: absolute;
+        top: 0.2rem;
+        right: 0.1rem;
+        background-color: rgba(253, 77, 77, 0.6);
+        border-radius: 1.5rem;
+        font-size: 0.8rem;
+        color: white;
+        width: 1.5rem;
+        height: 1.5rem;
+        text-align: center;
+        align-content: center;
+    
+      }
     }
   }
   
