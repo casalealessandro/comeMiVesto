@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { AlertController, NavController } from '@ionic/angular';
+import { Router } from '@angular/router';
+import { AlertController, ModalController, NavController } from '@ionic/angular';
 import { UserProfile } from 'src/app/service/interface/user-interface';
+import { TermsConditionsPage } from '../terms-conditions/terms-conditions.page';
 
 @Component({
   selector: 'app-register',
@@ -17,8 +19,8 @@ export class RegisterPage {
   nome: string = '';
   cognome: string = '';
   userType: string = 'creator'; // Default to creator
-
-  constructor(private afAuth: AngularFireAuth,private firestore: AngularFirestore,  private navController: NavController,private alert:AlertController) {}
+  modalController = inject(ModalController)
+  constructor(private afAuth: AngularFireAuth,private firestore: AngularFirestore, private navController: NavController,private alert:AlertController) {}
 
   
   register(registerData:any) {
@@ -55,6 +57,19 @@ export class RegisterPage {
         console.error('Registration error:', error);
       });
   }
+
+  async functionalCheckBox(evt:any){
+
+
+    const modal = await  this.modalController.create({
+      component: TermsConditionsPage,   
+    })
+
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+  }
+
 
   handleBackButton() {
     // Altrimenti, esegui il comportamento predefinito del back button

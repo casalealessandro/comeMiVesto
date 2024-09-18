@@ -10,6 +10,7 @@
 <ion-content>
   <ion-list>
     <ion-item *ngFor="let item of items" (click)="onItemSelected(item)">
+      <ion-icon *ngIf="item.icon" [name]="item.icon"></ion-icon>
       <ion-thumbnail slot="start" *ngIf="getImageUrl(item)">
         <img [src]="getImageUrl(item)" />
       </ion-thumbnail>

@@ -57,7 +57,10 @@ const routes: Routes = [
     loadChildren: () => import('./views/login/login.module').then(m => m.LoginPageModule),
     
   },
-
+  {
+    path: 'terms-conditions',
+    loadChildren: () => import('./views/terms-conditions/terms-conditions.module').then( m => m.TermsConditionsPageModule)
+  },
   {
     path: '',
     redirectTo: 'tabs/myoutfit',
@@ -67,6 +70,8 @@ const routes: Routes = [
     path: '**',  // Aggiungi una wildcard per gestire eventuali rotte non valide
     redirectTo: 'tabs/myoutfit'
   },
+ 
+
   
 
 ];

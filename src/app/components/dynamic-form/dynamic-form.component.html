@@ -40,6 +40,26 @@
             (eventFotoCaptured)="onValueChangeFile(field.name, $event)"
             ></app-dynamic-file-box> 
         </ion-item>
+        <ion-item *ngIf="field.type === 'checkBox'">
+          
+          <ion-checkbox *ngIf="field.checkBoxOptions!.haveLink;else checkboxNormale" 
+          [checked]="formValues[field.name]" 
+          (ionChange)="onValueChange(field.name, $event.detail.checked)">
+              
+              <a href="#"   (click)="clickLinkCheckBox($event,field.checkBoxOptions!)">
+                {{!field.checkBoxOptions!.hrefText ? field.label : field.checkBoxOptions!.hrefText  }}
+              </a>
+          </ion-checkbox>
+
+          <ng-template #checkboxNormale>
+            <ion-checkbox  [checked]="formValues[field.name]" 
+            (ionChange)="onValueChange(field.name, $event.detail.checked)"
+             labelPlacement="end" justify="start">
+            </ion-checkbox>
+          </ng-template>
+
+         
+        </ion-item>
 
         <app-dynamic-select-box
           *ngIf="field.type === 'selectBox'"

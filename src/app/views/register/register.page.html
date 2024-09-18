@@ -23,7 +23,9 @@
       </div>
       <app-dynamic-form [service]="'registerForm'"
         [btnFormText]="'Registrati'"
-       (submitFormEvent)="register($event)">
+        (functionalCheckBoxEvent)="functionalCheckBox($event)"
+       (submitFormEvent)="register($event)"
+       >
       </app-dynamic-form>
     </div>
   </div>

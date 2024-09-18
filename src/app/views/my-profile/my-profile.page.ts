@@ -181,4 +181,31 @@ export class MyProfilePage {
       this.ruote.navigate(['/login'])
     }
   }
+
+  async deleteAccount(){
+    
+    const alert = await this.alert.create({
+        header:'Attenzione!',
+        message: `Confermi la cancellazione dell'account?`,
+        buttons: [
+          {
+            text: 'Annulla',
+            role: 'cancel',
+            handler: () => {
+             
+            }
+          },
+          {
+            text: 'Conferma',
+            handler: async () => {
+              await this.userProfileService.deleteAccount()
+              
+            
+            }
+          }
+        ]
+      })
+      await alert.present();
+    
+  }
 }

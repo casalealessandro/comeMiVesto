@@ -28,6 +28,7 @@ export interface outfit {
   likes?:number;
   createdAt?:any;
   editedAt?:any;
+  status:'approvato' | 'rifiutato' | 'pending' 
 
 }
 

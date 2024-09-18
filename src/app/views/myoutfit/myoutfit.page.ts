@@ -195,7 +195,13 @@ export class MyOutFitPage implements OnInit {
 
   async loadOutfits(): Promise<void> {
 
-    let conditions:FireBaseConditions[] = []
+    let conditions:FireBaseConditions[] = [
+      {
+        field: 'status',
+        operator: '==',
+        value: 'approved'
+      }
+    ]
     const preferencC = this.createQueryConditions()
     this.filteredOutfits =[]
     this.isLoading = true;
@@ -261,7 +267,7 @@ export class MyOutFitPage implements OnInit {
   
     
   this.trendingOutfits = await this.appService.getFilteredCollection('outfits',conditions)
-  console.log('trendingOutfits',this.trendingOutfits);
+  
    // console.log('trendingOutfits-->',this.trendingOutfits)
     
    
@@ -340,7 +346,99 @@ export class MyOutFitPage implements OnInit {
     
   }
 
-  
+  async outfitMenu(outfit:outfit){
+    if (this.isOutfitCompositionOpen) {
+      return; // Evita di aprire un altro modale se uno è già aperto
+    }
+
+  // Imposta la variabile a true quando il modale viene aperto
+  this.isOutfitCompositionOpen = true;  
+    let itemsElement = [
+      {
+        id:"segnalaUtente",
+        title:"Segnala l'utente",
+        icon:'alert'
+      },
+      {
+        id:"segnalaContenuto",
+        title:"Segnala outfit",
+        icon:'flag'
+      }
+    ]
+    const modal = await this.modalController.create({
+      component: ModalListComponent,
+      componentProps: {
+        items: itemsElement, // Array degli elementi da visualizzare
+        title: 'Segnalazioni', // Titolo della lista
+        displayExpr: 'title',
+        
+
+      },
+      initialBreakpoint: 0.45,
+      breakpoints: [0.70, 0.99],
+      backdropDismiss: false,
+      backdropBreakpoint: 0.5
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+    console.log('Modal data:', data);
+    
+    let id = data.id;
+    
+    let dataS = {
+      outFitId: outfit.id,
+      userIdSegnalation: this.cUserID,
+      outfitUserId:outfit.userId,
+      typeSegnaletion: id,
+      status:'pedding'
+      
+
+    }
+    const cond = [
+      {
+        field: 'userIdSegnalation',
+        operator: '==',
+        value: this.cUserID
+      },
+      {
+        field: 'outFitId',
+        operator: '==',
+        value: outfit.id
+      },
+      {
+        field: 'typeSegnaletion',
+        operator: '==',
+        value: id
+      },
+      {
+        field: 'status',
+        operator: '==',
+        value: 'pedding'
+      }
+    ]
+    let checkSe = await this.appService.getFilteredCollection('reports',cond);
+
+    if(checkSe.length>0){
+      this.isOutfitCompositionOpen = false;  
+      return
+    }
+
+    let res = await this.appService.saveInCollection('reports', undefined, dataS)
+
+    if (res) {
+      this.isOutfitCompositionOpen = false;  
+      const alert = await this.alertController.create({
+        header: 'Segnalazione completata',
+        message: `Ti ringraziamo per la segnalazione, prenderemo in esame la tua richiesta`,
+        buttons: ['Ok'],
+      });
+
+      await alert.present();
+    }
+        
+  }
   
   matchesPreferences(outfit: any): boolean {
     // Logica per confrontare l'outfit con le preferenze dell'utente

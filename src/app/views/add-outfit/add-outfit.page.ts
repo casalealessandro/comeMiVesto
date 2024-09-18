@@ -52,6 +52,7 @@ export class AddOutfitPage {
 
 
   ngOnInit() {
+    
     this.resetOutfit();
 
     if (this.isEditMode) {
@@ -66,6 +67,7 @@ export class AddOutfitPage {
   }
  */
   resetOutfit() {
+
     this.outfit = {
       id: '',
       title: '',
@@ -75,8 +77,8 @@ export class AddOutfitPage {
       gender: '',
       style: '',
       season: '',
-      userId: ''
-
+      userId: '',
+      status:'pending',
     };
     this.image = undefined;
 
@@ -292,6 +294,8 @@ export class AddOutfitPage {
         color: this.color,
         userId: user.uid,
         createdAt:dateCreate.getTime(),
+        status:'pending',
+
         ...mappedTag
       };
     }
@@ -302,11 +306,13 @@ export class AddOutfitPage {
     let res = await this.appService.saveInCollection('outfits', id, this.outfit)
 
     if (res) {
-
-      this.router.navigate(['/myoutfit'], { skipLocationChange: true, replaceUrl: true }).then(res => {
-        this.resetOutfit()
-        this.loading.dismiss();
-      });
+      alert("L'autfit inserito è in attesa di approvazione.")
+     
+      setTimeout(() => {
+        
+        this.navController.navigateBack('back')
+        
+      }, 800);
     }
 
 
@@ -405,7 +411,27 @@ export class AddOutfitPage {
     //this.tags[indexTag] 
   }
 
-
+  //controllo immgini offensive 
+  filterImage(imageBase64: string) {
+    /* const requestBody = {
+      requests: [
+        {
+          image: {
+            content: imageBase64, // La foto codificata in base64
+          },
+          features: [{ type: 'SAFE_SEARCH_DETECTION' }],
+        },
+      ],
+    };
+  
+    return this.http.post('https://vision.googleapis.com/v1/images:annotate?key=API_KEY', requestBody)
+      .toPromise()
+      .then((response: any) => {
+        const safeSearch = response.responses[0].safeSearchAnnotation;
+        const isSafe = safeSearch.adult === 'VERY_UNLIKELY' && safeSearch.violence === 'VERY_UNLIKELY';
+        return isSafe; // Ritorna true se il contenuto è sicuro
+      }); */
+  }
 
   generateGUID(): string {
     function s4(): string {

@@ -6,6 +6,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { UserPreference, UserProfile } from './interface/user-interface';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { AppService } from './app-service';
+import { deleteUser } from 'firebase/auth';
 
 @Injectable({
   providedIn: 'root'
@@ -96,6 +97,7 @@ export class UserService {
       })
     );
   }
+
   getFaveUserOutfits(): Observable<any[]> {
     return this.afAuth.authState.pipe(
       switchMap(user => {
@@ -128,5 +130,26 @@ export class UserService {
       console.error('Errore durante il logout:', error);
       return false; // Errore durante il logout
     }
+  }
+
+  async deleteAccount(): Promise<boolean> {
+    const user = await this.afAuth.currentUser;
+    if (user) {
+      try {
+        await deleteUser(user); 
+       
+        // Effettua il logout o naviga su una pagina appropriata
+        await this.logOut();
+        return true;
+       
+       
+      
+      } catch (error) {
+
+        console.error('Errore durante la cancellazione dell\'account:', error);
+        return false;
+      }
+    }
+    return false;
   }
 }

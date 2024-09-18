@@ -1,0 +1,91 @@
+
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button  (click)="handleBackButton()" size="small"><ion-icon slot="icon-only"
+            name="chevron-back-outline"></ion-icon></ion-button>
+      </ion-buttons>
+      <ion-title>Termini di Servizio </ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="terms-content" (ionScroll)="onScroll($event)">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>Ultimo aggiornamento: {{Data}}</ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        <p>Benvenuto nella nostra app! Prima di continuare, è necessario leggere e accettare i seguenti Termini di Servizio, che regolano l'uso dell'app e dei suoi servizi.</p>
+
+        <ion-item>
+          <ion-label>
+            <h2>1. Introduzione</h2>
+            <p>Utilizzando questa app, accetti di rispettare e di essere vincolato dai presenti Termini. Se non accetti, ti preghiamo di non utilizzare l'app.</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <h2>2. Contenuti generati dagli utenti</h2>
+            <p>L'app consente agli utenti di caricare e condividere immagini, testi e altri contenuti. Utilizzando questa funzionalità, dichiari e garantisci di avere i diritti su tutti i contenuti che carichi e che tali contenuti non violano i diritti di terzi.</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <h2>3. Regole sui contenuti</h2>
+            <ul>
+              <li>Siano osceni, offensivi, diffamatori o discriminatori.</li>
+              <li>Incitino all'odio, alla violenza o ad attività illegali.</li>
+              <li>Contengano contenuti violenti, sessualmente espliciti o inadatti ai minori.</li>
+            </ul>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <h2>4. Politica di tolleranza zero</h2>
+            <p>Abbiamo una politica di tolleranza zero per quanto riguarda contenuti offensivi e comportamenti abusivi. Gli utenti che violano queste regole potranno essere sospesi o rimossi dalla piattaforma senza preavviso.</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <h2>5. Segnalazione e moderazione</h2>
+            <p>Gli utenti hanno la possibilità di segnalare contenuti offensivi o comportamenti abusivi. Ci impegniamo a prendere provvedimenti entro 24 ore dalla segnalazione, rimuovendo i contenuti e prendendo le misure appropriate nei confronti degli utenti responsabili.</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <h2>6. Blocco utenti</h2>
+            <p>Se un utente si comporta in modo abusivo, altri utenti possono bloccare il suo profilo per evitare ulteriori interazioni indesiderate.</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <h2>7. Rimozione dei contenuti</h2>
+            <p>Ci riserviamo il diritto di rimuovere qualsiasi contenuto che violi i presenti Termini di Servizio o che riteniamo inappropriato, senza preavviso.</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <h2>8. Limitazione di responsabilità</h2>
+            <p>Non ci assumiamo alcuna responsabilità per eventuali danni derivanti dall'uso improprio dell'app o da contenuti caricati dagli utenti.</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <h2>9. Modifiche ai Termini</h2>
+            <p>Ci riserviamo il diritto di modificare questi Termini di Servizio in qualsiasi momento. Le modifiche saranno pubblicate nell'app e sarà responsabilità dell'utente rimanere aggiornato sui cambiamenti.</p>
+          </ion-label>
+        </ion-item>
+
+      </ion-card-content>
+    </ion-card>
+  </ion-content>
+
