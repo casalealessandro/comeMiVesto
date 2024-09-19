@@ -331,9 +331,9 @@ export class MyOutFitPage implements OnInit {
   
  
   async outfitMenu(outfit:outfit){
-    if (this.isOutfitCompositionOpen) {
-      return; // Evita di aprire un altro modale se uno è già aperto
-    }
+    
+    this.modalController.dismiss()
+    
 
   // Imposta la variabile a true quando il modale viene aperto
   this.isOutfitCompositionOpen = true;  

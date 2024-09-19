@@ -68,7 +68,7 @@
     position: absolute;
     bottom: 3px;
     right: 3px;
-    z-index: 10; // Assicuriamoci che il pulsante sia sopra l'immagine e i tag
+    z-index: 1002; // Assicuriamoci che il pulsante sia sopra l'immagine e i tag
     --background: rgba(0, 0, 0, 0.6); // Sfondo semi-trasparente per il pulsante
     --color: #fff; // Colore del testo bianco
     font-size: 10px;
@@ -117,5 +117,6 @@
 }
 
 .tag-toggle-button {
+  z-index: 1002;
   color: #fff;
 }
