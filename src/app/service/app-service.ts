@@ -82,7 +82,8 @@ export class AppService {
       const querySnapshot = await query.get();
 
       const results = querySnapshot.docs.map((doc: any) => doc.data());
-      this.resultsSignal.set(results);
+      //this.resultsSignal.set(results);
+      this.resultsSignal = signal<any[]>(results);
       return results;
     } catch (error) {
       console.error('Error getting filtered collection:', error);

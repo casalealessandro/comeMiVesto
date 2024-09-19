@@ -10,6 +10,7 @@ export interface Tag {
   brend?: string;
   outfitCategory: string;
   outfitSubCategory?: string;
+  prezzo?:number;
 }[]
 
 // Interfaccia principale per l'oggetto
@@ -41,6 +42,7 @@ export interface wardrobesItem {
   brend: string;
   color:string;
   images: string[];
+  prezzo?:number;
 }
 
 export interface categoryCloth {

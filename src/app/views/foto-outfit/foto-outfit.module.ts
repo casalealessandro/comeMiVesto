@@ -7,15 +7,15 @@ import { IonicModule } from '@ionic/angular';
 
 
 import { FotoOutfitPage } from './foto-outfit.page';
+import { CurrencyFormatPipe } from "../../utility/currency-format.pipe";
 
 @NgModule({
   imports: [
     CommonModule,
-    
     IonicModule,
     
-  ],
-  declarations: [FotoOutfitPage],
+],
+  declarations: [FotoOutfitPage,CurrencyFormatPipe ],
   exports: [
     FotoOutfitPage // Esporta il componente se deve essere usato in altri moduli
   ]

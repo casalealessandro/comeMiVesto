@@ -11,6 +11,7 @@ import { MyWardrobesPage } from '../my-wardrobes/my-wardrobes.page';
   selector: 'app-foto-outfit',
   templateUrl: './foto-outfit.page.html',
   styleUrls: ['./foto-outfit.page.scss'],
+  
 })
 export class FotoOutfitPage implements OnInit {
   @ViewChild('imageElement', { static: false }) imageElement: ElementRef | undefined;
@@ -119,7 +120,7 @@ export class FotoOutfitPage implements OnInit {
         data: this.blobImg,
         directory: Directory.Data,
       });
-   */
+      */
       this.image = resizedImage.dataUrl;
   
       let eventToEmit = {
@@ -224,6 +225,7 @@ export class FotoOutfitPage implements OnInit {
       const y = (event.clientY - rect.top) / rect.height;
       let link = !result.link ? '#' : result.link
       let brend = !result.brend ? null : result.brend
+      let prezzo = !result.prezzo ? null : result.prezzo
       let id = result.name.replace(' ', '_')
       
       this.tags.push(
@@ -235,6 +237,7 @@ export class FotoOutfitPage implements OnInit {
           link: link,
           color:result.color,
           brend:brend,
+          prezzo:prezzo,
           outfitCategory: result.outfitCategory,
           outfitSubCategory: result.outfitSubCategory
 

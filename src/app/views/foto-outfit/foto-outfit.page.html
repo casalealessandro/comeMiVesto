@@ -5,8 +5,15 @@
     <img *ngIf="image" #imageElement [src]="image"  class="outfit-pin-image"  [ngClass]="{'darken': showTag}" (click)="addTag($event)" /> 
     <ng-container *ngIf="showTag">
       <div  *ngFor="let tag of tags" class="tag" 
-        [ngStyle]="tagStyle[tag.id]" >
-       <span (click)="openItmClothing(tag)">{{ tag.name }}</span>
+        [ngStyle]="tagStyle[tag.id]" (click)="openItmClothing(tag)" >
+      <ion-card class="price-card">
+        <ion-card-content class="price-card-content">
+          <div class="item-title">{{ tag.name }}</div>
+          <div class="item-brend">{{ tag.brend }}</div>
+          <div class="item-price">{{ tag.prezzo | currencyFormat }}</div>
+        </ion-card-content>
+      </ion-card>
+
       </div>
     </ng-container>
       <ion-button class="tag-toggle-button" *ngIf="tags.length>0" (click)="toggleTags()" id="toggle-button" [ngStyle]="tagToggleButton" fill="clear">

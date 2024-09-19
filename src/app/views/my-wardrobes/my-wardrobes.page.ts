@@ -142,7 +142,8 @@ export class MyWardrobesPage  {
       outfitCategory: categoryID,
       outfitSubCategory: subCategoryID,
       color:data.color,
-      userId: this.userID
+      userId: this.userID,
+      prezzo: data.prezzo
     }
 
     let resSave = await this.appService.saveInCollection('wardrobes',undefined,saveData)

@@ -20,22 +20,23 @@ import { IonRefresherCustomEvent } from '@ionic/core';
 export class MyOutFitPage implements OnInit {
 
 
-  outfits = this.appService.resultsSignal;
+  outfits = this.appService.resultsSignal();
   trendingOutfits: outfit[] = []
   filteredOutfits: outfit[] = []; // Array per gli outfit filtrati
   isLoading: boolean = true;
-  cUserID: string | undefined;
+  cUserID: string = '';
   cUserInfo: any;
   favorites: Set<string> = new Set();
   currentUserProfile$!: Observable<UserProfile | null>;
   outfitUserProfile$!: Observable<UserProfile>;
   outfitUserProfile!: UserProfile[];
-  cUserPreference!:UserPreference[]
+  cUserPreference!:Partial<UserPreference[]>
   isOutfitCompositionOpen: boolean = false;
   currentFilterSel:any;
   filterColor:any[] = [];
   isFiltersSel:boolean=false
   backgroundImage: any="url(assets/fallback-image.jpg);"  ;
+  blockedUIDs:any=[]
   constructor(private appService: AppService, private afAuth: AngularFireAuth, private userProfileService: UserService, private modalController: ModalController, private alertController: AlertController) {
 
   }
@@ -55,6 +56,7 @@ export class MyOutFitPage implements OnInit {
             this.cUserID = this.cUserInfo.uid;
 
             this.cUserPreference = await this.userProfileService.getUserPreference();
+           this.blockedUIDs = this.cUserPreference[0]?.uIdBlocked
             this.loadOutfits();  // Carica gli outfit solo se l'utente è loggato
 
             
@@ -67,6 +69,10 @@ export class MyOutFitPage implements OnInit {
 
 
 
+  }
+
+  ionViewWillEnter (){
+    this.loadOutfits();
   }
 
   async openFilterModal() {
@@ -202,30 +208,29 @@ export class MyOutFitPage implements OnInit {
         value: 'approved'
       }
     ]
-    const preferencC = this.createQueryConditions()
+    //const preferencC = this.createQueryConditions()
     this.filteredOutfits =[]
     this.isLoading = true;
     let newOutfits = await this.appService.getFilteredCollection('outfits',conditions) 
-      //console.log(JSON.stringify(newOutfits))
-      //.filter(outfit => this.matchesPreferences(outfit));
-      
+    
+      this.outfits = newOutfits; // Il segnale verrà aggiornato qui
       this.outfitUserProfile = [];
-      const copyOutfit = await this.appService.getFilteredOutfits(preferencC) ;
-      console.log('matchesPreferences-->',newOutfits)
-      this.outfits.set(newOutfits)
-      this.filteredOutfits = [...newOutfits];
+
+      const filteredData = this.outfits.filter(item => {
+        // Verifica che l'oggetto non contenga nessun UID in `uIdBlocked` o che non ci sia `uid` specificato
+        return !item.userId || !this.blockedUIDs.includes(item.userId);
+      });
+      this.filteredOutfits = JSON.parse(JSON.stringify(filteredData));
      
-      newOutfits.forEach(async rr => {
+      filteredData.forEach(async rr => {
         this.heartIcon(rr.id);
-
-
 
         this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
         this.outfitUserProfile$.subscribe(outfitUserProfile=>{
           this.outfitUserProfile[rr.userId] = outfitUserProfile
         })
         
-        if (newOutfits.length > 0) {
+        if (filteredData.length > 0) {
           this.isLoading = false;
         }
 //      console.log('filteredOutfits-->',this.filteredOutfits)
@@ -324,38 +329,7 @@ export class MyOutFitPage implements OnInit {
     return conditions;
   }
   
-  createQueryConditions():FireBaseConditions[]{
-    
-    let conditions: FireBaseConditions[] = []
-    this.cUserPreference.forEach(pref=>{
-     
-        // Itero sulle proprietà di ogni oggetto
-        (Object.keys(pref) as (keyof UserPreference)[]).forEach(key => {
-          const value = pref[key];
-          let operator = '=='
-          //operator = key == 'color' ? operator = 'array-contains-any'  : '==';
-           
-
-          // Controllo se il valore è un array non vuoto
-          if (Array.isArray(value) && value.length > 0) {
-            value.forEach((val: string) => {
-              // Aggiungo una nuova condizione per ogni elemento dell'array
-              conditions.push({
-                field: key,       // Il nome della proprietà come campo
-                operator: operator,   // L'operatore può essere dinamico se necessario
-                value: val        // L'elemento dell'array come valore
-              });
-            });
-          }
-        });
-     
-    
-    })
-
-    return conditions
-    
-  }
-
+ 
   async outfitMenu(outfit:outfit){
     if (this.isOutfitCompositionOpen) {
       return; // Evita di aprire un altro modale se uno è già aperto
@@ -373,6 +347,11 @@ export class MyOutFitPage implements OnInit {
         id:"segnalaContenuto",
         title:"Segnala outfit",
         icon:'flag'
+      },
+      {
+        id:"bloccaContenutoutente",
+        title:"Non mi interessa",
+        icon:'eye-off-outline'
       }
     ]
     const modal = await this.modalController.create({
@@ -397,6 +376,67 @@ export class MyOutFitPage implements OnInit {
     
     let id = data.id;
     
+    if(id == 'bloccaContenutoutente'){
+     
+      const checkSeS = this.cUserPreference.filter(ress=>ress?.uid == outfit.userId)
+  
+      if(checkSeS.length>0){
+        this.isOutfitCompositionOpen = false;  
+        return
+      }
+
+
+      console.log('cUserPreference-->',this.cUserPreference)
+      if(this.cUserPreference.length == 0){
+        
+        let profilePrefData ={
+          uid:this.cUserID,
+          color: [],
+          brend: [],
+          style: [],
+          uIdBlocked:[outfit.userId]
+          
+        }
+        
+        let isOk = await this.userProfileService.setUserPreference(profilePrefData)
+        if(isOk){
+          this.isOutfitCompositionOpen = false;  
+          this.loadOutfits()
+          return
+        }
+      }
+      let filterUp = this.cUserPreference[0]!.uIdBlocked
+        
+     
+      if (!filterUp) {
+        filterUp = [];
+      }
+
+      // Aggiungi il nuovo userId bloccato
+      filterUp.push(outfit.userId);
+
+      //this.cUserPreference[0]!.uIdBlocked = filterUp;
+      let profilePrefData ={
+        uid:this.cUserID,
+        color: this.cUserPreference[0]?.color,
+        brend: this.cUserPreference[0]?.brend,
+        style: this.cUserPreference[0]?.style,
+        uIdBlocked:filterUp
+        
+      }
+          
+          
+      let res = await this.userProfileService.setUserPreference(profilePrefData);
+
+      if(res){
+        this.isOutfitCompositionOpen = false;  
+        this.loadOutfits()
+        return
+      }
+      
+    }
+
+
     let dataS = {
       outFitId: outfit.id,
       userIdSegnalation: this.cUserID,
@@ -452,24 +492,24 @@ export class MyOutFitPage implements OnInit {
   
   matchesPreferences(outfit: any): boolean {
     // Logica per confrontare l'outfit con le preferenze dell'utente
-    // Se userPreferences non è definito o è un array vuoto, restituisci true per mostrare tutti gli outfit
-  if (!this.cUserPreference || this.cUserPreference.length === 0) {
-    return true;
-  }
+      // Se userPreferences non è definito o è un array vuoto, restituisci true per mostrare tutti gli outfit
+    if (!this.cUserPreference) {
+      return true;
+    }
+    return false
+    // Scorri l'array userPreferences e controlla se l'outfit corrisponde a una delle preferenze
+      
 
-  // Scorri l'array userPreferences e controlla se l'outfit corrisponde a una delle preferenze
-  return this.cUserPreference.some(preference => {
+      /*const colors = this.cUserPreference.color || [];
+      const brend = this.cUserPreference.brend || [];
 
-    const colors = preference.color || [];
-    const brend = preference.brend || [];
+      const matchesColor = !this.cUserPreference.color || this.cUserPreference.color.length === 0 || outfit.tags.some((tag: any) => colors.includes(tag.color));
+      const matchesStyle = !this.cUserPreference.style || this.cUserPreference.style.length === 0 || this.cUserPreference.style.includes(outfit.style);
+      const matchesbrend = !this.cUserPreference.brend || this.cUserPreference.brend.length === 0 || outfit.tags.some((tag: any) => brend.includes(tag.brend));
 
-    const matchesColor = !preference.color || preference.color.length === 0 || outfit.tags.some((tag: any) => colors.includes(tag.color));
-    const matchesStyle = !preference.style || preference.style.length === 0 || preference.style.includes(outfit.style);
-    const matchesbrend = !preference.brend || preference.brend.length === 0 || outfit.tags.some((tag: any) => brend.includes(tag.brend));
-
-    // Restituisce true se almeno una delle preferenze corrisponde all'outfit
-    return matchesColor || matchesStyle || matchesbrend;
-  });
+      
+      return matchesColor || matchesStyle || matchesbrend;
+    */
   }
 
   async addFavoriteOutfit(outfit: any) {

@@ -44,6 +44,7 @@ export class UserService {
     }
    
   }
+  
   async setUserPreference(profilePreferData:UserPreference): Promise<boolean> {
     try {
       const user = await this.afAuth.currentUser;

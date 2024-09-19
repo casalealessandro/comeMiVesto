@@ -199,7 +199,7 @@ export class AddOutfitPage {
       this.confirmOutfit()
     } else {
       let dateEdit = new Date();
-      let oartialOutfit = {
+      let partialOutfit = {
 
         title: this.title,
         description: this.description,
@@ -211,7 +211,7 @@ export class AddOutfitPage {
         editedAt:dateEdit.getTime(),
         ...mappedTag
       };
-      let outfitSaveed =  await this.editOutfit(oartialOutfit);
+      let outfitSaveed =  await this.editOutfit(partialOutfit);
       const user = await this.afAuth.currentUser;
       const uid = !user?.uid ? '' : user?.uid
       if(outfitSaveed){
@@ -224,6 +224,7 @@ export class AddOutfitPage {
             outfitSubCategory: itm.outfitSubCategory,
             brend: itm.brend,
             color:itm.color,
+            prezzo:itm.prezzo,
             images:[]
           }
           let res = await this.appService.saveInCollection('wardrobes', undefined, wardrobesItem)
@@ -349,6 +350,7 @@ export class AddOutfitPage {
       link: link,
       color: data.color,
       brend: data.brend,
+      prezzo: data.prezzo,
       outfitCategory: data.outfitCategory,
       outfitSubCategory: data.outfitSubCategory
 
