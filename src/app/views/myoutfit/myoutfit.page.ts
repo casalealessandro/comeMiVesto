@@ -238,7 +238,9 @@ export class MyOutFitPage implements OnInit {
         })
         
         if (filteredData.length > 0) {
+
           this.isLoading = false;
+          
         }
 //      console.log('filteredOutfits-->',this.filteredOutfits)
       });
