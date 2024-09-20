@@ -127,6 +127,7 @@ export class MyOutFitPage implements OnInit {
       return matchesColor 
     });
   }
+
   async showOutfitComposition(tags: any) {
 
       // Verifica se il modale è già aperto
@@ -218,6 +219,10 @@ export class MyOutFitPage implements OnInit {
       this.outfitUserProfile = [];
 
       const filteredData = this.outfits.filter(item => {
+        // Verifica se blockedUIDs è definito e contiene effettivamente un array
+        if (!Array.isArray(this.blockedUIDs)) {
+          this.blockedUIDs = []; // Inizializza come array vuoto se è undefined
+        }
         // Verifica che l'oggetto non contenga nessun UID in `uIdBlocked` o che non ci sia `uid` specificato
         return !item.userId || !this.blockedUIDs.includes(item.userId);
       });
@@ -227,7 +232,8 @@ export class MyOutFitPage implements OnInit {
         this.heartIcon(rr.id);
 
         this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
-        this.outfitUserProfile$.subscribe(outfitUserProfile=>{
+        this.outfitUserProfile$.subscribe((outfitUserProfile:UserProfile)=>{
+         
           this.outfitUserProfile[rr.userId] = outfitUserProfile
         })
         
@@ -240,6 +246,7 @@ export class MyOutFitPage implements OnInit {
       this.getTrendingOutfits()
   }
 
+ 
   async getTrendingOutfits() {
     //const oneWeekAgo = new Date();
     //oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);

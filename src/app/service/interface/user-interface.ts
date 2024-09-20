@@ -5,7 +5,7 @@ export interface UserProfile {
   name: string;
   nome?: string;
   email: string;
-  photoURL?: string;
+  photoURL: string;
   bio?: string;
   userType?: any;
 

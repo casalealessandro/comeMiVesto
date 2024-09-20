@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { UserProfile } from 'src/app/service/interface/user-interface';
+import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { UserService } from 'src/app/service/user.service';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { outfit, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
@@ -26,8 +26,8 @@ export class MyProfilePage {
   userWardrobes!: wardrobesItem[];
   faveUserOutfitsNumber: number=0;
   faveUserOutfits!: any[];
-  userProfile!: UserProfile;
-  uid: string = '';
+  userProfile!: Partial<UserProfile>;
+  uid: string | undefined;
   userPreference!:any
   constructor(private userProfileService: UserService,private appService:AppService ,private modalController:ModalController, private alert:AlertController,private ruote:Router) { }
 
@@ -103,7 +103,7 @@ export class MyProfilePage {
     let bio = !data.bio ? '' : data.bio;
     let nome = !data.nome ? data.name : '';
 
-    let profileData:UserProfile ={
+    let profileData:Partial<UserProfile> ={
       uid:this.uid ,
       displayName: displayName,
       cognome: data.cognome,
@@ -111,6 +111,7 @@ export class MyProfilePage {
       nome:nome,
       email: this.userProfile.email,
       bio:bio
+      
     }
     let isOk = await this.userProfileService.updateUserProfile(profileData)
     if(isOk){
@@ -142,7 +143,7 @@ export class MyProfilePage {
     let brend = !data.brend ? [] : data.brend
     let style = !data.style ? [] : data.style
 
-     let profilePrefData ={
+     let profilePrefData:Partial<UserPreference> ={
       uid:this.uid ,
       color: color,
       brend: brend,

@@ -40,7 +40,8 @@ export class RegisterPage {
           name:name,
           nome:name,
           cognome:cognome,
-          bio:bio
+          bio:bio,
+          photoURL:'https://ionicframework.com/docs/img/demos/avatar.svg'
         }
         // Aggiungi il tipo di utente nel documento utente in Firestore
         this.firestore.collection('users').doc(user.uid).set(userProfile);

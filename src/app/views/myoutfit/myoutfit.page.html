@@ -51,10 +51,9 @@
           <ion-col size="12"  *ngFor="let outfit of filteredOutfits">
             
               <ion-card class="outfit-card">
-                <div class="outfit-header-wrapper-title">
+                <div class="outfit-header-wrapper-title" *ngIf="outfitUserProfile[outfit.userId]">
                   <ion-avatar slot="start" class="outfit-card-avatar">
-                    <img 
-                      [src]="outfitUserProfile![outfit.userId].photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+                    <img  *ngIf="outfitUserProfile[outfit.userId]" [src]="outfitUserProfile[outfit.userId].photoURL" />
                   </ion-avatar>
                   <ion-card-title class="outfit-card-title">
   
