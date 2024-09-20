@@ -199,8 +199,9 @@ ion-select {
                 padding-left: 20px;
                 
                 .img {
-                    width: 300px;
-                    height: 20vh;
+                    max-width: 150px;
+                    min-width: 150px;
+                    height: 250px;
                     background-position: center center;
                     background-size: cover;
                     background-repeat: no-repeat;

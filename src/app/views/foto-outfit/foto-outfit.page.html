@@ -1,11 +1,11 @@
-<div #imageContainer class="image-container"  >
-    <!-- Loader che viene mostrato durante il caricamento dell'immagine -->
-    <ion-spinner *ngIf="imageLoading" name="crescent"></ion-spinner>
-  
-    <img *ngIf="image" #imageElement [src]="image"  class="outfit-pin-image"  [ngClass]="{'darken': showTag}" (click)="addTag($event)" /> 
-    <ng-container *ngIf="showTag">
-      <div  *ngFor="let tag of tags" class="tag" 
-        [ngStyle]="tagStyle[tag.id]" (click)="openItmClothing(tag)" >
+<div #imageContainer class="image-container">
+  <!-- Loader che viene mostrato durante il caricamento dell'immagine -->
+  <ion-spinner *ngIf="imageLoading" name="crescent"></ion-spinner>
+
+  <img *ngIf="image" #imageElement [src]="image" class="outfit-pin-image" [ngClass]="{'darken': showTag}"
+    (click)="addTag($event)" />
+  <ng-container *ngIf="showTag">
+    <div *ngFor="let tag of tags" class="tag" [ngStyle]="tagStyle[tag.id]" (click)="openItmClothing(tag)">
       <ion-card class="price-card">
         <ion-card-content class="price-card-content">
           <div class="item-title">{{ tag.name }}</div>
@@ -14,35 +14,64 @@
         </ion-card-content>
       </ion-card>
 
-      </div>
-    </ng-container>
-      <ion-button class="tag-toggle-button" *ngIf="tags.length>0" (click)="toggleTags()" id="toggle-button" [ngStyle]="tagToggleButton" fill="clear">
-        <ion-icon  slot="icon-only"   name="pricetags-outline"></ion-icon>
-        <!-- {{ showTag ? 'Nascondi Tags' : 'Mostra Tags' }} -->
-      </ion-button>
-    <ion-button *ngIf="enableNewImagecaptured" expand="full" size="small" class="select-photo" (click)="captureImage()">
-      
-      Seleziona foto
-    
-    </ion-button>
-  </div>
+    </div>
+  </ng-container>
+  <ion-button class="tag-toggle-button" *ngIf="tags.length>0" (click)="toggleTags()" id="toggle-button"
+    [ngStyle]="tagToggleButton" fill="clear">
+    <ion-icon slot="icon-only" name="pricetags-outline"></ion-icon>
+    <!-- {{ showTag ? 'Nascondi Tags' : 'Mostra Tags' }} -->
+  </ion-button>
+  <ion-button *ngIf="enableNewImagecaptured" expand="full" size="small" class="select-photo" (click)="captureImage()">
 
-  <!-- Modal for full screen image -->
-<ion-modal [isOpen]="openFullScreen" class="ion-padding">
-  <ng-template>
-    <ion-header>
-      <ion-toolbar>
-        <ion-buttons slot="end">
-          <ion-button (click)="closeModalFullScreen()">Chiudi</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content class="ion-padding">
-      
-      <img [src]="image" class="full-screen-image" >
-  
-    </ion-content>
-  
-    
-  </ng-template>
+    Seleziona foto
+
+  </ion-button>
+</div>
+
+<!-- Modal for full screen image -->
+<ion-modal [isOpen]="openFullScreen" class="img-fullscreen">
+  <ion-content>
+    <ng-template>
+
+
+      <div class="img-fullscreen-wrapper ">
+
+        <div class="full-screen-image">
+          <img [src]="image">
+        </div>
+
+        <ion-button fill="clear" class="close-button" (click)="closeModalFullScreen()">
+          <ion-icon name="close-outline"></ion-icon>
+        </ion-button>
+      </div>
+      <ion-label class="text title">L'outfit è composto da:</ion-label>
+      <div class="main-content">
+        <div class="banner" *ngIf="tags.length">
+
+          <div class="menu">
+            <div class="card" *ngFor="let item of tags">
+
+              <div class="img" (click)="openItmClothing(item)"
+                [ngStyle]="{'background-image': item.images && item.images.length > 0 ? 'url(' + item.images[0] + ')' : 'url(../../../assets/images/generic-clother.jpg)'}">
+
+
+                <label class="text item-title">{{ item.name }}</label>
+                <label class="text item-brend">{{ item.brend }}</label>
+                <label class="text item-price">{{ item.prezzo | currencyFormat }}</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+
+
+
+
+
+    </ng-template>
+  </ion-content>
+
 </ion-modal>

@@ -11,6 +11,7 @@ export interface Tag {
   outfitCategory: string;
   outfitSubCategory?: string;
   prezzo?:number;
+  images?:string[]
 }[]
 
 // Interfaccia principale per l'oggetto
