@@ -96,21 +96,20 @@ export class MyOutFitPage implements OnInit {
     //Non cerco nel colore del capo di abbiglimento trami firebase, quindi estraggo il colori se sono presenti nella scelta e li filtro poi a mano.
     delete data.color
     delete data.outfitCategory
-    
-      
+   
     const cond = this.createFirestoreConditions(data)
     
     let respoA = await this.appService.getFilteredOutfits(cond);
 
     const outfitColor = respoA.filter(outfit => this.matchColorPreference(outfit)); 
-    console.log('outfitColor',outfitColor)
+    
     if(outfitColor.length >0){
       this.filteredOutfits = outfitColor;
       this.isFiltersSel = true
       return
     }
-    this.filteredOutfits = respoA;
-    
+    this.filteredOutfits = respoA.filter(res=>res.status == 'approved');
+    console.log('filteredOutfits',this.filteredOutfits)
   }
 
   
@@ -240,7 +239,7 @@ export class MyOutFitPage implements OnInit {
         if (filteredData.length > 0) {
 
           this.isLoading = false;
-          
+
         }
 //      console.log('filteredOutfits-->',this.filteredOutfits)
       });
@@ -613,10 +612,10 @@ export class MyOutFitPage implements OnInit {
         tags: outfit.tags, // Titolo della lista
         
       },
-      initialBreakpoint: 1,
-      breakpoints: [1],
-      backdropDismiss: false,
-      backdropBreakpoint: 0.77
+    
+      
+      backdropDismiss: true,
+    
     });
 
     await modal.present();

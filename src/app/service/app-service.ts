@@ -149,7 +149,7 @@ export class AppService {
       // Rimuovi i duplicati basandoti sull'id del documento
       const uniqueResults = Array.from(new Set(combinedResults.map(item => item.id)))
         .map(id => combinedResults.find(item => item.id === id));
-
+        this.resultsSignal.set(uniqueResults);
       return uniqueResults;
     } catch (error) {
       console.error("Error getting filtered collection: ", error);

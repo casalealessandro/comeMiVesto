@@ -1,13 +1,13 @@
 
 
 
-  <ion-header class="main-header" >
+  <ion-header class="main-header"  [translucent]="true">
     <ion-toolbar>
       <ion-buttons slot="start" *ngIf="canGoBack">
         <ion-button   (click)="handleBackButton()" size="small"><ion-icon slot="icon-only"  name="chevron-back-outline"></ion-icon></ion-button>
       </ion-buttons>
       <ion-title class="outfit-header-title">
-        <ion-img
+        <ion-img class="logo"
         src="../../../assets/images/193683350-logo.png"
         alt="come mi vesto?"
       ></ion-img>
