@@ -18,11 +18,11 @@
         </div>
       </div>
   
-      <div class="banner" *ngIf="trendingOutfits.length>0">
+      <div class="banner" *ngIf="trendingOutfits.length>0" >
 
         <div class="menu">
           <div class="card" *ngFor="let item of trendingOutfits">
-            <div class="img" [style.backgroundImage]="'url(' + item.imageUrl + ')'">
+            <div class="img" [style.backgroundImage]="'url(' + item.imageUrl + ')'" (click)="hasOutfitVisitFull(item)">
               <ion-label class="text">{{item.title}}</ion-label>
               <!-- <ion-label class="title">{{outfitUserProfile[item.userId].displayName}}</ion-label> -->
             </div>

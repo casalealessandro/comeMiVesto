@@ -10,17 +10,19 @@ import { MyOutFitPage } from './myoutfit.page';
 import { ComponentsModule } from 'src/app/components/components.module';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { FotoOutfitPageModule } from "../foto-outfit/foto-outfit.module";
+import { CurrencyFormatPipe } from 'src/app/utility/currency-format.pipe';
 
 
 @NgModule({
   imports: [
     CommonModule,
     IonicModule,
+    FotoOutfitPageModule,
     ComponentsModule,
     ScrollingModule,
     MyoutfitPageRoutingModule,
-    FotoOutfitPageModule
+    
 ],
-  declarations: [MyOutFitPage,]
+  declarations: [MyOutFitPage]
 })
 export class MyOutFitPageModule {}

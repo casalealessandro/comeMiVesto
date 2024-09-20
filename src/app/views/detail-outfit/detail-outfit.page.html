@@ -1,0 +1,47 @@
+<ion-content [fullscreen]="true">
+  <div class="img-fullscreen">
+
+
+
+    <div class="img-fullscreen-wrapper ">
+
+      <div class="full-screen-image">
+        <img [src]="image">
+      </div>
+
+      <ion-button fill="clear" class="close-button" (click)="closeModalFullScreen()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </div>
+    <ion-label class="text title">L'outfit è composto da:</ion-label>
+    <div class="main-content">
+      <div class="banner" *ngIf="tags.length>0">
+
+        <div class="menu">
+          <div class="card" *ngFor="let item of tags">
+
+            <div class="img" (click)="openItmClothing(item)"
+              [ngStyle]="{'background-image': item.images && item.images.length > 0 ? 'url(' + item.images[0] + ')' : 'url(../../../assets/images/generic-clother.jpg)'}">
+
+
+              <label class="text item-title">{{ item.name }}</label>
+              <label class="text item-brend">{{ item.brend }}</label>
+              <label class="text item-price">{{ item.prezzo | currencyFormat }}</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</ion-content>

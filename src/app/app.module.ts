@@ -16,6 +16,7 @@ import { ComponentsModule } from './components/components.module';
 import { CommonModule } from '@angular/common';
 
 import { FotoOutfitPage } from './views/foto-outfit/foto-outfit.page';
+import { CurrencyFormatPipe } from './utility/currency-format.pipe';
 
 
 

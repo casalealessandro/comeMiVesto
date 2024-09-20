@@ -207,9 +207,9 @@ export class FotoOutfitPage implements OnInit {
 }
 
   async addTag(event: any) {
-
+    
     if (!this.enableSetTagsImage) {
-      this.openFullScreen = true;
+      
       this.eventImageShowFull.emit()
       return
     }

@@ -8,16 +8,19 @@ import { IonicModule } from '@ionic/angular';
 
 import { FotoOutfitPage } from './foto-outfit.page';
 import { CurrencyFormatPipe } from "../../utility/currency-format.pipe";
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   imports: [
     CommonModule,
     IonicModule,
-    
+    SharedModule
 ],
-  declarations: [FotoOutfitPage,CurrencyFormatPipe ],
+  declarations: [FotoOutfitPage],
   exports: [
-    FotoOutfitPage // Esporta il componente se deve essere usato in altri moduli
+    FotoOutfitPage,
+    
+     // Esporta il componente se deve essere usato in altri moduli
   ]
 })
 export class FotoOutfitPageModule {}

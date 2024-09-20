@@ -12,6 +12,7 @@ import { Observable } from 'rxjs';
 import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
 import { IonRefresherCustomEvent } from '@ionic/core';
+import { DetailOutfitPage } from '../detail-outfit/detail-outfit.page';
 @Component({
   selector: 'app-myoutfit',
   templateUrl: './myoutfit.page.html',
@@ -594,16 +595,33 @@ export class MyOutFitPage implements OnInit {
     return this.favorites.has(outfitId);
   }
 
-  async hasOutfitVisitFull(outfit:any){
+  async hasOutfitVisitFull(outfit:outfit){
+    
+    const modal = await this.modalController.create({
+      component: DetailOutfitPage,
+      componentProps: {
+        image: outfit.imageUrl, // Array degli elementi da visualizzare
+        tags: outfit.tags, // Titolo della lista
+        
+      },
+      initialBreakpoint: 1,
+      breakpoints: [1],
+      backdropDismiss: false,
+      backdropBreakpoint: 0.77
+    });
+
+    await modal.present();
+    
     if(outfit.userId == this.cUserID){
       return
     }
-      let visit = outfit.visits + 1;// nVisit++
+      let visit = !outfit.visits ? 1 : outfit.visits + 1;// nVisit++
       let data = { visits: visit }
       let update = await this.appService.updateInCollection('outfits',outfit.id,data)
       if(update){
-        console.log('ok')
+       
       }
+
   }
 
   @HostListener('window:scroll', ['$event'])

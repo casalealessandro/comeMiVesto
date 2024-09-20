@@ -69,7 +69,11 @@ const routes: Routes = [
   {
     path: '**',  // Aggiungi una wildcard per gestire eventuali rotte non valide
     redirectTo: 'tabs/myoutfit'
+  },  {
+    path: 'detail-outfit',
+    loadChildren: () => import('./views/detail-outfit/detail-outfit.module').then( m => m.DetailOutfitPageModule)
   },
+
  
 
   
