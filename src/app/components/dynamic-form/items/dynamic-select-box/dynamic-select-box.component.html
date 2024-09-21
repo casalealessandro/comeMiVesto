@@ -1,10 +1,11 @@
-<ion-item>
+<ion-item *ngIf="noCustom">
   
   <ion-select 
     [multiple]="selectOptions.multiple"
     [value]="selectedValue"
     [label]="config.label"
-    class="selectbox"
+    class="selectbox" 
+    interface="action-sheet"
     [labelPlacement]="labelPlacement"
     (ionChange)="onValueChange($event)"
     [disabled]="disabled"> <!-- Disabilita la selectbox se necessario -->
@@ -12,4 +13,11 @@
       {{ option[displayExp] }}
     </ion-select-option>
   </ion-select>
+</ion-item>
+
+
+<ion-item  *ngIf="!noCustom" (click)="openCustomSelect()" [disabled]="disabled" class="cstomselectbox">
+  <ion-label [position]="labelPlacement">{{config.label}}</ion-label>
+  
+  <ion-text>{{ noCustomOptions.length ? noCustomOptions.join(', ') : "Seleziona un'opzione" }}</ion-text>
 </ion-item>

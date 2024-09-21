@@ -43,8 +43,14 @@
   
       <div class="style-main" *ngIf="!isLoading">
         <div class="title">
-          <ion-label>Ultimi outifit</ion-label>
-          <!-- <ion-label class="text">See All</ion-label -->
+          <span (click)="loadOutfits()">
+            <ion-label >Ultimi outifit</ion-label>
+          </span>
+          
+          <span (click)="filterUserOutFit()">
+            <ion-label class="text">Suggeriti</ion-label>
+          </span>
+          
         </div>
   
         <ion-row class="style">

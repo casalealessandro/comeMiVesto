@@ -214,7 +214,7 @@ export class AddOutfitPage {
       let outfitSaveed =  await this.editOutfit(partialOutfit);
       const user = await this.afAuth.currentUser;
       const uid = !user?.uid ? '' : user?.uid
-      if(outfitSaveed){
+     /*  if(outfitSaveed){
         this.tags.forEach(async (itm:any)=>{
           let wardrobesItem:wardrobesItem = {
             id: itm.id,
@@ -227,12 +227,13 @@ export class AddOutfitPage {
             prezzo:itm.prezzo,
             images:[]
           }
+          
           let res = await this.appService.saveInCollection('wardrobes', undefined, wardrobesItem)
         })
         
 
         this.handleBackButton()
-      }
+      } */
     }
 
 

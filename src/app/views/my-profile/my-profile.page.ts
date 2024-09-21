@@ -28,16 +28,16 @@ export class MyProfilePage {
   faveUserOutfits!: any[];
   userProfile!: Partial<UserProfile>;
   uid: string | undefined;
-  userPreference!:any
+  userPreference!:UserPreference[]
   constructor(private userProfileService: UserService,private appService:AppService ,private modalController:ModalController, private alert:AlertController,private ruote:Router) { }
 
-  ngOnInit() {
+  async ngOnInit() {
     
     this.userProfile$ = this.userProfileService.getUserProfile();
     this.userOutfits$ = this.userProfileService.getUserOutfits();
     this.userWardrobes$ = this.userProfileService.getUserWardrobes();
     this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits();
-    this.userPreference = this.userProfileService.getUserPreference();
+    this.userPreference =  await this.userProfileService.getUserPreference();
 
     //console.log('userOutfits',this.userOutfits$)
     this.userProfile$.subscribe(userProfile=>{
@@ -127,12 +127,12 @@ export class MyProfilePage {
 
   async editUserPreference(){
     //usersPreferenceForm
-
+    console.log('editUserPreference',this.userPreference)
     const modal = await this.modalController.create({
       component: ModalFormComponent,
       componentProps: {
         service: 'usersPreferenceForm',
-        editData:this.userPreference
+        editData:this.userPreference[0]
       }
     });
     await modal.present();
@@ -142,12 +142,14 @@ export class MyProfilePage {
     let color = !data.color ? [] : data.color
     let brend = !data.brend ? [] : data.brend
     let style = !data.style ? [] : data.style
+    let uIdBlocked = !this.userPreference[0].uIdBlocked ? [] : this.userPreference[0].uIdBlocked
 
      let profilePrefData:Partial<UserPreference> ={
       uid:this.uid ,
       color: color,
       brend: brend,
       style: style,
+      uIdBlocked:uIdBlocked
       
     }
     let isOk = await this.userProfileService.setUserPreference(profilePrefData)

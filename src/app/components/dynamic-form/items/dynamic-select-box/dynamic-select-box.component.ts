@@ -1,5 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { ModalController } from '@ionic/angular';
+import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { DynamicFormField } from 'src/app/service/interface/dynamic-form-field';
 
 
@@ -24,10 +26,11 @@ export class DynamicSelectBoxComponent implements OnChanges {
   selectOptions:any
   displayExp:any;
   valueExp:any;
-  
+  modalController=inject(ModalController)
   selectedValue!: string | string[];
   multiple: boolean= false;
-  
+  noCustom: boolean = true;
+  noCustomOptions:any[]=[]
   ngOnInit(): void {
     this.initializeOptions();
   }
@@ -46,6 +49,11 @@ export class DynamicSelectBoxComponent implements OnChanges {
 
       this.formControlD?.setValue(this.selectedValue)
       this.multiple = this.selectOptions.multiple || false;
+    }
+
+    if(!this.noCustom){
+      this.noCustomOptions = this.availableOptions.filter((res:any)=> res[this.valueExp] ==  this.selectedValue)
+      this.noCustomOptions = this.noCustomOptions.map((r:any)=>{return r[this.displayExp]} )
     }
   }
 
@@ -69,5 +77,22 @@ export class DynamicSelectBoxComponent implements OnChanges {
   onValueChange(event: any) {
     this.selectedValue = event.detail.value;
     this.valueChange.emit(this.selectedValue);
+  }
+
+  async openCustomSelect() {
+    const modal = await this.modalController.create({
+      component: ModalListComponent,
+      /* componentProps: {
+        selectedValues: this.selectedValues,
+        isMultiple: this.isMultiple,
+      } */
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data) {
+      //this.selectedValues = data;
+    }
   }
 }

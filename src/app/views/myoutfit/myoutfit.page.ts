@@ -31,13 +31,13 @@ export class MyOutFitPage implements OnInit {
   currentUserProfile$!: Observable<UserProfile | null>;
   outfitUserProfile$!: Observable<UserProfile>;
   outfitUserProfile!: UserProfile[];
-  cUserPreference!:Partial<UserPreference[]>
+  cUserPreference!: Partial<UserPreference[]>
   isOutfitCompositionOpen: boolean = false;
-  currentFilterSel:any;
-  filterColor:any[] = [];
-  isFiltersSel:boolean=false
-  backgroundImage: any="url(assets/fallback-image.jpg);"  ;
-  blockedUIDs:any=[]
+  currentFilterSel: any;
+  filterColor: any[] = [];
+  isFiltersSel: boolean = false
+  backgroundImage: any = "url(assets/fallback-image.jpg);";
+  blockedUIDs: any = []
   constructor(private appService: AppService, private afAuth: AngularFireAuth, private userProfileService: UserService, private modalController: ModalController, private alertController: AlertController) {
 
   }
@@ -47,22 +47,20 @@ export class MyOutFitPage implements OnInit {
 
     this.afAuth.authState.subscribe(user => {
       if (user) {
-     
+
         this.currentUserProfile$ = this.userProfileService.getUserProfile();
 
         this.currentUserProfile$.subscribe(async userProfile => {
           if (userProfile)
-           
+
             this.cUserInfo = userProfile;
-            this.cUserID = this.cUserInfo.uid;
+          this.cUserID = this.cUserInfo.uid;
 
-            this.cUserPreference = await this.userProfileService.getUserPreference();
-           this.blockedUIDs = this.cUserPreference[0]?.uIdBlocked
-            this.loadOutfits();  // Carica gli outfit solo se l'utente è loggato
 
-            
+          this.loadOutfits();  // Carica gli outfit solo se l'utente è loggato
+
         })
-        
+
 
       }
     });
@@ -72,7 +70,7 @@ export class MyOutFitPage implements OnInit {
 
   }
 
-  ionViewWillEnter (){
+  ionViewWillEnter() {
     this.loadOutfits();
   }
 
@@ -81,61 +79,61 @@ export class MyOutFitPage implements OnInit {
     const modal = await this.modalController.create({
       component: FilterOutfitsPage,
       componentProps: {
-        currentFilterSel:this.currentFilterSel
+        currentFilterSel: this.currentFilterSel
 
       }
     });
     await modal.present();
 
     const { data } = await modal.onDidDismiss();
-    console.log( data);
+    console.log(data);
     this.filterColor = data.color;
-    this.currentFilterSel = {...data};
-    
+    this.currentFilterSel = { ...data };
+
 
     //Non cerco nel colore del capo di abbiglimento trami firebase, quindi estraggo il colori se sono presenti nella scelta e li filtro poi a mano.
     delete data.color
     delete data.outfitCategory
-   
+
     const cond = this.createFirestoreConditions(data)
-    
+
     let respoA = await this.appService.getFilteredOutfits(cond);
 
-    const outfitColor = respoA.filter(outfit => this.matchColorPreference(outfit)); 
-    
-    if(outfitColor.length >0){
+    const outfitColor = respoA.filter(outfit => this.matchColorPreference(outfit));
+
+    if (outfitColor.length > 0) {
       this.filteredOutfits = outfitColor;
       this.isFiltersSel = true
       return
     }
-    this.filteredOutfits = respoA.filter(res=>res.status == 'approved');
-    console.log('filteredOutfits',this.filteredOutfits)
+    this.filteredOutfits = respoA.filter(res => res.status == 'approved');
+    console.log('filteredOutfits', this.filteredOutfits)
   }
 
-  
-  
-  matchColorPreference(outfit:outfit){
+
+
+  matchColorPreference(outfit: outfit) {
     return this.filterColor.some(color => {
 
-      const colors = color 
-      
-  
+      const colors = color
+
+
       const matchesColor = outfit.tags.some((tag: any) => colors.includes(tag.color));
-      
+
       // Restituisce true se almeno una delle preferenze corrisponde all'outfit
-      return matchesColor 
+      return matchesColor
     });
   }
 
   async showOutfitComposition(tags: any) {
 
-      // Verifica se il modale è già aperto
+    // Verifica se il modale è già aperto
     if (this.isOutfitCompositionOpen) {
       return; // Evita di aprire un altro modale se uno è già aperto
     }
 
-  // Imposta la variabile a true quando il modale viene aperto
-  this.isOutfitCompositionOpen = true;
+    // Imposta la variabile a true quando il modale viene aperto
+    this.isOutfitCompositionOpen = true;
 
     const modal = await this.modalController.create({
       component: ModalListComponent,
@@ -180,7 +178,27 @@ export class MyOutFitPage implements OnInit {
           immages: []
 
         }
+        let coditions = [
 
+          {
+            field: 'userId', operator: '==', value: this.cUserID
+          },
+          {
+            field: 'id', operator: '==', value: item.id
+          }
+        ]
+
+        let check = await this.appService.getFilteredCollection('wardrobes',coditions);
+        if(check){
+          const alert = await this.alertController.create({
+            header: 'Oggetto già salvato',
+            message: `${item.name} è già presente nel tuo guardaroba`,
+            buttons: ['Ok'],
+          });
+
+          await alert.present();
+          return
+        }
         let res = await this.appService.saveInCollection('wardrobes', undefined, data)
 
         if (res) {
@@ -201,8 +219,10 @@ export class MyOutFitPage implements OnInit {
 
 
   async loadOutfits(): Promise<void> {
+    this.cUserPreference = await this.userProfileService.getUserPreference();
+    this.blockedUIDs = this.cUserPreference[0]?.uIdBlocked
 
-    let conditions:FireBaseConditions[] = [
+    let conditions: FireBaseConditions[] = [
       {
         field: 'status',
         operator: '==',
@@ -210,49 +230,46 @@ export class MyOutFitPage implements OnInit {
       }
     ]
     //const preferencC = this.createQueryConditions()
-    this.filteredOutfits =[]
+    this.filteredOutfits = []
     this.isLoading = true;
-    let newOutfits = await this.appService.getFilteredCollection('outfits',conditions) 
-    
-      this.outfits = newOutfits; // Il segnale verrà aggiornato qui
-      this.outfitUserProfile = [];
+    let newOutfits = await this.appService.getFilteredCollection('outfits', conditions)
 
-      const filteredData = this.outfits.filter(item => {
-        // Verifica se blockedUIDs è definito e contiene effettivamente un array
-        if (!Array.isArray(this.blockedUIDs)) {
-          this.blockedUIDs = []; // Inizializza come array vuoto se è undefined
-        }
-        // Verifica che l'oggetto non contenga nessun UID in `uIdBlocked` o che non ci sia `uid` specificato
-        return !item.userId || !this.blockedUIDs.includes(item.userId);
-      });
-      this.filteredOutfits = JSON.parse(JSON.stringify(filteredData));
-     
-      filteredData.forEach(async rr => {
-        this.heartIcon(rr.id);
+    this.outfits = newOutfits; // Il segnale verrà aggiornato qui
+    this.outfitUserProfile = [];
 
-        this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
-        this.outfitUserProfile$.subscribe((outfitUserProfile:UserProfile)=>{
-         
-          this.outfitUserProfile[rr.userId] = outfitUserProfile
-        })
-        
-        if (filteredData.length > 0) {
+    const filteredData = this.outfits.filter(item => {
+      // Verifica se blockedUIDs è definito e contiene effettivamente un array
+      if (!Array.isArray(this.blockedUIDs)) {
+        this.blockedUIDs = []; // Inizializza come array vuoto se è undefined
+      }
+      // Verifica che l'oggetto non contenga nessun UID in `uIdBlocked` o che non ci sia `uid` specificato
+      return !item.userId || !this.blockedUIDs.includes(item.userId);
+    });
+    this.filteredOutfits = JSON.parse(JSON.stringify(filteredData));
 
-          this.isLoading = false;
+    filteredData.forEach(async rr => {
+      this.heartIcon(rr.id);
 
-        }
-//      console.log('filteredOutfits-->',this.filteredOutfits)
-      });
+      this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
+      this.outfitUserProfile$.subscribe((outfitUserProfile: UserProfile) => {
 
-      this.getTrendingOutfits()
+        this.outfitUserProfile[rr.userId] = outfitUserProfile
+      })
+
+      if (filteredData.length > 0) {
+
+        this.isLoading = false;
+
+      }
+      //      console.log('filteredOutfits-->',this.filteredOutfits)
+    });
+
+    this.getTrendingOutfits()
   }
 
- 
+
   async getTrendingOutfits() {
-    //const oneWeekAgo = new Date();
-    //oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    //oneWeekAgo.setDate(oneWeekAgo.getDate());
-    
+
     // Ottieni la data di oggi
     const today = new Date();
 
@@ -262,18 +279,18 @@ export class MyOutFitPage implements OnInit {
 
     // Ottieni il timestamp della data di una settimana fa
     const timestampOneWeekAgo = oneWeekAgo.getTime();
-        
+
     const conditions: FireBaseConditions[] = [];
-  
-    
+
+
     conditions.push(
       {
         field: 'createdAt',
         operator: '>=',
-        value:  timestampOneWeekAgo
+        value: timestampOneWeekAgo
       },
-      
-        
+
+
     )
     conditions.push(
       {
@@ -281,49 +298,65 @@ export class MyOutFitPage implements OnInit {
         operator: '==',
         value: 'approved'
       }
-        
+
     )
     const orderBy: FireBaseOrderBy[] = [
       { field: 'visits', by: 'desc' },
       { field: 'likes', by: 'asc' }
     ];
 
-  
+
+
+    this.trendingOutfits = await this.appService.getFilteredCollection('outfits', conditions)
+
+
+  }
+
+  async filterUserOutFit() {
+    console.log('this.cUserPreference[0]',this.cUserPreference[0]);
+    let copy = { ...this.cUserPreference[0] }
+    delete copy.brend
+    delete copy.uid
+    delete copy.uIdBlocked
     
-  this.trendingOutfits = await this.appService.getFilteredCollection('outfits',conditions)
-  
-   // console.log('trendingOutfits-->',this.trendingOutfits)
+
+    let conditions = this.createFirestoreConditions(copy);
+    console.log('blockedUIDs',this.blockedUIDs);
     
-   
-    /* return this.firestore.collection('outfits', ref => 
-      ref.where('createdAt', '>=', )
-         .orderBy('visits', 'desc')
-         .orderBy('likes', 'desc')
-         .limit(10)
-    ).valueChanges(); */
+    let respoA = await this.appService.getFilteredOutfits(conditions);;
+
+    respoA.forEach(item => {
+      // Verifica se blockedUIDs è definito e contiene effettivamente un array
+      if (!Array.isArray(this.blockedUIDs)) {
+        this.blockedUIDs = []; // Inizializza come array vuoto se è undefined
+      }
+      // Verifica che l'oggetto non contenga nessun UID in `uIdBlocked` o che non ci sia `uid` specificato
+      return !item.userId || !this.blockedUIDs.includes(item.userId) ;
+    });
+    this.filteredOutfits = respoA.filter(r=>r.status == 'approved')
   }
 
   createFirestoreConditions(filters: any): FireBaseConditions[] {
     const conditions: FireBaseConditions[] = [];
-  
+
     for (const key in filters) {
       if (filters.hasOwnProperty(key)) {
         const value = filters[key];
-        
+
         // Controlla se il valore è un array vuoto e salta questa iterazione
         if (Array.isArray(value) && value.length === 0) {
           continue;  // Salta questa iterazione se l'array è vuoto
         }
         // Se il valore è un array con più di un elemento, usa "array-contains-any"
         if (Array.isArray(value) && value.length > 0) {
-          
-            // usa l'operatore "array-contains-any"
-            conditions.push({
-              field: key,
-              operator: 'array-contains-any',
-              value:  filters[key]
-            });
-         
+
+          // usa l'operatore "array-contains-any"
+          conditions.push({
+            field: key,
+            operator: 'array-contains-any',
+            value: filters[key]
+          });
+
         } else if (value !== null && value !== undefined && value !== '') {
           // Se non è un array e ha un valore valido, usa "=="
           conditions.push({
@@ -334,33 +367,33 @@ export class MyOutFitPage implements OnInit {
         }
       }
     }
-  
+
     return conditions;
   }
-  
- 
-  async outfitMenu(outfit:outfit){
-    
-    this.modalController.dismiss()
-    
 
-  // Imposta la variabile a true quando il modale viene aperto
-  this.isOutfitCompositionOpen = true;  
+
+  async outfitMenu(outfit: outfit) {
+
+    this.modalController.dismiss()
+
+
+    // Imposta la variabile a true quando il modale viene aperto
+    this.isOutfitCompositionOpen = true;
     let itemsElement = [
       {
-        id:"segnalaUtente",
-        title:"Segnala l'utente",
-        icon:'alert'
+        id: "segnalaUtente",
+        title: "Segnala l'utente",
+        icon: 'alert'
       },
       {
-        id:"segnalaContenuto",
-        title:"Segnala outfit",
-        icon:'flag'
+        id: "segnalaContenuto",
+        title: "Segnala outfit",
+        icon: 'flag'
       },
       {
-        id:"bloccaContenutoutente",
-        title:"Non mi interessa",
-        icon:'eye-off-outline'
+        id: "bloccaContenutoutente",
+        title: "Non mi interessa",
+        icon: 'eye-off-outline'
       }
     ]
     const modal = await this.modalController.create({
@@ -369,7 +402,7 @@ export class MyOutFitPage implements OnInit {
         items: itemsElement, // Array degli elementi da visualizzare
         title: 'Segnalazioni', // Titolo della lista
         displayExpr: 'title',
-        
+
 
       },
       initialBreakpoint: 0.45,
@@ -382,41 +415,41 @@ export class MyOutFitPage implements OnInit {
 
     const { data } = await modal.onDidDismiss();
     console.log('Modal data:', data);
-    
+
     let id = data.id;
-    
-    if(id == 'bloccaContenutoutente'){
-     
-      const checkSeS = this.cUserPreference.filter(ress=>ress?.uid == outfit.userId)
-  
-      if(checkSeS.length>0){
-        this.isOutfitCompositionOpen = false;  
+
+    if (id == 'bloccaContenutoutente') {
+
+      const checkSeS = this.cUserPreference.filter(ress => ress?.uid == outfit.userId)
+
+      if (checkSeS.length > 0) {
+        this.isOutfitCompositionOpen = false;
         return
       }
 
 
-      console.log('cUserPreference-->',this.cUserPreference)
-      if(this.cUserPreference.length == 0){
-        
-        let profilePrefData ={
-          uid:this.cUserID,
+      console.log('cUserPreference-->', this.cUserPreference)
+      if (this.cUserPreference.length == 0) {
+
+        let profilePrefData = {
+          uid: this.cUserID,
           color: [],
           brend: [],
           style: [],
-          uIdBlocked:[outfit.userId]
-          
+          uIdBlocked: [outfit.userId]
+
         }
-        
+
         let isOk = await this.userProfileService.setUserPreference(profilePrefData)
-        if(isOk){
-          this.isOutfitCompositionOpen = false;  
+        if (isOk) {
+          this.isOutfitCompositionOpen = false;
           this.loadOutfits()
           return
         }
       }
       let filterUp = this.cUserPreference[0]!.uIdBlocked
-        
-     
+
+
       if (!filterUp) {
         filterUp = [];
       }
@@ -425,34 +458,34 @@ export class MyOutFitPage implements OnInit {
       filterUp.push(outfit.userId);
 
       //this.cUserPreference[0]!.uIdBlocked = filterUp;
-      let profilePrefData ={
-        uid:this.cUserID,
+      let profilePrefData = {
+        uid: this.cUserID,
         color: this.cUserPreference[0]?.color,
         brend: this.cUserPreference[0]?.brend,
         style: this.cUserPreference[0]?.style,
-        uIdBlocked:filterUp
-        
+        uIdBlocked: filterUp
+
       }
-          
-          
+
+
       let res = await this.userProfileService.setUserPreference(profilePrefData);
 
-      if(res){
-        this.isOutfitCompositionOpen = false;  
+      if (res) {
+        this.isOutfitCompositionOpen = false;
         this.loadOutfits()
         return
       }
-      
+
     }
 
 
     let dataS = {
       outFitId: outfit.id,
       userIdSegnalation: this.cUserID,
-      outfitUserId:outfit.userId,
+      outfitUserId: outfit.userId,
       typeSegnaletion: id,
-      status:'pedding'
-      
+      status: 'pedding'
+
 
     }
     const cond = [
@@ -477,17 +510,17 @@ export class MyOutFitPage implements OnInit {
         value: 'pedding'
       }
     ]
-    let checkSe = await this.appService.getFilteredCollection('reports',cond);
+    let checkSe = await this.appService.getFilteredCollection('reports', cond);
 
-    if(checkSe.length>0){
-      this.isOutfitCompositionOpen = false;  
+    if (checkSe.length > 0) {
+      this.isOutfitCompositionOpen = false;
       return
     }
 
     let res = await this.appService.saveInCollection('reports', undefined, dataS)
 
     if (res) {
-      this.isOutfitCompositionOpen = false;  
+      this.isOutfitCompositionOpen = false;
       const alert = await this.alertController.create({
         header: 'Segnalazione completata',
         message: `Ti ringraziamo per la segnalazione, prenderemo in esame la tua richiesta`,
@@ -496,33 +529,33 @@ export class MyOutFitPage implements OnInit {
 
       await alert.present();
     }
-        
+
   }
-  
+
   matchesPreferences(outfit: any): boolean {
     // Logica per confrontare l'outfit con le preferenze dell'utente
-      // Se userPreferences non è definito o è un array vuoto, restituisci true per mostrare tutti gli outfit
+    // Se userPreferences non è definito o è un array vuoto, restituisci true per mostrare tutti gli outfit
     if (!this.cUserPreference) {
       return true;
     }
     return false
     // Scorri l'array userPreferences e controlla se l'outfit corrisponde a una delle preferenze
-      
 
-      /*const colors = this.cUserPreference.color || [];
-      const brend = this.cUserPreference.brend || [];
 
-      const matchesColor = !this.cUserPreference.color || this.cUserPreference.color.length === 0 || outfit.tags.some((tag: any) => colors.includes(tag.color));
-      const matchesStyle = !this.cUserPreference.style || this.cUserPreference.style.length === 0 || this.cUserPreference.style.includes(outfit.style);
-      const matchesbrend = !this.cUserPreference.brend || this.cUserPreference.brend.length === 0 || outfit.tags.some((tag: any) => brend.includes(tag.brend));
+    /*const colors = this.cUserPreference.color || [];
+    const brend = this.cUserPreference.brend || [];
 
-      
-      return matchesColor || matchesStyle || matchesbrend;
-    */
+    const matchesColor = !this.cUserPreference.color || this.cUserPreference.color.length === 0 || outfit.tags.some((tag: any) => colors.includes(tag.color));
+    const matchesStyle = !this.cUserPreference.style || this.cUserPreference.style.length === 0 || this.cUserPreference.style.includes(outfit.style);
+    const matchesbrend = !this.cUserPreference.brend || this.cUserPreference.brend.length === 0 || outfit.tags.some((tag: any) => brend.includes(tag.brend));
+
+    
+    return matchesColor || matchesStyle || matchesbrend;
+  */
   }
 
   async addFavoriteOutfit(outfit: any) {
-    
+
 
 
     let coditions = [
@@ -535,16 +568,16 @@ export class MyOutFitPage implements OnInit {
     ]
     let likes = outfit.likes
     if (this.favorites.has(outfit.id)) {
-      
+
       let res = await this.appService.deleteDocuments('faveUserOutfits', coditions)
-      
+
       if (res) {
-        
-        likes = likes -1
-        let data  ={
+
+        likes = likes - 1
+        let data = {
           likes: likes
         }
-        this.appService.updateInCollection('outfits',outfit.id,data)
+        this.appService.updateInCollection('outfits', outfit.id, data)
         this.favorites.delete(outfit.id);
         return;
       }
@@ -561,18 +594,18 @@ export class MyOutFitPage implements OnInit {
     if (res) {
 
       this.favorites.add(outfit.id);
-      
-      if(this.cUserID == outfit.userId){
+
+      if (this.cUserID == outfit.userId) {
         return;
       }
 
       likes = likes + 1;
 
-      let data  ={
+      let data = {
         likes: likes
       }
 
-      this.appService.updateInCollection('outfits',outfit.id,data)
+      this.appService.updateInCollection('outfits', outfit.id, data)
     }
   }
 
@@ -593,7 +626,7 @@ export class MyOutFitPage implements OnInit {
 
       this.favorites.add(doc.outfitId);
     });
-//    console.log(this.favorites)
+    //    console.log(this.favorites)
 
 
   }
@@ -603,32 +636,32 @@ export class MyOutFitPage implements OnInit {
     return this.favorites.has(outfitId);
   }
 
-  async hasOutfitVisitFull(outfit:outfit){
-    
+  async hasOutfitVisitFull(outfit: outfit) {
+
     const modal = await this.modalController.create({
       component: DetailOutfitPage,
       componentProps: {
         image: outfit.imageUrl, // Array degli elementi da visualizzare
         tags: outfit.tags, // Titolo della lista
-        
+
       },
-    
-      
+
+
       backdropDismiss: true,
-    
+
     });
 
     await modal.present();
-    
-    if(outfit.userId == this.cUserID){
+
+    if (outfit.userId == this.cUserID) {
       return
     }
-      let visit = !outfit.visits ? 1 : outfit.visits + 1;// nVisit++
-      let data = { visits: visit }
-      let update = await this.appService.updateInCollection('outfits',outfit.id,data)
-      if(update){
-       
-      }
+    let visit = !outfit.visits ? 1 : outfit.visits + 1;// nVisit++
+    let data = { visits: visit }
+    let update = await this.appService.updateInCollection('outfits', outfit.id, data)
+    if (update) {
+
+    }
 
   }
 
