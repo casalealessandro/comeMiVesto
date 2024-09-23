@@ -147,6 +147,7 @@ export class FilterOutfitsPage implements OnInit {
       outfitSubCategoryName:itemSub.value,
       outfitSubCategory:itemSub.id,
     }
+    
     this.filterItmClothing[index] = {
       ...this.filterItmClothing[index],  // Mantiene le proprietà già esistenti
       ...filterItmClothing  // Sovrascrive solo le proprietà che stai aggiornando

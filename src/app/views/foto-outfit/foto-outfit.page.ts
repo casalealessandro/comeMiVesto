@@ -28,8 +28,6 @@ export class FotoOutfitPage implements OnInit {
 
   tagStyle: any = [];
 
-
-
   showTag: boolean = false
   imageLoading: boolean = true
   tagToggleButton: any = {};
@@ -37,15 +35,14 @@ export class FotoOutfitPage implements OnInit {
   fileName: any;
   format: string = '';
   openFullScreen:boolean=false
+  
   constructor(private modalController: ModalController,private alert:AlertController) { }
-
 
 
   ngOnInit(): void {
     if (this.enableNewImagecaptured) {
       //this.captureImage()
     }
-
   }
 
   ngAfterViewInit(): void {

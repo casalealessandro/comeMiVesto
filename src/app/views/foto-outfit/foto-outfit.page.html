@@ -4,6 +4,8 @@
 
   <img *ngIf="image" #imageElement [src]="image" class="outfit-pin-image" [ngClass]="{'darken': showTag}"
     (click)="addTag($event)" />
+ 
+  
   <ng-container *ngIf="showTag">
     <div *ngFor="let tag of tags" class="tag" [ngStyle]="tagStyle[tag.id]" (click)="openItmClothing(tag)">
       <ion-card class="price-card">
