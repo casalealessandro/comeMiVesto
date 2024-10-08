@@ -8,11 +8,14 @@
   <!-- Filtra per Categoria -->
   <ion-segment value="all" class="banner">
     <div class="menu">
-      <ion-segment-button [value]="" (click)="filterCategory()">
-        <ion-label>Tutte</ion-label>
-      </ion-segment-button>
-      <div *ngFor="let category of categories" >
-        <ion-segment-button [value]="category.id" (click)="filterCategory(category)">
+      <div (click)="filterCategory()">
+        <ion-segment-button [value]="" (click)="filterCategory()">
+          <ion-label>Tutte</ion-label>
+        </ion-segment-button>
+      </div>
+     
+      <div *ngFor="let category of categories" (click)="filterCategory(category)" >
+        <ion-segment-button [value]="category.id" >
           <ion-label>{{category.categoryName}}</ion-label>
         </ion-segment-button>
       </div>
