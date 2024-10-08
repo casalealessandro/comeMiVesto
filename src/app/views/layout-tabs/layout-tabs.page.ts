@@ -10,8 +10,10 @@ import { filter } from 'rxjs/operators';
 })
 export class LayoutTabsPage implements OnInit {
   canGoBack:boolean=false
+  showHeader:boolean=true
   constructor(private modalController: ModalController,private navController: NavController,private router: Router) { }
   private initialRoutes: Set<string> = new Set(['/tabs/myoutfit']);
+  detailRouter: Set<string> = new Set(['/tabs/detail-outfit:'])
   ngOnInit() {
 
     this.router.events.pipe(
@@ -24,8 +26,13 @@ export class LayoutTabsPage implements OnInit {
   shouldShowBackButton() {
     const currentUrl = this.router.url;
     this.canGoBack = !this.initialRoutes.has(currentUrl);
+    this.showHeader = !this.isDetailPage();
   }
-
+// Funzione per verificare se si tratta della rotta del dettaglio prodotto con GUID
+private isDetailPage(): boolean {
+  const detailRoutePattern = /\/tabs\/detail-outfit\/[^\/]+$/;
+  return detailRoutePattern.test(this.router.url);
+}
   async handleBackButton() {
     // Controlla se la pagina è aperta in un modale
     const modal = await this.modalController.getTop();

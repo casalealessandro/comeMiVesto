@@ -3,7 +3,9 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { ModalController } from '@ionic/angular';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { AppService } from 'src/app/service/app-service';
-import { categoryCloth, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
+import { categoryCloth, outfitCategories, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
+import { ProdottiOnlinePage } from '../prodotti-online/prodotti-online.page';
+import { Browser } from '@capacitor/browser';
 
 @Component({
   selector: 'app-my-wardrobes',
@@ -20,8 +22,8 @@ export class MyWardrobesPage  {
   wardrobesGrupped: any = []
   userID: string =''
   groupedItems: any = {};
-  categoryCloth:categoryCloth[] = [];
-  subCategoryCloth:categoryCloth[] = [];
+  categoryCloth:outfitCategories[] = [];
+  subCategoryCloth:outfitCategories[] = [];
   openModal:any = null
   
   constructor(private appService: AppService, private afAuth: AngularFireAuth,private modalController:ModalController,) { }
@@ -33,9 +35,13 @@ export class MyWardrobesPage  {
       if (user) {
         this.userID = user.uid;
         
-        this.categoryCloth =  await this.appService.getFilteredCollection('outfitsCategories',[])
+        this.categoryCloth =  await this.appService.getFilteredCollection('outfitsCategories',[{
+          field: 'parentCategory',
+          operator: '==',
+          value: ""
+        }])
         
-        this.subCategoryCloth  = await this.appService.getFilteredCollection('outfitsSubCategories',[])
+       // this.subCategoryCloth  = await this.appService.getFilteredCollection('outfitsSubCategories',[])
                 
         this.groupItemsByCategory();
 
@@ -62,16 +68,16 @@ export class MyWardrobesPage  {
       
       // Filtrare la categoria corrispondente dal tuo array `categoryCloth`
       const filter = this.categoryCloth.find(ress => ress.id == category);
-      const subCategores = this.subCategoryCloth.filter(res => res.parent == category);
+      const subCategores = this.categoryCloth.filter(res => res.parentCategory == category);
       
       // Trova l'oggetto della categoria esistente o crea un nuovo oggetto
-      let categoryObject = result.find(cat => cat.wardrobesCategory === (filter ? filter.value : '-'));
+      let categoryObject = result.find(cat => cat.wardrobesCategory === (filter ? filter.categoryName : '-'));
       
       if (!categoryObject) {
         categoryObject = {
-          wardrobesCategory: filter ? filter.value : '-',
+          wardrobesCategory: filter ? filter.categoryName : '-',
           outfitCategoryID:filter?.id,
-          wardrobesSubCategory: subCategores.map(reM => reM.value).join(','),
+          wardrobesSubCategory: subCategores.map(reM => reM.categoryName).join(','),
           items: []
         };
         result.push(categoryObject);
@@ -131,7 +137,8 @@ export class MyWardrobesPage  {
     
     const categoryID = data.outfitCategory;
     const subCategoryID = data.outfitSubCategory;
-
+    const link = !data.link ? '#' : data.link
+   
    
     const id = this.generateGUID();
     let saveData:wardrobesItem = {
@@ -143,7 +150,8 @@ export class MyWardrobesPage  {
       outfitSubCategory: subCategoryID,
       color:data.color,
       userId: this.userID,
-      prezzo: data.prezzo
+      prezzo: data.prezzo,
+      link: link,
     }
 
     let resSave = await this.appService.saveInCollection('wardrobes',undefined,saveData)
@@ -165,8 +173,53 @@ export class MyWardrobesPage  {
     return data
   }
 
-  searchClothModal(){
-    alert('nessun prodotto presente nei nostri archvi')
+  async searchClothModal(){
+    const modal = await this.modalController.create({
+      component: ProdottiOnlinePage,
+      
+    });
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+    if(!data){
+      return
+    }
+    const categoryID = data.outfitCategory;
+    const subCategoryID = data.outfitSubCategory;
+    const link = !data.link ? '#' : data.link
+   
+    const id = this.generateGUID();
+
+    let saveData:wardrobesItem = {
+      brend: data.brend,
+      id: id,
+      images: data.imageUrl,
+      name: data.name,
+      outfitCategory: categoryID,
+      outfitSubCategory: subCategoryID,
+      color:data.color,
+      userId: this.userID,
+      prezzo:parseInt(data.price, 10),
+      link:link
+    }
+
+    let resSave = await this.appService.saveInCollection('wardrobes',undefined,saveData)
+    if (resSave) {
+      
+      this.groupItemsByCategory();
+
+      //Mando i dati on uscita
+      const modal = await this.modalController.getTop();
+      if (modal) {
+        this.modalController.dismiss(saveData)
+      }else{
+        this.selectedItem.emit(saveData);
+      }
+      
+
+      
+    }
+    return data
   }
 
   generateGUID(): any {
@@ -178,6 +231,14 @@ export class MyWardrobesPage  {
     return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
   }
 
+  // Funzione link allo store
+  async buyToStore(prod: any) {
+    let link = !prod.link ? '#' : prod.link
+
+    if (link != '#') {
+      await Browser.open({ url: link });
+    }
+  }
   async selectItem(item:any){
     // Controlla se la pagina è aperta in un modale
     const modal = await this.modalController.getTop();

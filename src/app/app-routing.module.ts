@@ -15,6 +15,11 @@ const routes: Routes = [
         
       },
       {
+        path: 'detail-outfit/:id',
+        loadChildren: () => import('./views/detail-outfit/detail-outfit.module').then( m => m.DetailOutfitPageModule),
+        canActivate: [authGuard]
+      },
+      {
         path: 'add-outfit',
         loadChildren: () => import('./views/add-outfit/add-outfit.module').then(m => m.AddOutfitPageModule),
         canActivate: [authGuard]
@@ -69,9 +74,11 @@ const routes: Routes = [
   {
     path: '**',  // Aggiungi una wildcard per gestire eventuali rotte non valide
     redirectTo: 'tabs/myoutfit'
-  },  {
-    path: 'detail-outfit',
-    loadChildren: () => import('./views/detail-outfit/detail-outfit.module').then( m => m.DetailOutfitPageModule)
+  },
+ 
+  {
+    path: 'prodotti-online',
+    loadChildren: () => import('./views/prodotti-online/prodotti-online.module').then( m => m.ProdottiOnlinePageModule)
   },
 
  

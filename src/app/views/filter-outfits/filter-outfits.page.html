@@ -95,24 +95,43 @@
             <ion-button (click)="selectedSubCat()">Chiudi</ion-button>
           </ion-buttons>
         </ion-toolbar>
+         <!-- Filtra per Genere UOMO DONNA -->
+        <ion-segment value="all" class="banner">
+          <div class="menu">
+            <div (click)="filterCategory()">
+              <ion-segment-button [value]="" (click)="filterCategory()">
+                <ion-label>Tutte</ion-label>
+              </ion-segment-button>
+            </div>
+            
+            <div *ngFor="let gender of itmGenders" (click)="filterCategory(gender)" >
+              <ion-segment-button [value]="gender.id" (click)="filterCategory(gender)">
+                <ion-label>{{gender.value}}</ion-label>
+              </ion-segment-button>
+            </div>
+          
+          </div>
+          
+          
+        </ion-segment>
       </ion-header>
       <ion-content class="ion-padding">
         <ion-grid [fixed]="true">
-          <ion-row *ngFor="let oufitCategory of oufitCategories">
+          <ion-row *ngFor="let oufitCategory of oufitCompleteCategories">
             
               <ion-item-divider>
-                <ion-label>{{oufitCategory.value}}</ion-label>
+                <ion-label>{{oufitCategory.categoryName}}</ion-label>
               </ion-item-divider>
           
             
             <!-- Verifica se ci sono sub-categorie per la categoria corrente -->
-            <ng-container *ngIf="oufitSubCategories[oufitCategory.id] && oufitSubCategories[oufitCategory.id].length > 0; else noSubCategories">
-              <ion-col size="3" *ngFor="let itemSub of oufitSubCategories[oufitCategory.id]" class="sub-categories">
+            <ng-container *ngIf="oufitCategory.outfitSubCategories; else noSubCategories">
+              <ion-col size="3" *ngFor="let itemSub of oufitCategory.outfitSubCategories" class="sub-categories">
                 <div (click)="selectedSubCat(itemSub)">
                   <ion-thumbnail class="thumb-sub-categories">
-                    <img [src]="itemSub.image || '../../../assets/images/sub_categories/generic.jpg'" [alt]="itemSub.value">
+                    <img [src]="itemSub.imageUrl || '../../../assets/images/sub_categories/generic.jpg'" [alt]="itemSub.categoryName">
                   </ion-thumbnail>
-                  <ion-label class="label-categories">{{itemSub.value}}</ion-label>
+                  <ion-label class="label-categories">{{itemSub.categoryName}}</ion-label>
                 </div>
               </ion-col>
             </ng-container>

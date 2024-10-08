@@ -10,6 +10,6 @@ import { CurrencyFormatPipe } from 'src/app/utility/currency-format.pipe';
     CommonModule,
     
   ],
-  exports:[CurrencyFormatPipe]
+  exports:[CurrencyFormatPipe,CommonModule]
 })
 export class SharedModule { }

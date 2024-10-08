@@ -1,7 +1,7 @@
 
 
 
-  <ion-header class="main-header"  [translucent]="true">
+  <ion-header class="main-header"  [translucent]="true" *ngIf="showHeader">
     <ion-toolbar>
       <ion-buttons slot="start" *ngIf="canGoBack">
         <ion-button   (click)="handleBackButton()" size="small"><ion-icon slot="icon-only"  name="chevron-back-outline"></ion-icon></ion-button>

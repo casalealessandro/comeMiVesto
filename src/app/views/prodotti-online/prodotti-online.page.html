@@ -1,0 +1,66 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Ultimi Prodotti</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="handleBackButton()">Chiudi</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <!-- Filtra per Categoria -->
+  <ion-segment value="all" class="banner">
+    <div class="menu">
+      <ion-segment-button [value]="" (click)="filterCategory()">
+        <ion-label>Tutte</ion-label>
+      </ion-segment-button>
+      <div *ngFor="let category of categories" >
+        <ion-segment-button [value]="category.id" (click)="filterCategory(category)">
+          <ion-label>{{category.categoryName}}</ion-label>
+        </ion-segment-button>
+      </div>
+     
+    </div>
+    
+    
+  </ion-segment>
+</ion-header>
+
+<ion-content>
+
+
+
+  
+  <!-- Griglia dei prodotti -->
+  <div class="product-grid">
+    <ion-card class="outfit-card" *ngFor="let product of products">
+
+      <ion-img class="" [src]="product.imageUrl"></ion-img>
+    
+      <ion-card-header class="outfit-card-header">
+    
+    
+        <div class="outfit-header-wrapper">
+          <ion-card-subtitle class="outfit-card-subTitle" >{{ product.name }}</ion-card-subtitle>
+          
+    
+        </div>
+
+    
+    
+      </ion-card-header>
+      <ion-card-content class="outfit-card-content product-card-content">
+        <ion-card-subtitle class="outfit-price">{{ product.price | currencyFormat }}</ion-card-subtitle>
+        <ion-card-subtitle class="outfit-gender">{{genderReveral(product.gender)}}</ion-card-subtitle>
+        <section class="outfit-card-action">
+          <ion-button size="small" fill="clear" (click)="buyToStore(product)">
+            <ion-icon name="cart"></ion-icon>
+          </ion-button>
+          <ion-button size="small" fill="clear" (click)="saveToWardrobe(product)">
+            <ion-icon name="save"></ion-icon>
+          </ion-button>
+  
+        </section>
+      </ion-card-content>
+    </ion-card>
+  </div>  <!-- Pulsante per caricare altri prodotti -->
+    <ion-button expand="full" (click)="loadMoreProducts()">Carica altri prodotti</ion-button>
+</ion-content>
+

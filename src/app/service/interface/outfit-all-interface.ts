@@ -11,6 +11,7 @@ export interface Tag {
   outfitCategory: string;
   outfitSubCategory?: string;
   prezzo?:number;
+  price?:number;
   images?:string[]
 }[]
 
@@ -30,7 +31,8 @@ export interface outfit {
   likes?:number;
   createdAt?:any;
   editedAt?:any;
-  
+  outfitCategory?:any;
+  outfitSubCategory?:any;
   status:'approvato' | 'rifiutato' | 'pending' 
 
 }
@@ -44,7 +46,9 @@ export interface wardrobesItem {
   brend: string;
   color:string;
   images: string[];
+  ImageUrl?:string;
   prezzo?:number;
+  link:string
 }
 
 export interface categoryCloth {
@@ -80,7 +84,19 @@ export interface FireBaseOrderBy{
   field: string;
   by: 'asc' | 'desc'
 }[]
+export interface outfitCategories {
+  [x: string]: any;
 
+  id: any;
+  imageUrl?: string;
+  categoryName: string;
+  parentCategory: any;
+  status: any;
+  order: number;
+  gender: any;
+  createdAt: number;
+  editedAt?: number
+}
 export const colors = [
   {
     id: "N",

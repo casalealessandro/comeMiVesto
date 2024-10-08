@@ -36,4 +36,6 @@ interface SelectOptions {
     id: string;
     value: string;
     parent: string | null;
+    remote:boolean;
+    api?:string;
   }

@@ -223,7 +223,8 @@ export class FotoOutfitPage implements OnInit {
       let link = !result.link ? '#' : result.link
       let brend = !result.brend ? null : result.brend
       let prezzo = !result.prezzo ? null : result.prezzo
-      let id = result.name.replace(' ', '_')
+      let id = !result.id ? result.name.replace(' ', '_') : result.id;
+      let images = !result.images ? '' : result.images
       
       this.tags.push(
         {
@@ -235,6 +236,8 @@ export class FotoOutfitPage implements OnInit {
           color:result.color,
           brend:brend,
           prezzo:prezzo,
+          price:prezzo,
+          images:images,
           outfitCategory: result.outfitCategory,
           outfitSubCategory: result.outfitSubCategory
 

@@ -214,26 +214,12 @@ export class AddOutfitPage {
       let outfitSaveed =  await this.editOutfit(partialOutfit);
       const user = await this.afAuth.currentUser;
       const uid = !user?.uid ? '' : user?.uid
-     /*  if(outfitSaveed){
-        this.tags.forEach(async (itm:any)=>{
-          let wardrobesItem:wardrobesItem = {
-            id: itm.id,
-            userId: uid,
-            name: itm.name,
-            outfitCategory: itm.outfitCategory,
-            outfitSubCategory: itm.outfitSubCategory,
-            brend: itm.brend,
-            color:itm.color,
-            prezzo:itm.prezzo,
-            images:[]
-          }
-          
-          let res = await this.appService.saveInCollection('wardrobes', undefined, wardrobesItem)
-        })
+      if(outfitSaveed){
+        
         
 
         this.handleBackButton()
-      } */
+      }
     }
 
 
@@ -315,7 +301,7 @@ export class AddOutfitPage {
      
       setTimeout(() => {
         
-        this.navController.navigateBack('back')
+        this.handleBackButton()
         
       }, 800);
     }

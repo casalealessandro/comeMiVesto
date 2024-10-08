@@ -12,15 +12,15 @@
       <ion-grid>
         <ion-row>
 
-          
+
           <!-- Cerca nei Negozi -->
           <ion-col size="4" class="option" (click)="searchClothModal()">
             <div class="updated-label">
               <ion-ripple-effect></ion-ripple-effect>
-              <ion-icon size="large"  name="storefront-outline"></ion-icon>
+              <ion-icon size="large" name="storefront-outline"></ion-icon>
               <!-- <span class="updated">Aggiornato!</span> -->
             </div>
-            <p>Aggiungi da Negozio</p>
+            <p>Prodotti in Negozio</p>
           </ion-col>
 
           <!-- Cerca nella Libreria -->
@@ -39,47 +39,58 @@
       </ion-grid>
     </div>
 
+    <ng-container *ngIf="userWardrobes.length==0" >
 
-  
-  <ion-list>
-    <!-- Iterazione su tutte le categorie -->
-    <div *ngFor="let wardrobeItem of userWardrobes">
-      <ion-item lines="none">
-        <ion-label>
-          <!-- Titolo per ogni categoria -->
-          <h1>{{ wardrobeItem.wardrobesCategory}}</h1>
-        </ion-label>
-      </ion-item>
+      <ion-text color="medium">Nessun indumento ancora creato/scelto.</ion-text>
+    </ng-container>
 
-      <ion-grid>
-        <ion-row>
-          <!-- Iterazione sugli outfit per la categoria corrente -->
-          <ion-col size="6" size-md="3" *ngFor="let item of wardrobeItem.items">
-            <ion-card class="item-card">
-              <ion-card-content class="center-content">
-                <div class="div-item" (click)="selectItem(item)">
-                    <!-- Icona o immagine per l'outfit, se disponibile -->
-                
-                  <ng-container *ngIf="item && item.images && item.images;else icon">
-                  
-                    <img *ngIf="item.images && item.images" [src]="item.images" alt="{{ item.name }}" />
-                  </ng-container>
-                  <ng-template #icon>
-                    <ion-icon name="shirt-outline" size="large"></ion-icon>
-                  </ng-template>
-                  <!-- Nome dell'outfit -->
-                  <p>{{ item.name }}</p>
+
+    <ion-list>
+      <!-- Iterazione su tutte le categorie -->
+      <div *ngFor="let wardrobeItem of userWardrobes">
+        <ion-item lines="none">
+          <ion-label>
+            <!-- Titolo per ogni categoria -->
+            <h1>{{ wardrobeItem.wardrobesCategory}}</h1>
+          </ion-label>
+        </ion-item>
+        <!--  Griglia dei prodotti -->
+        <div class="product-grid">
+          <ion-card class="outfit-card" *ngFor="let product of wardrobeItem.items">
+            <div (click)="selectItem(product)">
+              <ion-img class="" [src]="product.images"></ion-img>
+
+              <ion-card-header class="outfit-card-header">
+
+
+                <div class="outfit-header-wrapper">
+                  <ion-card-subtitle class="outfit-card-subTitle">{{ product.name }}</ion-card-subtitle>
+
+
                 </div>
-                
+
+
+
+              </ion-card-header>
+              <ion-card-content class="outfit-card-content product-card-content">
+                <ion-card-subtitle class="outfit-price">{{ product.brend }}</ion-card-subtitle>
+                <ion-card-subtitle class="outfit-price">{{ product.color }}</ion-card-subtitle>
+                <section class="outfit-card-action">
+                  <ion-button size="small" fill="clear" (click)="buyToStore(product)">
+                    <ion-icon name="cart"></ion-icon>
+                  </ion-button>
+                  <ion-button size="small" fill="clear" (click)="deleteItemWadro(product)">
+                    <ion-ripple-effect></ion-ripple-effect>
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </ion-button>
+
+                </section>
               </ion-card-content>
-              <span class="del-item" (click)="deleteItemWadro(item)">
-                <ion-ripple-effect></ion-ripple-effect>
-                <ion-icon name="trash-outline"></ion-icon>
-              </span>
-            </ion-card>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-    </div>
-  </ion-list>
-</div>
+            </div>
+
+          </ion-card>
+        </div>
+
+      </div>
+    </ion-list>
+  </div>

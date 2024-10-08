@@ -1,7 +1,7 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, effect, HostListener, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
-import { AlertController, ModalController, RefresherEventDetail } from '@ionic/angular';
+import { AlertController, ModalController, NavController, RefresherEventDetail } from '@ionic/angular';
 
 
 import { AppService } from 'src/app/service/app-service';
@@ -13,6 +13,7 @@ import { UserPreference, UserProfile } from 'src/app/service/interface/user-inte
 import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
 import { IonRefresherCustomEvent } from '@ionic/core';
 import { DetailOutfitPage } from '../detail-outfit/detail-outfit.page';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-myoutfit',
   templateUrl: './myoutfit.page.html',
@@ -38,7 +39,7 @@ export class MyOutFitPage implements OnInit {
   isFiltersSel: boolean = false
   backgroundImage: any = "url(assets/fallback-image.jpg);";
   blockedUIDs: any = []
-  constructor(private appService: AppService, private afAuth: AngularFireAuth, private userProfileService: UserService, private modalController: ModalController, private alertController: AlertController) {
+  constructor(private router: Router, private appService: AppService, private afAuth: AngularFireAuth, private userProfileService: UserService, private modalController: ModalController, private alertController: AlertController) {
 
   }
 
@@ -68,6 +69,56 @@ export class MyOutFitPage implements OnInit {
 
 
 
+  }
+
+  async filterOutfits() {
+    const prod: any = this.appService.selectedProduct();
+
+    const subCategories = prod.outfitSubCategory
+    const color = prod.color;
+
+    let condition: FireBaseConditions[] = [
+      {
+        field: 'outfitSubCategory',
+        operator: 'array-contains-any',
+        value: subCategories
+      },
+      {
+        field: 'color',
+        operator: 'array-contains-any',
+        value: [color]
+      },
+      {
+        field: 'status',
+        operator: '==',
+        value: 'approved'
+      }
+    ]
+
+    let filteredOutfits = await this.appService.getMultiFiltered('outfits', condition);
+
+    const filteredData = filteredOutfits.filter(item => {
+      // Verifica se blockedUIDs è definito e contiene effettivamente un array
+      if (!Array.isArray(this.blockedUIDs)) {
+        this.blockedUIDs = []; // Inizializza come array vuoto se è undefined
+      }
+      // Verifica che l'oggetto non contenga nessun UID in `uIdBlocked` o che non ci sia `uid` specificato
+      return !item.userId || !this.blockedUIDs.includes(item.userId);
+    });
+    this.filteredOutfits = JSON.parse(JSON.stringify(filteredData));
+
+    filteredData.forEach(async rr => {
+      this.heartIcon(rr.id);
+
+      this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
+      this.outfitUserProfile$.subscribe((outfitUserProfile: UserProfile) => {
+
+        this.outfitUserProfile[rr.userId] = outfitUserProfile
+      })
+
+
+
+    });
   }
 
   ionViewWillEnter() {
@@ -188,8 +239,8 @@ export class MyOutFitPage implements OnInit {
           }
         ]
 
-        let check = await this.appService.getFilteredCollection('wardrobes',coditions);
-        if(check){
+        let check = await this.appService.getFilteredCollection('wardrobes', coditions);
+        if (check) {
           const alert = await this.alertController.create({
             header: 'Oggetto già salvato',
             message: `${item.name} è già presente nel tuo guardaroba`,
@@ -229,41 +280,74 @@ export class MyOutFitPage implements OnInit {
         value: 'approved'
       }
     ]
+
+    const prod: any = this.appService.selectedProduct();
+   
+    let newOutfits
+    if (prod) {
+      const subCategories = prod.outfitSubCategory
+      this.filterColor = [prod.color];
+      const gender = prod.gender
+      let condition: FireBaseConditions[] = [
+        {
+          field: 'outfitSubCategory',
+          operator: 'array-contains-any',
+          value: [subCategories]
+        },
+
+        {
+          field: 'gender',
+          operator: '==',
+          value: 'approved'
+        },
+        {
+          field: 'status',
+          operator: '==',
+          value: gender
+        }
+      ]
+
+      newOutfits = await this.appService.getMultiFiltered('outfits', condition);
+      newOutfits = newOutfits.filter(outfit => this.matchColorPreference(outfit))
+
+    } else {
+      this.filteredOutfits = []
+      this.isLoading = true;
+      newOutfits = await this.appService.getFilteredCollection('outfits', conditions)
+    }
     //const preferencC = this.createQueryConditions()
-    this.filteredOutfits = []
-    this.isLoading = true;
-    let newOutfits = await this.appService.getFilteredCollection('outfits', conditions)
 
-    this.outfits = newOutfits; // Il segnale verrà aggiornato qui
-    this.outfitUserProfile = [];
+    if (newOutfits) {
+      this.outfits = newOutfits; // Il segnale verrà aggiornato qui
+      this.outfitUserProfile = [];
 
-    const filteredData = this.outfits.filter(item => {
-      // Verifica se blockedUIDs è definito e contiene effettivamente un array
-      if (!Array.isArray(this.blockedUIDs)) {
-        this.blockedUIDs = []; // Inizializza come array vuoto se è undefined
-      }
-      // Verifica che l'oggetto non contenga nessun UID in `uIdBlocked` o che non ci sia `uid` specificato
-      return !item.userId || !this.blockedUIDs.includes(item.userId);
-    });
-    this.filteredOutfits = JSON.parse(JSON.stringify(filteredData));
+      const filteredData = this.outfits.filter(item => {
+        // Verifica se blockedUIDs è definito e contiene effettivamente un array
+        if (!Array.isArray(this.blockedUIDs)) {
+          this.blockedUIDs = []; // Inizializza come array vuoto se è undefined
+        }
+        // Verifica che l'oggetto non contenga nessun UID in `uIdBlocked` o che non ci sia `uid` specificato
+        return !item.userId || !this.blockedUIDs.includes(item.userId);
+      });
+      this.filteredOutfits = JSON.parse(JSON.stringify(filteredData));
 
-    filteredData.forEach(async rr => {
-      this.heartIcon(rr.id);
+      filteredData.forEach(async rr => {
+        this.heartIcon(rr.id);
 
-      this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
-      this.outfitUserProfile$.subscribe((outfitUserProfile: UserProfile) => {
+        this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
+        this.outfitUserProfile$.subscribe((outfitUserProfile: UserProfile) => {
 
-        this.outfitUserProfile[rr.userId] = outfitUserProfile
-      })
+          this.outfitUserProfile[rr.userId] = outfitUserProfile
+        })
 
-      if (filteredData.length > 0) {
+        if (filteredData.length > 0) {
 
-        this.isLoading = false;
+          this.isLoading = false;
 
-      }
-      //      console.log('filteredOutfits-->',this.filteredOutfits)
-    });
-
+        }
+        //      console.log('filteredOutfits-->',this.filteredOutfits)
+      });
+    }
     this.getTrendingOutfits()
   }
 
@@ -313,16 +397,16 @@ export class MyOutFitPage implements OnInit {
   }
 
   async filterUserOutFit() {
-    console.log('this.cUserPreference[0]',this.cUserPreference[0]);
+    console.log('this.cUserPreference[0]', this.cUserPreference[0]);
     let copy = { ...this.cUserPreference[0] }
     delete copy.brend
     delete copy.uid
     delete copy.uIdBlocked
-    
+
 
     let conditions = this.createFirestoreConditions(copy);
-    console.log('blockedUIDs',this.blockedUIDs);
-    
+    console.log('blockedUIDs', this.blockedUIDs);
+
     let respoA = await this.appService.getFilteredOutfits(conditions);;
 
     respoA.forEach(item => {
@@ -331,9 +415,9 @@ export class MyOutFitPage implements OnInit {
         this.blockedUIDs = []; // Inizializza come array vuoto se è undefined
       }
       // Verifica che l'oggetto non contenga nessun UID in `uIdBlocked` o che non ci sia `uid` specificato
-      return !item.userId || !this.blockedUIDs.includes(item.userId) ;
+      return !item.userId || !this.blockedUIDs.includes(item.userId);
     });
-    this.filteredOutfits = respoA.filter(r=>r.status == 'approved')
+    this.filteredOutfits = respoA.filter(r => r.status == 'approved')
   }
 
   createFirestoreConditions(filters: any): FireBaseConditions[] {
@@ -637,32 +721,18 @@ export class MyOutFitPage implements OnInit {
   }
 
   async hasOutfitVisitFull(outfit: outfit) {
+    this.router.navigate(['tabs/detail-outfit', outfit.id]).then(async res => {
 
-    const modal = await this.modalController.create({
-      component: DetailOutfitPage,
-      componentProps: {
-        image: outfit.imageUrl, // Array degli elementi da visualizzare
-        tags: outfit.tags, // Titolo della lista
+      if (outfit.userId == this.cUserID) {
+        return
+      }
+      let visit = !outfit.visits ? 1 : outfit.visits + 1;// nVisit++
+      let data = { visits: visit }
+      let update = await this.appService.updateInCollection('outfits', outfit.id, data)
+      if (update) {
 
-      },
-
-
-      backdropDismiss: true,
-
-    });
-
-    await modal.present();
-
-    if (outfit.userId == this.cUserID) {
-      return
-    }
-    let visit = !outfit.visits ? 1 : outfit.visits + 1;// nVisit++
-    let data = { visits: visit }
-    let update = await this.appService.updateInCollection('outfits', outfit.id, data)
-    if (update) {
-
-    }
-
+      }
+    })
   }
 
   @HostListener('window:scroll', ['$event'])

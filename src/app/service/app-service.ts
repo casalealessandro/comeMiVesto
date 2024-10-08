@@ -6,6 +6,7 @@ import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { AlertController } from '@ionic/angular';
 import { UserProfile } from './interface/user-interface';
 import { FireBaseConditions } from './interface/outfit-all-interface';
+import { HttpClient } from '@angular/common/http';
 
 
 
@@ -19,8 +20,11 @@ export class AppService {
   private lastDocument: any | null = null;
    // Crea un Signal per il wardrobe
   resultsSignal = signal<any[]>([]);
+  // Crea Signals per categoria e colore
+  selectedProduct = signal<string | null>(null);
+  
 
-  constructor(private firestore: AngularFirestore, private storage: AngularFireStorage, private alertController: AlertController) { }
+  constructor(private firestore: AngularFirestore, private storage: AngularFireStorage, private alertController: AlertController, private http:HttpClient) { }
 
   getFormFields(nomeAnagrafica: string): Observable<DynamicFormField[]> {
     return this.firestore.collection('forms').doc(nomeAnagrafica).valueChanges()
@@ -30,6 +34,18 @@ export class AppService {
           return jsonFields as DynamicFormField[];
         })
       );
+  }
+
+  async getData(api:string,queryString:string):Promise<any>{
+
+    const apiFire="https://us-central1-comemivesto-5e5f9.cloudfunctions.net/api/gen/"
+
+    let Query = !queryString ? '' : `${queryString}`
+
+    const completeApi = `${apiFire}${api}${Query}`
+    const call = this.http.get(completeApi)
+
+    return await lastValueFrom(call)
   }
 
   getOutfits(userOutFit?: string) {
@@ -92,6 +108,59 @@ export class AppService {
 
 
 
+  }
+
+  async getMultiFiltered(collection: string,conditions: FireBaseConditions[]): Promise<any[]> {
+    
+    const db: any = this.firestore.collection(collection).ref;
+    
+   
+    
+    const queryPromises: Promise<any>[] = [];
+
+    // Raggruppa le condizioni in base all'operatore
+    const simpleConditions = conditions.filter(c => c.operator === '==');
+    const arrayConditions = conditions.filter(c => c.operator === 'array-contains-any');
+
+    // Esegui query per condizioni semplici (==)
+    let baseQuery 
+    if (simpleConditions.length > 0) {
+      simpleConditions.forEach((condition:any) => {
+       // query =  query.where(condition.field, condition.operator, condition.value);
+        const query = db.where(condition.field, condition.operator, condition.value);
+        queryPromises.push(query.get());
+      });
+    }
+    
+    
+
+    // Esegui query separate per ciascuna condizione con 'array-contains-any'
+    arrayConditions.forEach((condition:any) => {
+      const query = db.where(condition.field, condition.operator, condition.value);
+      queryPromises.push(query.get());
+    });
+
+    try {
+      // Attendi tutte le query
+      const querySnapshots = await Promise.all(queryPromises);
+
+      // Estrai i dati da ogni querySnapshot
+      let combinedResults: any[] = [];
+      querySnapshots.forEach(snapshot => {
+        snapshot.docs.forEach((doc:any) => {
+          combinedResults.push(doc.data());
+        });
+      });
+
+      // Rimuovi i duplicati basandoti sull'id del documento
+      const uniqueResults = Array.from(new Set(combinedResults.map(item => item.id)))
+        .map(id => combinedResults.find(item => item.id === id));
+        //this.resultsSignal.set(uniqueResults);
+      return uniqueResults;
+    } catch (error) {
+      console.error("Error getting filtered collection: ", error);
+      return [];
+    }
   }
 
   async getFilteredOutfits(conditions: FireBaseConditions[]): Promise<any[]> {

@@ -17,6 +17,7 @@ import { CommonModule } from '@angular/common';
 
 import { FotoOutfitPage } from './views/foto-outfit/foto-outfit.page';
 import { CurrencyFormatPipe } from './utility/currency-format.pipe';
+import { HttpClientModule, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 
 
@@ -25,6 +26,7 @@ import { CurrencyFormatPipe } from './utility/currency-format.pipe';
   imports: [
     CommonModule,
     BrowserModule,
+    
     IonicModule.forRoot(),
     AppRoutingModule,
     ScrollingModule,
@@ -32,9 +34,10 @@ import { CurrencyFormatPipe } from './utility/currency-format.pipe';
     ReactiveFormsModule,
     ComponentsModule,
     AngularFireModule.initializeApp(environment.firebase),
-    
+     
   ],
   providers: [
+    provideHttpClient(withInterceptorsFromDi()),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     { provide: FIREBASE_OPTIONS, useValue: environment.firebase}
   ],

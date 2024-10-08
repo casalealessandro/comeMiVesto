@@ -142,6 +142,7 @@ ion-select {
 .main-content {
     .heading {
         padding: 5px 20px;
+
         .location {
             padding-bottom: 5px;
 
@@ -197,7 +198,7 @@ ion-select {
 
             .card {
                 padding-left: 20px;
-                
+
                 .img {
                     max-width: 150px;
                     min-width: 150px;
@@ -223,7 +224,7 @@ ion-select {
                         font-size: 35px;
                         font-weight: 700px;
                         background-color: #424242;
-                        
+
                     }
                 }
             }
@@ -267,4 +268,112 @@ ion-grid {
 
 ion-row {
     margin: 0;
+}
+
+// Card dell'outfit e product
+.outfit-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    margin: 24px 0;
+    box-shadow: none;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+
+    .outfit-header-wrapper-title {
+        display: flex;
+        justify-content: flex-start;
+        flex-direction: row;
+        align-items: center;
+        margin: 1rem;
+        padding: 1px;
+
+        .outfit-card-avatar {
+            margin-right: 12px;
+            max-width: 35px;
+            max-height: 35px;
+        }
+
+        .outfit-card-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+            width: 70%;
+        }
+    }
+
+    .outfit-card-header {
+        color: var(--text-color);
+        padding: 10px;
+        text-align: left;
+        font-size: 16px;
+
+        .outfit-header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            flex: 1;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-content: center;
+            align-items: center;
+            margin-top: 0.3rem;
+
+            .outfit-card-subTitle {
+                font-size: 14px;
+                font-weight: 600;
+                margin: 0;
+            }
+
+            .outfit-card-action {
+                display: flex;
+                margin: 5px 0;
+                justify-content: flex-end;
+
+                ion-button {
+                    max-height: 18px;
+                    min-height: 18px;
+                    margin: 0 auto;
+                }
+
+                ion-icon {
+                    color: var(--text-color);
+
+                    max-height: 20px;
+                }
+
+
+
+            }
+
+        }
+
+
+
+
+    }
+
+    .outfit-card-content {
+        padding: 13px 10px;
+
+        .outfit-description {
+            font-size: 14px;
+            font-weight: 400;
+
+        }
+
+        .ion-card-tags {
+            margin: 5px 0;
+        }
+
+        .outfit-card-action {
+            display: flex;
+            margin: 5px 0;
+            justify-content: space-around;
+
+            
+
+
+        }
+    }
 }

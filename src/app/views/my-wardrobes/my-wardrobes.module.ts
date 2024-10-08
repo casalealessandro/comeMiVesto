@@ -9,10 +9,12 @@ import { MyWardrobesPageRoutingModule } from './my-wardrobes-routing.module';
 import { MyWardrobesPage } from './my-wardrobes.page';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { ComponentsModule } from 'src/app/components/components.module';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   imports: [
-    CommonModule,
+    
+    SharedModule,
     FormsModule,
     IonicModule,
     MyWardrobesPageRoutingModule,
