@@ -66,7 +66,10 @@
                     {{ outfitUserProfile[outfit.userId].displayName }}
                   </ion-card-title>
                   <ion-button size="small" fill="clear" (click)="outfitMenu(outfit)">
-                    <ion-icon name="ellipsis-vertical-outline"></ion-icon>
+                    <ion-icon name="ellipsis-vertical-outline" slot="icon-only"></ion-icon>
+                  </ion-button>
+                  <ion-button size="small" fill="clear" slot="end" (click)="openShareModal(outfit)" >
+                    <ion-icon  name="share-social" slot="icon-only"></ion-icon>
                   </ion-button>
                 </div>
                 <app-foto-outfit [image]="outfit.imageUrl" [enableNewImagecaptured]="false" [enableSetTagsImage]="false"

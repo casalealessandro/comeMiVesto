@@ -89,24 +89,29 @@
       background-color: rgba(255, 255, 255, 0.8);
       transition: background-color 0.3s ease;
       border-radius: 15px;
-      padding: 5px;
+      padding: 2px;
       margin: 0;
       box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
       position: relative;
       text-align: center;
 
       .price-card-content {
-        padding: 5px;
+        padding: 3px;
+
+        font-size: 12px;
       }
 
       .item-title {
-        font-size: 14px;
+        width: 170px;  
+       white-space: nowrap;   /* Evita che il testo vada a capo */
+        overflow: hidden;      /* Nasconde il testo in eccesso */
+        text-overflow: ellipsis; /* Aggiunge i puntini di sospensione */
         font-weight: bold;
         color: #000;
       }
 
       .item-price {
-        font-size: 15px;
+        font-size: 13px;
         font-weight: bold;
         color: #000;
         margin-top: 5px;

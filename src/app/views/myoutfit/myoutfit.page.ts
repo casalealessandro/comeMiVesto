@@ -1,4 +1,4 @@
-import { Component, effect, HostListener, OnInit } from '@angular/core';
+import { Component, effect, HostListener, inject, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { AlertController, ModalController, NavController, RefresherEventDetail } from '@ionic/angular';
@@ -14,6 +14,8 @@ import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
 import { IonRefresherCustomEvent } from '@ionic/core';
 import { DetailOutfitPage } from '../detail-outfit/detail-outfit.page';
 import { Router } from '@angular/router';
+import { SocialSharing } from 'src/app/service/social-sharing.service';
+
 @Component({
   selector: 'app-myoutfit',
   templateUrl: './myoutfit.page.html',
@@ -39,7 +41,7 @@ export class MyOutFitPage implements OnInit {
   isFiltersSel: boolean = false
   backgroundImage: any = "url(assets/fallback-image.jpg);";
   blockedUIDs: any = []
-  constructor(private router: Router, private appService: AppService, private afAuth: AngularFireAuth, private userProfileService: UserService, private modalController: ModalController, private alertController: AlertController) {
+  constructor(private router: Router, private appService: AppService, private afAuth: AngularFireAuth, private userProfileService: UserService, private modalController: ModalController, private alertController: AlertController, private sharingSocial:SocialSharing) {
 
   }
 
@@ -280,41 +282,13 @@ export class MyOutFitPage implements OnInit {
         value: 'approved'
       }
     ]
-
-    const prod: any = this.appService.selectedProduct();
-   
-    let newOutfits
-    if (prod) {
-      const subCategories = prod.outfitSubCategory
-      this.filterColor = [prod.color];
-      const gender = prod.gender
-      let condition: FireBaseConditions[] = [
-        {
-          field: 'outfitSubCategory',
-          operator: 'array-contains-any',
-          value: [subCategories]
-        },
-
-        {
-          field: 'gender',
-          operator: '==',
-          value: 'approved'
-        },
-        {
-          field: 'status',
-          operator: '==',
-          value: gender
-        }
-      ]
-
-      newOutfits = await this.appService.getMultiFiltered('outfits', condition);
-      newOutfits = newOutfits.filter(outfit => this.matchColorPreference(outfit))
-
-    } else {
+/*
+ */
+    
       this.filteredOutfits = []
       this.isLoading = true;
-      newOutfits = await this.appService.getFilteredCollection('outfits', conditions)
-    }
+      let newOutfits = await this.appService.getFilteredCollection('outfits', conditions)
+    
     //const preferencC = this.createQueryConditions()
 
     if (newOutfits) {
@@ -345,7 +319,7 @@ export class MyOutFitPage implements OnInit {
           this.isLoading = false;
 
         }
-        //      console.log('filteredOutfits-->',this.filteredOutfits)
+         console.log('filteredOutfits-->',this.filteredOutfits)
       });
     }
     this.getTrendingOutfits()
@@ -614,6 +588,22 @@ export class MyOutFitPage implements OnInit {
       await alert.present();
     }
 
+  }
+
+  async openShareModal(outfit: outfit) {
+    
+    
+    this.sharingSocial.shareVia(outfit)
+   /*  const modal = await this.modalController.create({
+      component: SocialSharingComponent,
+      componentProps: { outfit: outfit },
+      initialBreakpoint: 0.45,
+      breakpoints: [0.70, 0.99],
+      backdropDismiss: false,
+      backdropBreakpoint: 0.5,
+      presentingElement: await this.modalController.getTop(),
+    });
+    await modal.present(); */
   }
 
   matchesPreferences(outfit: any): boolean {

@@ -14,6 +14,7 @@ import { DynamicFileBoxComponent } from './dynamic-form/items/dynamic-file-box/d
 
 
 
+
 @NgModule({
 	imports: [CommonModule, ScrollingModule, IonicModule, FormsModule, ReactiveFormsModule],
 	declarations: [
@@ -22,8 +23,7 @@ import { DynamicFileBoxComponent } from './dynamic-form/items/dynamic-file-box/d
 		DynamicFileBoxComponent,
 		ModalFormComponent,
 		ModalListComponent,
-		
-	],
+			],
 	exports: [DynamicFormComponent,ModalFormComponent,ModalListComponent]
 })
 export class ComponentsModule {
