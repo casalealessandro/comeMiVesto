@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
-import { ModalController, NavController } from '@ionic/angular';
+import { IonModal, ModalController, NavController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
 import { FireBaseConditions, outfit, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
 
@@ -81,7 +81,15 @@ export class DetailOutfitPage implements OnInit {
     this.navController.back();
 
   }
-
+  onBreakpointChange(event: CustomEvent) {
+    const breakpoint = event.detail.breakpoint;
+    if (breakpoint === 1) {
+      // Blocca il modal impostando il breakpoint finale
+      const modal = event.target as unknown as IonModal;
+      modal.breakpoints = [1];
+      modal.backdropBreakpoint = 1;
+    }
+  }
   async openItmClothing(tag: Tag) {
 
 

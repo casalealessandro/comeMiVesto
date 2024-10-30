@@ -32,57 +32,66 @@
 
 
     </div>
-    <ion-modal [isOpen]="isOpen" [initialBreakpoint]="0.65" [breakpoints]="[0.45, 0.65, 1]" [backdropDismiss]="false"
-      [backdropBreakpoint]="1">
-      <ion-label class="text title">L'outfit è composto da:</ion-label>
+    <ion-modal  
+      [isOpen]="isOpen"
+      [initialBreakpoint]="0.55" 
+      [breakpoints]="[0.95]"
+      [backdropDismiss]="false" 
+      [backdropBreakpoint]="0.95" 
 
-      <div class="main-content" *ngIf="isOpen">
-        <div class="banner">
-          <div class="product-grid menu">
-            <ion-card class="outfit-card" *ngFor="let product of tags">
-              <div (click)="selectItem(product)">
-                <ion-img class="product-image" [src]="product.images"></ion-img>
+      [backdropBreakpoint]="0.95"
+      (ionBreakpointDidChange)="onBreakpointChange($event)"
+      >
+      <!-- Griglia dei prodotti correlati-->
+      <ion-content class="ion-padding scroll-y" [scrollY]="true">
+        <ion-label class="text title">L'outfit è composto da:</ion-label>
 
-                <ion-card-header class="outfit-card-header">
+        <div class="modal main-content" *ngIf="isOpen">
+          <div class="banner">
+            <div class="product-grid menu">
+              <ion-card class="outfit-card" *ngFor="let product of tags">
+                <div (click)="selectItem(product)">
+                  <ion-img class="product-image" [src]="product.images"></ion-img>
+
+                  <ion-card-header class="outfit-card-header">
 
 
-                  <div class="outfit-header-wrapper">
-                    <ion-card-subtitle class="outfit-card-subTitle">{{ product.name }}</ion-card-subtitle>
+                    <div class="outfit-header-wrapper">
+                      <ion-card-subtitle class="outfit-card-subTitle">{{ product.name }}</ion-card-subtitle>
 
 
-                  </div>
+                    </div>
 
 
 
-                </ion-card-header>
-                <ion-card-content class="outfit-card-content product-card-content">
-                  <ion-card-subtitle class="outfit-price">{{ product.brend }}</ion-card-subtitle>
+                  </ion-card-header>
+                  <ion-card-content class="outfit-card-content product-card-content">
+                    <ion-card-subtitle class="outfit-price">{{ product.brend }}</ion-card-subtitle>
 
-                  <section class="outfit-card-action">
-                    <ion-card-subtitle class="outfit-price">{{ product.price | currencyFormat }}</ion-card-subtitle>
-                    <ion-button size="small" fill="clear" (click)="buyToStore(product)">
-                      <ion-icon name="cart"></ion-icon>
-                    </ion-button>
-                    <ion-button size="small" fill="clear" (click)="selectItem(product)">
-                      <ion-ripple-effect></ion-ripple-effect>
-                      <ion-icon name="save"></ion-icon>
-                    </ion-button>
+                    <section class="outfit-card-action">
+                      <ion-card-subtitle class="outfit-price">{{ product.price | currencyFormat }}</ion-card-subtitle>
+                      <ion-button size="small" fill="clear" (click)="buyToStore(product)">
+                        <ion-icon name="cart"></ion-icon>
+                      </ion-button>
+                      <ion-button size="small" fill="clear" (click)="selectItem(product)">
+                        <ion-ripple-effect></ion-ripple-effect>
+                        <ion-icon name="save"></ion-icon>
+                      </ion-button>
 
-                  </section>
-                </ion-card-content>
-              </div>
+                    </section>
+                  </ion-card-content>
+                </div>
 
-            </ion-card>
+              </ion-card>
+            </div>
           </div>
-        </div>
-        <!-- Griglia dei prodotti correlati-->
-        <ion-content  class="ion-padding">
+
           <h2 class="card-subTitle"> Potrebbero interessarti </h2>
 
           <div class="product-grid related">
             
             <ion-card class="outfit-card" *ngFor="let rproduct of relatedProducts">
-              
+
               <ion-img class="related-prodcut-image" [src]="rproduct.imageUrl"></ion-img>
 
               <ion-card-header class="outfit-card-header">
@@ -100,7 +109,7 @@
               <ion-card-content class="outfit-card-content product-card-content">
                 <ion-card-subtitle class="outfit-price">{{ rproduct.brend }}</ion-card-subtitle>
 
-           
+
                 <section class="outfit-card-action">
                   <ion-card-subtitle class="outfit-price">{{ rproduct.price | currencyFormat }}</ion-card-subtitle>
                   <ion-button size="small" fill="clear" (click)="buyToStore(rproduct)">
@@ -109,7 +118,7 @@
                   <ion-button size="small" fill="clear" (click)="saveItem(rproduct)">
                     <ion-icon name="save"></ion-icon>
                   </ion-button>
-                 <!--  <ion-button size="small" fill="clear" (click)="selectItem(rproduct)">
+                  <!--  <ion-button size="small" fill="clear" (click)="selectItem(rproduct)">
                     <ion-icon name="search"></ion-icon>
                   </ion-button> -->
 
@@ -117,10 +126,10 @@
               </ion-card-content>
             </ion-card>
           </div>
-        </ion-content>
 
-      </div>
 
+        </div>
+      </ion-content>
     </ion-modal>
   </div>
 

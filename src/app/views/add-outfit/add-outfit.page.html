@@ -1,17 +1,7 @@
-<!-- 
-<ion-header *ngIf="openModal" [translucent]="true">
-  <ion-toolbar>
-    <ion-title>il mio Armadio</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="dismissModal($event)">Chiudi</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header> -->
-
 <ion-content [fullscreen]="true">
 
  
-  <!--eventBeforeFotoCaptured al momento non usato-->
+
   <app-foto-outfit
   (eventFotoCaptured)="setImageCaptured($event)"
   (eventImageTags)="setImageTagSet($event)"

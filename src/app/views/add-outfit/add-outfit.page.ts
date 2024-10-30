@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, ViewChild } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
+
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 
 import { AppService } from 'src/app/service/app-service';
@@ -7,6 +7,7 @@ import { outfit, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all
 
 import { AlertController, LoadingController, ModalController, NavController } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
+
 import { MyOutFitPage } from '../myoutfit/myoutfit.page';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 @Component({

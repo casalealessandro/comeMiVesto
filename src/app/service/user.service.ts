@@ -7,13 +7,14 @@ import { UserPreference, UserProfile } from './interface/user-interface';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { AppService } from './app-service';
 import { deleteUser } from 'firebase/auth';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-
-  constructor(private firestore: AngularFirestore, private afAuth: AngularFireAuth,private storage: AngularFireStorage, private appService:AppService) {}
+apiFire="https://us-central1-comemivesto-5e5f9.cloudfunctions.net/api"
+  constructor(private firestore: AngularFirestore, private afAuth: AngularFireAuth,private storage: AngularFireStorage, private appService:AppService, private httpClient:HttpClient) {}
 
   getUserProfile(): Observable<UserProfile | null> {
     return this.afAuth.authState.pipe(
@@ -137,14 +138,15 @@ export class UserService {
     const user = await this.afAuth.currentUser;
     if (user) {
       try {
-        await deleteUser(user); 
-       
+        //await deleteUser(user); 
+       let res = await this.disabledUsersFirebase(user.uid)
+       if(res){
         // Effettua il logout o naviga su una pagina appropriata
         await this.logOut();
         return true;
-       
-       
-      
+       }
+        
+             
       } catch (error) {
 
         console.error('Errore durante la cancellazione dell\'account:', error);
@@ -152,5 +154,24 @@ export class UserService {
       }
     }
     return false;
+  }
+
+  async disabledUsersFirebase(uid: string): Promise<boolean> {
+    const api = `${this.apiFire}/users/disable/${uid}`
+    let data={
+      uid:uid
+    }
+     
+
+    try {
+      let call = this.httpClient.post(api,data)
+      const result = await lastValueFrom(call);
+      console.log(result);
+      return true;
+    } catch (error) {
+      console.error('Errore nella disabilitazione dell\'utente:', error);
+      return false;
+    }
+   
   }
 }

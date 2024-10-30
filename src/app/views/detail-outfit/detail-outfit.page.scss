@@ -1,7 +1,7 @@
 .transparent {
   --background: transparent;
-  position: absolute;
-  top: 0;
+  /* position: absolute;
+  top: 0; */
 
   ion-toolbar {
     --background: transparent;
@@ -11,10 +11,10 @@
     --border-width: 0;
     --border-style: solid;
 
-    position: absolute;
+    /* position: absolute;
     top: 20px;
     --padding-top: 0;
-    --padding-bottom: 0;
+    --padding-bottom: 0; */
   }
 
   .close-button {
@@ -155,4 +155,8 @@
   font-size: 16px;
   font-weight: 600;
   padding: 5px 10px;
+}
+
+.modal{
+  overflow-y: scroll;
 }
