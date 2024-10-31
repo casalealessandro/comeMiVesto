@@ -9,11 +9,16 @@
     }
 } */
 
-.logo{
+.logo {
     max-width: 400px;
     object-fit: contain;
 }
 
-
-  
-  
+.outfit-center-button {
+    background-color: var(--outfit-btn-text-color);
+   
+    ion-icon {
+        font-size: 42px;
+        color: #fff;
+    }
+}

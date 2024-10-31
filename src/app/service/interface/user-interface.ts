@@ -8,6 +8,9 @@ export interface UserProfile {
   photoURL: string;
   bio?: string;
   userType?: any;
+  gender: string;
+  createAt: number;
+  editedAt?: number;
 
 }
 

@@ -29,7 +29,7 @@ export class MyOutFitPage implements OnInit {
   filteredOutfits: outfit[] = []; // Array per gli outfit filtrati
   isLoading: boolean = true;
   cUserID: string = '';
-  cUserInfo: any;
+  cUserInfo!: UserProfile;
   favorites: Set<string> = new Set();
   currentUserProfile$!: Observable<UserProfile | null>;
   outfitUserProfile$!: Observable<UserProfile>;
@@ -41,7 +41,7 @@ export class MyOutFitPage implements OnInit {
   isFiltersSel: boolean = false
   backgroundImage: any = "url(assets/fallback-image.jpg);";
   blockedUIDs: any = []
-  constructor(private router: Router, private appService: AppService, private afAuth: AngularFireAuth, private userProfileService: UserService, private modalController: ModalController, private alertController: AlertController, private sharingSocial:SocialSharing) {
+  constructor(private router: Router, private appService: AppService, private afAuth: AngularFireAuth, private userProfileService: UserService, private modalController: ModalController, private alertController: AlertController, private sharingSocial: SocialSharing) {
 
   }
 
@@ -55,8 +55,8 @@ export class MyOutFitPage implements OnInit {
 
         this.currentUserProfile$.subscribe(async userProfile => {
           if (userProfile)
-
-            this.cUserInfo = userProfile;
+            console.log('userProfile', userProfile)
+          this.cUserInfo = userProfile as UserProfile;
           this.cUserID = this.cUserInfo.uid;
 
 
@@ -123,9 +123,9 @@ export class MyOutFitPage implements OnInit {
     });
   }
 
-  ionViewWillEnter() {
-    this.loadOutfits();
-  }
+  /*  ionViewWillEnter() {
+     this.loadOutfits();
+   } */
 
   async openFilterModal() {
     this.isFiltersSel = false
@@ -273,22 +273,28 @@ export class MyOutFitPage implements OnInit {
 
   async loadOutfits(): Promise<void> {
     this.cUserPreference = await this.userProfileService.getUserPreference();
-    this.blockedUIDs = this.cUserPreference[0]?.uIdBlocked
+    if(this.cUserPreference)
+      this.blockedUIDs = this.cUserPreference[0]?.uIdBlocked
 
     let conditions: FireBaseConditions[] = [
       {
         field: 'status',
         operator: '==',
         value: 'approved'
+      },
+      {
+        field: 'gender',
+        operator: '==',
+        value: this.cUserInfo.gender
       }
     ]
-/*
- */
-    
-      this.filteredOutfits = []
-      this.isLoading = true;
-      let newOutfits = await this.appService.getFilteredCollection('outfits', conditions)
-    
+    /*
+     */
+
+    this.filteredOutfits = []
+    this.isLoading = true;
+    let newOutfits = await this.appService.getFilteredCollection('outfits', conditions)
+
     //const preferencC = this.createQueryConditions()
 
     if (newOutfits) {
@@ -319,7 +325,7 @@ export class MyOutFitPage implements OnInit {
           this.isLoading = false;
 
         }
-         console.log('filteredOutfits-->',this.filteredOutfits)
+       
       });
     }
     this.getTrendingOutfits()
@@ -365,9 +371,9 @@ export class MyOutFitPage implements OnInit {
 
 
 
-    this.trendingOutfits = await this.appService.getFilteredCollection('outfits', conditions)
-
-
+     const trendingOutfits = await this.appService.getFilteredCollection('outfits', conditions)
+    if(trendingOutfits)
+     this.trendingOutfits = trendingOutfits
   }
 
   async filterUserOutFit() {
@@ -591,19 +597,19 @@ export class MyOutFitPage implements OnInit {
   }
 
   async openShareModal(outfit: outfit) {
-    
-    
+
+
     this.sharingSocial.shareVia(outfit)
-   /*  const modal = await this.modalController.create({
-      component: SocialSharingComponent,
-      componentProps: { outfit: outfit },
-      initialBreakpoint: 0.45,
-      breakpoints: [0.70, 0.99],
-      backdropDismiss: false,
-      backdropBreakpoint: 0.5,
-      presentingElement: await this.modalController.getTop(),
-    });
-    await modal.present(); */
+    /*  const modal = await this.modalController.create({
+       component: SocialSharingComponent,
+       componentProps: { outfit: outfit },
+       initialBreakpoint: 0.45,
+       breakpoints: [0.70, 0.99],
+       backdropDismiss: false,
+       backdropBreakpoint: 0.5,
+       presentingElement: await this.modalController.getTop(),
+     });
+     await modal.present(); */
   }
 
   matchesPreferences(outfit: any): boolean {
@@ -696,10 +702,10 @@ export class MyOutFitPage implements OnInit {
     let data = await this.appService.getFilteredCollection('faveUserOutfits', coditions)
     if (data)
       this.favorites.clear();
-    data.forEach(doc => {
+      data.forEach((doc: any) => {
 
-      this.favorites.add(doc.outfitId);
-    });
+        this.favorites.add(doc.outfitId);
+      });
     //    console.log(this.favorites)
 
 

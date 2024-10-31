@@ -11,20 +11,23 @@ import { ModalListComponent } from './modal-list/modal-list.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { DynamicFileBoxComponent } from './dynamic-form/items/dynamic-file-box/dynamic-file-box.component';
+import { ProductsGridComponent } from '../views/products-grid/products-grid.component';
+import { SharedModule } from "../views/shared/shared.module";
 
 
 
 
 @NgModule({
-	imports: [CommonModule, ScrollingModule, IonicModule, FormsModule, ReactiveFormsModule],
+	imports: [CommonModule, ScrollingModule, IonicModule, FormsModule, ReactiveFormsModule, SharedModule],
 	declarations: [
 		DynamicFormComponent,
 		DynamicSelectBoxComponent,
 		DynamicFileBoxComponent,
 		ModalFormComponent,
 		ModalListComponent,
+		ProductsGridComponent
 			],
-	exports: [DynamicFormComponent,ModalFormComponent,ModalListComponent]
+	exports: [DynamicFormComponent,ModalFormComponent,ModalListComponent,ProductsGridComponent]
 })
 export class ComponentsModule {
 

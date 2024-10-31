@@ -1,8 +1,11 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router } from '@angular/router';
+import { Browser } from '@capacitor/browser';
 import { ModalController, NavController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
 import { FireBaseConditions, FireBaseOrderBy, outfitCategories, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
+import { UserProfile } from 'src/app/service/interface/user-interface';
 import { ProdottiOnlineService } from 'src/app/service/prodotti-online.service';
 
 @Component({
@@ -11,7 +14,7 @@ import { ProdottiOnlineService } from 'src/app/service/prodotti-online.service';
   styleUrls: ['./prodotti-online.page.scss'],
 })
 export class ProdottiOnlinePage implements OnInit {
-  constructor(private modalController: ModalController, private navController: NavController, private router: Router) { }
+  constructor(private modalController: ModalController, private navController: NavController,private afAuth: AngularFireAuth,) { }
 
   private appService = inject(AppService);
 
@@ -22,12 +25,38 @@ export class ProdottiOnlinePage implements OnInit {
   public filteredproducts: any[] = []; // Array di prodotti
   public categories?: outfitCategories[]
   public currentPage: number = 1;
+  gender=""
   outfitCategory = "";
   outfitSubCategory = "";
-
+  selectedCategoryName = "Tutti i prodotti";
+  selectedFilterStyleIndex?:number;
+  isModal:boolean = true
   ngOnInit() {
-    this.loadCategories()
-    this.loadProducts(this.outfitCategory, this.outfitSubCategory);
+    this.afAuth.authState.subscribe(async user => {
+      if (user) {
+        console.log('user',user)
+        //this.userID = user.uid;
+        const userData$ = this.appService.getUserProfilebyId( user.uid);
+        userData$.subscribe((outfitUserProfile: UserProfile) => {
+
+          if (outfitUserProfile) {
+            this.gender = outfitUserProfile.gender;
+            this.loadCategories(this.outfitCategory)
+            this.loadProducts(this.outfitCategory, this.outfitSubCategory);
+          } 
+        })
+         
+      }else{
+        this.handleBackButton()
+      }
+    })    
+    setTimeout(async () => {
+      const modal = await this.modalController.getTop();
+        if(!modal){
+          this.isModal = false
+        }  
+    }, 500);
+    
   }
 
   async loadProducts(outfitCategory?: any, outfitSubCategory?: any) {
@@ -51,6 +80,12 @@ export class ProdottiOnlinePage implements OnInit {
       )
     }
 
+    conditions.push({
+      field: 'gender',
+      operator: '==',
+      value: this.gender
+    })
+
 
     let products = await this.appService.getFilteredCollection('outfitsProducts', conditions);
     this.products = products
@@ -73,33 +108,55 @@ export class ProdottiOnlinePage implements OnInit {
       operator: '==',
       value: parent
     })
+    condictionCat.push({
+      field: 'gender',
+      operator: 'array-contains',
+      value: this.gender
+    })
 
 
     this.categories = await this.appService.getFilteredCollection('outfitsCategories', condictionCat);
     console.log('categories', this.categories)
   }
 
-  async filterCategory(category?: outfitCategories) {
+  async filterCategory(indexCategory?:number,category?: outfitCategories) {
+    
+    
+      
+      this.selectedFilterStyleIndex = undefined;
+    
+    
+    
+    
 
     if (!category) {
+      this.selectedCategoryName = 'Tutti i prodotti'
       await this.loadCategories();
       await this.loadProducts();
       return
     }
+    this.selectedCategoryName = category.categoryName;
 
     if (!category.parentCategory) {
+      //this.selectedFilterStyleIndex = indexCategory;
       await this.loadProducts(category.id);
       await this.loadCategories(category.id)
       return
     }
 
     if (category.parentCategory) {
+      this.selectedFilterStyleIndex = indexCategory;
+      
       this.loadProducts(category.parentCategory, category.id);
     }
   }
   // Funzione link allo store
-  buyToStore(_t31: any) {
-    throw new Error('Method not implemented.');
+  async buyToStore(itm: any) {
+    let link = !itm.link ? '#' : itm.link
+
+    if (link != '#') {
+      await Browser.open({ url: link });
+    }
   }
 
   // Carica più prodotti (paginazione)

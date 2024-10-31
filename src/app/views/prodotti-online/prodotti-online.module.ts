@@ -8,17 +8,18 @@ import { ProdottiOnlinePageRoutingModule } from './prodotti-online-routing.modul
 
 import { ProdottiOnlinePage } from './prodotti-online.page';
 import { SharedModule } from "../shared/shared.module";
+import { ComponentsModule } from "../../components/components.module";
 
 
 @NgModule({
   imports: [
-    
     SharedModule,
     FormsModule,
     IonicModule,
     ProdottiOnlinePageRoutingModule,
-    
+    ComponentsModule
 ],
-  declarations: [ProdottiOnlinePage]
+  declarations: [ProdottiOnlinePage],
+  
 })
 export class ProdottiOnlinePageModule {}

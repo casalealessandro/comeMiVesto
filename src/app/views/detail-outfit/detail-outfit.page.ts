@@ -121,7 +121,7 @@ export class DetailOutfitPage implements OnInit {
     ]
 
     let check = await this.appService.getFilteredCollection('wardrobes', coditions);
-    if (check) {
+    if (check.length > 0) {
     
       return
     }
@@ -141,6 +141,8 @@ export class DetailOutfitPage implements OnInit {
     }
 
     let resSave = await this.appService.saveInCollection('wardrobes',undefined,saveData)
+    if(resSave)
+      alert('Elemento aggiunto alla tua wardrobe con successo!')
   }
 
   async selectItem(itm:any){

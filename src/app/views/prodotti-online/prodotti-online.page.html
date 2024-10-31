@@ -1,23 +1,25 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Ultimi Prodotti</ion-title>
+<ion-header >
+  <ion-toolbar *ngIf="isModal">
+    <ion-title>{{selectedCategoryName}}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="handleBackButton()">Chiudi</ion-button>
+      <ion-button (click)="handleBackButton()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
   <!-- Filtra per Categoria -->
   <ion-segment value="all" class="banner">
     <div class="menu">
       <div (click)="filterCategory()">
-        <ion-segment-button [value]="" (click)="filterCategory()">
+        <ion-chip  (click)="filterCategory()">
           <ion-label>Tutte</ion-label>
-        </ion-segment-button>
+        </ion-chip>
       </div>
      
-      <div *ngFor="let category of categories" (click)="filterCategory(category)" >
-        <ion-segment-button [value]="category.id" >
+      <div *ngFor="let category of categories; let i = index" >
+        <ion-chip  [ngClass]="selectedFilterStyleIndex === i ? 'styleselcted' : ''"  (click)="filterCategory(i, category)" >
           <ion-label>{{category.categoryName}}</ion-label>
-        </ion-segment-button>
+        </ion-chip>
       </div>
      
     </div>
@@ -26,44 +28,9 @@
   </ion-segment>
 </ion-header>
 
-<ion-content>
+<ion-content  class="ion-padding scroll-y"
+>
 
-
-
-  
-  <!-- Griglia dei prodotti -->
-  <div class="product-grid">
-    <ion-card class="outfit-card" *ngFor="let product of products">
-
-      <ion-img class="" [src]="product.imageUrl"></ion-img>
-    
-      <ion-card-header class="outfit-card-header">
-    
-    
-        <div class="outfit-header-wrapper">
-          <ion-card-subtitle class="outfit-card-subTitle" >{{ product.name }}</ion-card-subtitle>
-          
-    
-        </div>
-
-    
-    
-      </ion-card-header>
-      <ion-card-content class="outfit-card-content product-card-content">
-        <ion-card-subtitle class="outfit-price">{{ product.price | currencyFormat }}</ion-card-subtitle>
-        <ion-card-subtitle class="outfit-gender">{{genderReveral(product.gender)}}</ion-card-subtitle>
-        <section class="outfit-card-action">
-          <ion-button size="small" fill="clear" (click)="buyToStore(product)">
-            <ion-icon name="cart"></ion-icon>
-          </ion-button>
-          <ion-button size="small" fill="clear" (click)="saveToWardrobe(product)">
-            <ion-icon name="save"></ion-icon>
-          </ion-button>
-  
-        </section>
-      </ion-card-content>
-    </ion-card>
-  </div>  <!-- Pulsante per caricare altri prodotti -->
-    <ion-button expand="full" (click)="loadMoreProducts()">Carica altri prodotti</ion-button>
+  <app-products-grid [products]="products" (productsEvent)="saveToWardrobe($event)"></app-products-grid>
 </ion-content>
 

@@ -6,7 +6,7 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content>
+<ion-content  class="ion-padding scroll-y">
   <div class="main-content">
     <div class="add-clothes-options">
       <ion-grid>
@@ -14,32 +14,32 @@
 
 
           <!-- Cerca nei Negozi -->
-          <ion-col size="4" class="option" (click)="searchClothModal()">
+          <ion-col  class="option" (click)="searchClothModal()">
             <div class="updated-label">
               <ion-ripple-effect></ion-ripple-effect>
               <ion-icon size="large" name="storefront-outline"></ion-icon>
               <!-- <span class="updated">Aggiornato!</span> -->
             </div>
-            <p>Prodotti in Negozio</p>
+            <p>Da store</p>
           </ion-col>
 
           <!-- Cerca nella Libreria -->
-          <ion-col size="4" class="option" (click)="searchClothModal()">
+          <!-- <ion-col size="4" class="option" (click)="searchClothModal()">
             <ion-ripple-effect></ion-ripple-effect>
             <ion-icon size="large" name="globe-outline"></ion-icon>
-            <p>Aggiungi per brend</p>
-          </ion-col>
+            <p>Prodotti </p>
+          </ion-col> -->
 
-          <ion-col size="4" class="option" (click)="addClothModal()">
+          <ion-col  class="option" (click)="addClothModal()">
             <ion-ripple-effect></ion-ripple-effect>
             <ion-icon size="large" name="add-outline"></ion-icon>
-            <p>Aggiungi Prodotto</p>
+            <p>Nuovo Prodotto</p>
           </ion-col>
         </ion-row>
       </ion-grid>
     </div>
 
-    <ng-container *ngIf="userWardrobes.length==0" >
+    <ng-container *ngIf="userWardrobes.length===0" >
 
       <ion-text color="medium">Nessun indumento ancora creato/scelto.</ion-text>
     </ng-container>

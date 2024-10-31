@@ -2,73 +2,38 @@
   overflow: scroll;
   display: flex;
   flex-direction: row;
+  background-color: white;
 
   .menu {
     width: 100%;
     display: flex;
     flex-direction: row;
+    padding: 5px 0;
 
 
-  }
-}
 
+    ion-chip {
 
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-gap: 0.5rem;
-  padding: 0px;
-}
+      background-color: white;
+      border: 2px solid lightgray;
+      border-radius: 1px;
+      padding: 5px 8px;
+      font-weight: 500;
+      font-size: 13px;
+      width: max-content;
+      height: 32px;
 
-.outfit-card {
+      &.styleselcted {
+        //border: 2px solid var(--ion-tab-bar-color-selected);
+        border: 2px solid var(--outfit-primary-text-color);
 
-
-  ion-img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-  }
-
-  .outfit-card-subTitle {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .product-card-content {
-    display: flex;
-    align-content: center;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-start;
-
-    .outfit-price,
-    .outfit-gender {
-      align-self: end;
-
-    }
-
-    .outfit-gender {
-      margin-left: 0.3rem;
-
-    }
-
-    .outfit-card-action {
-
-      ion-button {
-        max-height: 16px;
-        min-height: 16px;
-        margin: 0 0.3rem;
-
-        ion-icon {
-          font-size: 16px;
-        }
       }
     }
   }
 
 }
+
+
 
 ion-segment-button {
   --color-checked: black;

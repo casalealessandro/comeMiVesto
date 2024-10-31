@@ -30,6 +30,11 @@ const routes: Routes = [
         
       },
       {
+        path: 'outfit-products',
+        loadChildren: () => import('./views/prodotti-online/prodotti-online.module').then(m => m.ProdottiOnlinePageModule),
+        
+      },
+      {
         path: 'my-profile',
         loadChildren: () => import('./views/my-profile/my-profile.module').then(m => m.MyProfilePageModule),
         

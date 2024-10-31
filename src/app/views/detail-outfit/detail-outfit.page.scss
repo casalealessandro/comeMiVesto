@@ -86,6 +86,7 @@
         max-width: 150px;
         min-width: 150px;
         height: 225px;
+        object-fit: cover;
       }
 
       .outfit-card-subTitle {
@@ -114,42 +115,7 @@
 .card-subTitle{
   font-size: 1rem;
 }
-.related {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-gap: 0.5rem;
-  padding: 0px;
 
-  .outfit-card {
-    max-width: 170px;
-    min-width: 170px;
-    margin: 1rem 0.4rem;
-
-    .related-prodcut-image {
-      max-width: 170px;
-      min-width: 170px;
-      height: 230px;
-    }
-
-    .outfit-card-subTitle {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .outfit-card-content {
-      ion-button {
-        max-height: 16px;
-        min-height: 16px;
-        margin: 0 0.3rem;
-
-        ion-icon {
-          font-size: 16px;
-        }
-      }
-    }
-  }
-}
 
 .title {
   font-size: 16px;
@@ -159,4 +125,5 @@
 
 .modal{
   overflow-y: scroll;
+  margin: 1rem 0.4rem;
 }

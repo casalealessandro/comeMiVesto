@@ -52,7 +52,7 @@
   
     <ion-card-content class="slot">
       
-     <ion-chip   [ngClass]="selectedFilterStyleIndex == i ? 'styleselcted' : ''" *ngFor="let  filterItmStyle of itmStyles; let  i = index "    (click)="selStyle(i,filterItmStyle)">
+     <ion-chip   [ngClass]="selectedFilterStyleIndex === i ? 'styleselcted' : ''" *ngFor="let  filterItmStyle of itmStyles; let  i = index "    (click)="selStyle(i,filterItmStyle)">
         <ion-label >
           {{filterItmStyle!['value']}} 
           
@@ -71,7 +71,7 @@
     </ion-card-header>
   
     <ion-card-content class="slot">
-     <ion-chip  [ngClass]="selectedFilterSeasonIndex == i ? 'styleselcted' : ''" *ngFor="let  filterItmSeason of itmSeasons; let  i = index "  (click)="selSeason(i,filterItmSeason)">
+     <ion-chip  [ngClass]="selectedFilterSeasonIndex === i ? 'styleselcted' : ''" *ngFor="let  filterItmSeason of itmSeasons; let  i = index "  (click)="selSeason(i,filterItmSeason)">
         <ion-label >
           {{filterItmSeason!['value']}} 
           

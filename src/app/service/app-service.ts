@@ -72,7 +72,7 @@ export class AppService {
     );
   }
 
-  async getFilteredCollection(collection: string, conditions?:FireBaseConditions[],orderBy?:any[]): Promise<any[]> {
+  async getFilteredCollection(collection: string, conditions?:FireBaseConditions[],orderBy?:any[]): Promise<any> {
     
     let query: any = this.firestore.collection(collection).ref;
     
@@ -99,10 +99,12 @@ export class AppService {
 
       const results = querySnapshot.docs.map((doc: any) => doc.data());
       //this.resultsSignal.set(results);
-      this.resultsSignal = signal<any[]>(results);
+      this.resultsSignal.set(results)
       return results;
     } catch (error) {
       console.error('Error getting filtered collection:', error);
+      this.resultsSignal.set([]);
+
       return [];
     }
 

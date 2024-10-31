@@ -9,6 +9,9 @@ import { DetailOutfitPageRoutingModule } from './detail-outfit-routing.module';
 import { DetailOutfitPage } from './detail-outfit.page';
 import { CurrencyFormatPipe } from 'src/app/utility/currency-format.pipe';
 import { SharedModule } from '../shared/shared.module';
+import { ProdottiOnlinePageModule } from '../prodotti-online/prodotti-online.module';
+import { ComponentsModule } from 'src/app/components/components.module';
+
 
 @NgModule({
   imports: [
@@ -16,7 +19,9 @@ import { SharedModule } from '../shared/shared.module';
     FormsModule,
     IonicModule,
     DetailOutfitPageRoutingModule,
-    SharedModule
+    SharedModule,
+    ProdottiOnlinePageModule,  
+    ComponentsModule
   ],
   declarations: [DetailOutfitPage]
 })

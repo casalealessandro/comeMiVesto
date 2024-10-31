@@ -1,0 +1,71 @@
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 0.5rem;
+    padding: 0px;
+  }
+  
+  .outfit-card {
+    color: var(--outfit-primary-text-color);
+    
+    margin: 1rem 0.4rem;
+    ion-img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+    }
+  
+    .outfit-header-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: self-start;
+      margin-top: 5px;
+      margin-bottom: 3px;
+  
+      .outfit-card-subTitle,
+      .outfit-card-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 14px;
+      }
+    }
+  
+  
+  
+    .product-card-content {
+      display: flex;
+      align-content: center;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 5px 10px;
+  
+      .outfit-price,
+      .outfit-gender {
+        align-self: end;
+  
+      }
+  
+      .outfit-gender {
+        margin-left: 0.3rem;
+  
+      }
+  
+      .outfit-card-action {
+  
+        ion-button {
+          max-height: 16px;
+          min-height: 16px;
+          margin: 0 0.3rem;
+  
+          ion-icon {
+            font-size: 16px;
+          }
+        }
+      }
+    }
+  
+  }
+  

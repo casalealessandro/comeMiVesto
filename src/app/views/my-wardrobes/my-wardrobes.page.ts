@@ -30,9 +30,10 @@ export class MyWardrobesPage  {
 
   ngOnInit() {
     
-    console.log('pmodal',this.wardrobesItems)
+   
     this.afAuth.authState.subscribe(async user => {
       if (user) {
+        console.log('user',user)
         this.userID = user.uid;
         
         this.categoryCloth =  await this.appService.getFilteredCollection('outfitsCategories',[{

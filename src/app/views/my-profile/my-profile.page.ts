@@ -110,7 +110,9 @@ export class MyProfilePage {
       name: data.name,
       nome:nome,
       email: this.userProfile.email,
-      bio:bio
+      bio:bio,
+      gender: data.gender,
+      editedAt:  new Date().getTime()
       
     }
     let isOk = await this.userProfileService.updateUserProfile(profileData)

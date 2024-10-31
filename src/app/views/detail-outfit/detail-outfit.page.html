@@ -88,7 +88,7 @@
 
           <h2 class="card-subTitle"> Potrebbero interessarti </h2>
 
-          <div class="product-grid related">
+          <!-- <div class="product-grid related">
             
             <ion-card class="outfit-card" *ngFor="let rproduct of relatedProducts">
 
@@ -118,16 +118,16 @@
                   <ion-button size="small" fill="clear" (click)="saveItem(rproduct)">
                     <ion-icon name="save"></ion-icon>
                   </ion-button>
-                  <!--  <ion-button size="small" fill="clear" (click)="selectItem(rproduct)">
+                    <ion-button size="small" fill="clear" (click)="selectItem(rproduct)">
                     <ion-icon name="search"></ion-icon>
-                  </ion-button> -->
+                  </ion-button> 
 
                 </section>
               </ion-card-content>
             </ion-card>
-          </div>
+          </div> -->
 
-
+          <app-products-grid [products]="relatedProducts" (productsEvent)="saveItem($event)"></app-products-grid>
         </div>
       </ion-content>
     </ion-modal>
