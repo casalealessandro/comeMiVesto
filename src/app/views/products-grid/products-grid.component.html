@@ -1,7 +1,7 @@
 
   <!-- Griglia dei prodotti -->
   <div class="product-grid">
-    <ion-card class="outfit-card" *ngFor="let product of products">
+    <ion-card class="outfit-card" *ngFor="let product of products" (click)="saveToWardrobe(product)">
 
       <ion-img class="" [src]="product.imageUrl"></ion-img>
     

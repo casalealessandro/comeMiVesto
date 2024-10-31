@@ -102,7 +102,7 @@
       }
 
       .item-title {
-        width: 170px;  
+        max-width: 150px;
        white-space: nowrap;   /* Evita che il testo vada a capo */
         overflow: hidden;      /* Nasconde il testo in eccesso */
         text-overflow: ellipsis; /* Aggiunge i puntini di sospensione */
