@@ -1,7 +1,7 @@
 <ion-header *ngIf="!showLogin">
 
   <ion-toolbar>
-    <ion-button  fill="clear" slot="start" (click)="showRecupPassword()">
+    <ion-button fill="clear" slot="start" (click)="showRecupPassword()">
       <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
     </ion-button>
     <ion-title>Login</ion-title>
@@ -10,47 +10,68 @@
 </ion-header>
 
 
-<ion-content>
+<ion-content class="login-wrapper">
   <ng-container *ngIf="showLogin; else recupPassword">
-    <img src="assets/images/Logo-nero.png">
-    <div class="main-content">
 
 
-      <div class="card">
-        <div class="logo">
+    <div class="login-container">
 
-          <ion-label class="logo-name">Login</ion-label>
-          <ion-label class="logo-info">Outfit style</ion-label>
+      <div class="logo-container">
+        <img src="assets/images/Logo-bianco.png">
+      </div>
+      <div class="login-card">
+        <div class="login-header-container">
+          <div class="title">
+            <ion-label>Accedi o Registrati</ion-label>
+          </div>
         </div>
-        <div class="title">
-          <ion-label>Accedi</ion-label>
-        </div>
-        <div class="text">
-          <ion-label>Email e password  o registrati</ion-label>
-        </div>
-        <app-dynamic-form 
-        [service]="'loginForm'" 
-        [btnFormText]="'Login'"
-        (submitFormEvent)="submitFormEvent($event)">
+        <div class="login-center-container">
+          <app-dynamic-form [service]="'loginForm'" [btnFormText]="'Accedi'"
+            (submitFormEvent)="submitFormEvent($event)"></app-dynamic-form>
 
-        </app-dynamic-form>
-        <div class="login-heading">
-                 
-          <span component="nav-profile recupPassword" (click)="showRecupPassword()">Password dimenticata</span>
-         
-        </div>
-        
-        <ion-button [routerLink]="'/register'" expand="block" class="btn outfit-button">
-          <ion-ripple-effect></ion-ripple-effect>
-          Registrati
-        </ion-button>
+          <div class="login-links">
+            <span><ion-checkbox labelPlacement="end">Resta connesso</ion-checkbox></span>
+            <span class="link" component="nav-profile recupPassword" (click)="showRecupPassword()">Password
+              dimenticata</span>
+
+          </div>
+
+          <div class="register-container">
+            <div>
+              <div class="register-text">
+                <ion-label>Non hai ancora un account?</ion-label>
+              </div>
 
 
-        <div class="footer">
-          <ion-label>&copy; 2024 Alessandro Casale</ion-label>
-          <ion-label><u>Terms of Service </u>. <u>Privacy Policy</u> .<u>Content Policy </u></ion-label>
+            </div>
+
+            <div>
+
+              <ion-button class="register-button" [routerLink]="'/register'" expand="block">
+                <ion-ripple-effect></ion-ripple-effect>
+                Registrati
+              </ion-button>
+
+            </div>
+
+          </div>
+        </div>
+        <div class="login-footer-container">
+
+          <div class="footer-copy">
+            <ion-label class="footer-label">&copy; 2024 Alessandro Casale</ion-label>
+            <ion-label class="footer-label"><u>Terms of Service </u>. <u>Privacy Policy</u> .<u>Content Policy
+              </u></ion-label>
+          </div>
+
+
+
+
         </div>
       </div>
+
+
+
     </div>
   </ng-container>
 
@@ -58,28 +79,27 @@
 
 
   <ng-template #recupPassword>
-    <div class="main-content">
+    <div class="login-container">
 
-
-      <div class="card">
-        <form #recoveryForm="ngForm" (ngSubmit)="recuperaPassword(recoveryForm)">
-
-
-          <ion-input class="textbox" type="email" labelPlacement="stacked" label="Email" placeholder="Inserisci email per di recupero"
-            name="emailRecup" [(ngModel)]="emailRecup" required email #emailInput="ngModel">
-
-          </ion-input>
-          <div *ngIf="emailInput.invalid && emailInput.touched" class="error-message">
-            <ion-text color="danger">{{recupPasswordError}}</ion-text>
-          </div>
-
-
-
-          <ion-button class="outfit-button" expand="block" class="btn outfit-button" type="submit">Invia
-            password</ion-button>
-        </form>
+      <div class="logo-container">
+        <img src="assets/images/Logo-bianco.png">
       </div>
-      
+      <div class="login-card">
+        <div class="login-header-container">
+          <div class="title">
+            <ion-label>Recupera la password</ion-label>
+          </div>
+        </div>
+        <div class="login-center-container">
+
+          <app-dynamic-form [service]="'recuperaPassword'" [btnFormText]="'Recupara'"
+            (submitFormEvent)="recuperaPassword($event)">
+          </app-dynamic-form>
+
+          
+        </div>
+      </div>
+
     </div>
 
   </ng-template>

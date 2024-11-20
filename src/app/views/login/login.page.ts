@@ -15,16 +15,22 @@ export class LoginPage {
 
 
 
+
   email: string = '';
   password: string = '';
   showLogin:boolean=true;
+  stayConnected:boolean=false;
   emailRecup:string=''
   auth = getAuth(inject(FirebaseApp));
  
   recupPasswordError:string = 'Inserisci un email valida'
   constructor(private afAuth: AngularFireAuth,private router: Router, private alert:AlertController) {}
 
-  login() {
+  async login() {
+    
+    const persistence = this.stayConnected  ? 'local' : 'session'
+    await this.afAuth.setPersistence(persistence);
+
 
     this.afAuth.signInWithEmailAndPassword(this.email, this.password)
       .then((userCredential:any) => {
@@ -42,8 +48,12 @@ export class LoginPage {
       });
   }
 
+  async setStayConnected(event:any) {
+    const value = event.target.value
+    this.stayConnected = value
+  }
   submitFormEvent(event:any){
-      console.log('submitFormEvent-->',event)
+      
 
       if(event.email && event.password) {
         this.email = event.email;
@@ -59,14 +69,9 @@ export class LoginPage {
 
   }
 
-  recuperaPassword(form:NgForm) {
-   if(!form.valid){
-   
-    form.controls['emailRecup'].markAsTouched();
-    return
-   }
-      
-    sendPasswordResetEmail(this.auth,this.emailRecup)
+  recuperaPassword(evtForm:any) {
+    const email = evtForm.formData.emailRecup
+    sendPasswordResetEmail(this.auth,email);
     this.showLogin = !this.showLogin;
     
     

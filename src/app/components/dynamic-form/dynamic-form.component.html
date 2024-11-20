@@ -1,12 +1,13 @@
 
   <form [formGroup]="form" (ngSubmit)="submitForm()">
-    <ion-list>
+    <ion-list class="form-group">
       <ng-container *ngFor="let field of fields">
-        <ion-item *ngIf="field.type === 'textBox'">
+        <ion-item *ngIf="field.type === 'textBox'" lines="none">
           
           <ion-input 
             [formControlName]="field.name" 
             class="textbox"
+            
             [type]="!field.typeInput ? 'text' : field.typeInput " [placeholder]="field.placeholder"
             [(ngModel)]="formValues[field.name]"
             [label]="field.label"
@@ -18,10 +19,23 @@
             <ion-ripple-effect></ion-ripple-effect>
             <ion-icon name="open-outline"></ion-icon>
           </ion-button>
+          <ion-button *ngIf="showPasswordButton[field.name]"  class="functional-btn" fill="clear" slot="end" (click)="togglePasswordClick($event,field)">
+            <ion-ripple-effect></ion-ripple-effect>
+           
+            <i
+                  class="fi"
+                  [ngClass]="{
+                    
+                    'fi-rs-eye ': field.typeInput === 'password',
+                    'fi-rr-eye-crossed': field.typeInput === 'text',
+                  }"
+                  
+                ></i>
+          </ion-button>
         </ion-input>
          
         </ion-item>
-        <ion-item *ngIf="field.type === 'textArea'">
+        <ion-item *ngIf="field.type === 'textArea'" lines="none">
        
           <ion-textarea 
             [formControlName]="field.name" 
@@ -34,13 +48,13 @@
             >
           </ion-textarea>
         </ion-item>
-        <ion-item *ngIf="field.type === 'fileBox'">
+        <ion-item *ngIf="field.type === 'fileBox'" lines="none">
             <app-dynamic-file-box
             [image]="formValues[field.name]"
             (eventFotoCaptured)="onValueChangeFile(field.name, $event)"
             ></app-dynamic-file-box> 
         </ion-item>
-        <ion-item *ngIf="field.type === 'checkBox'">
+        <ion-item *ngIf="field.type === 'checkBox'" lines="none">
           
           <ion-checkbox *ngIf="field.checkBoxOptions!.haveLink;else checkboxNormale" 
           [checked]="formValues[field.name]" 
@@ -73,10 +87,15 @@
       </ng-container>
     
     </ion-list>
-    
-    <ion-button type="submit"  expand="block"  class="btn outfit-button">
-      <ion-ripple-effect></ion-ripple-effect>
-      {{btnFormText}}
-    
-    </ion-button>
+    <div class="form-footer">
+      <ion-item>
+        <ion-button type="submit"  expand="block"  class="btn outfit-button">
+          <ion-ripple-effect></ion-ripple-effect>
+          {{btnFormText}}
+        
+        </ion-button>
+      </ion-item>
+     
+    </div>
+   
   </form>

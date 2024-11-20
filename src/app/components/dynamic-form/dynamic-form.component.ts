@@ -30,7 +30,7 @@ export class DynamicFormComponent implements OnInit {
   formShow: boolean = false
   fieldConfigs: any = [];
   labelplacement:'fixed' | 'stacked' | 'floating' = 'stacked';
-  
+  showPasswordButton: any = {};
   constructor(private templateService: AppService, private formBuilder: FormBuilder,private toastController: ToastController) {
 
 
@@ -66,12 +66,17 @@ export class DynamicFormComponent implements OnInit {
   
       // Aggiungi il controllo al formGroup con i validatori come terzo argomento
       formGroup.addControl(field.name, new FormControl(value, validators));
-  
+      
+      if (field.typeInput === 'password') {
+        this.showPasswordButton[field.name] = true
+      }
       // Inizializza i valori del form
       this.initializeFormValues(field);
     });
   
     this.form = formGroup;
+
+    
   }
   
   // Metodo separato per gestire i validatori
@@ -107,8 +112,7 @@ export class DynamicFormComponent implements OnInit {
 
   onValueChange(fieldName: string, value: any) {
    
-    
-    
+       
     const control = this.form.get(fieldName);
 
     if (control && control.value !== value) {
@@ -222,5 +226,15 @@ export class DynamicFormComponent implements OnInit {
 
 
     
+  }
+
+  togglePasswordClick(evt:any,field:DynamicFormField){
+
+    if (field.typeInput === 'password') {
+
+      field.typeInput = 'text';
+    } else {
+      field.typeInput = 'password';
+    }
   }
 }

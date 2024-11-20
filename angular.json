@@ -31,7 +31,13 @@
                 "output": "./svg"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss","src/theme/appstyle.scss"],
+            "styles": [
+              "src/assets/fonts/google-fonts.css",
+              "src/global.scss",
+              "src/theme/variables.scss",
+              "src/theme/appstyle.scss"
+            ],
+
             "scripts": []
           },
           "configurations": {
