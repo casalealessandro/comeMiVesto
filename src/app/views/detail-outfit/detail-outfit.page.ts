@@ -5,6 +5,7 @@ import { Browser } from '@capacitor/browser';
 import { IonModal, ModalController, NavController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
 import { FireBaseConditions, outfit, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
+import { SharedDataService } from 'src/app/service/shared-data.service';
 
 @Component({
   selector: 'app-detail-outfit',
@@ -21,7 +22,14 @@ export class DetailOutfitPage implements OnInit {
   outfitComposed: any
   userID: string = '';
   relatedProducts:any[] = []
-  constructor(private modalController: ModalController, private router:Router, private route: ActivatedRoute, private appService: AppService, private navController: NavController,private afAuth: AngularFireAuth,) { }
+  constructor(
+    private modalController: ModalController, 
+    private router:Router, 
+    private route: ActivatedRoute, 
+    private appService: AppService, 
+    private navController: NavController,private afAuth: AngularFireAuth,
+    private sharedData:SharedDataService
+  ) { }
 
   ngOnInit() {
     this.route.paramMap.subscribe(async params => {
@@ -71,6 +79,18 @@ export class DetailOutfitPage implements OnInit {
         this.userID = user.uid;
       }
     })  
+
+    this.sharedData.setData({
+      componentName:'HeaderComponent',
+      data: {
+        
+        showLogo:false,
+        showUserInfo:false,
+        titleText:'Dettaglio outfit',
+        showTitleText:true,
+        canGoBack:true
+      }
+    })
   }
 
 

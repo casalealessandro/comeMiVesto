@@ -1,96 +1,62 @@
-<ion-header *ngIf="openModal">
-  <ion-toolbar>
-    <ion-title>il mio Armadio</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="dismissModal($event)">Chiudi</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-<ion-content  class="ion-padding scroll-y">
+<ion-content class="ion-padding scroll-y">
   <div class="main-content">
-    <div class="add-clothes-options">
-      <ion-grid>
-        <ion-row>
+    <div class="clothes-intro">
 
+      <div class="clothes-intro-container">
+        <div class="clothes-intro-icon">
 
-          <!-- Cerca nei Negozi -->
-          <ion-col  class="option" (click)="searchClothModal()">
-            <div class="updated-label">
-              <ion-ripple-effect></ion-ripple-effect>
-              <ion-icon size="large" name="storefront-outline"></ion-icon>
-              <!-- <span class="updated">Aggiornato!</span> -->
+          <div class="intro-info">
+            <span class="intro-name">Aggiungi articolo nel tuo Armadio</span>
+
+            <div class="intro-buttons">
+              <!-- Cerca nei Negozi -->
+              <div class="intro-button">
+                <ion-button class="intro-btn" (click)="searchClothModal()">
+                  <ion-ripple-effect></ion-ripple-effect>
+                  <i class="fi fi-rr-shop"></i>Aggiungi da store</ion-button>
+              </div>
+              <div class="intro-button">
+                   <!-- Crea il tuo vestito -->
+                <ion-button class="intro-btn" (click)="addClothModal()">
+                  <ion-ripple-effect></ion-ripple-effect>
+                  <i class="fi fi-rr-plus"></i>Carica nuovo prodotto
+                </ion-button>
+
+              </div>
+             
             </div>
-            <p>Da store</p>
-          </ion-col>
 
-          <!-- Cerca nella Libreria -->
-          <!-- <ion-col size="4" class="option" (click)="searchClothModal()">
-            <ion-ripple-effect></ion-ripple-effect>
-            <ion-icon size="large" name="globe-outline"></ion-icon>
-            <p>Prodotti </p>
-          </ion-col> -->
 
-          <ion-col  class="option" (click)="addClothModal()">
-            <ion-ripple-effect></ion-ripple-effect>
-            <ion-icon size="large" name="add-outline"></ion-icon>
-            <p>Nuovo Prodotto</p>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <ng-container *ngIf="userWardrobes.length===0" >
+    <ng-container *ngIf="userWardrobes.length===0">
 
       <ion-text color="medium">Nessun indumento ancora creato/scelto.</ion-text>
     </ng-container>
 
 
-    <ion-list>
+    <ion-list class="wardrobe-list">
+
       <!-- Iterazione su tutte le categorie -->
-      <div *ngFor="let wardrobeItem of userWardrobes">
-        <ion-item lines="none">
-          <ion-label>
+      <div class="wardrobe-group" *ngFor="let wardrobeItem of userWardrobes">
+        <ion-item class="wardrobe-group-item" lines="none">
+          <ion-text class="wardrobe-group-title">
             <!-- Titolo per ogni categoria -->
-            <h1>{{ wardrobeItem.wardrobesCategory}}</h1>
-          </ion-label>
+            {{ wardrobeItem.wardrobesCategory}}
+          </ion-text>
         </ion-item>
         <!--  Griglia dei prodotti -->
-        <div class="product-grid">
-          <ion-card class="outfit-card" *ngFor="let product of wardrobeItem.items">
-            <div (click)="selectItem(product)">
-              <ion-img class="" [src]="product.images"></ion-img>
-
-              <ion-card-header class="outfit-card-header">
-
-
-                <div class="outfit-header-wrapper">
-                  <ion-card-subtitle class="outfit-card-subTitle">{{ product.name }}</ion-card-subtitle>
-
-
-                </div>
-
-
-
-              </ion-card-header>
-              <ion-card-content class="outfit-card-content product-card-content">
-                <ion-card-subtitle class="outfit-price">{{ product.brend }}</ion-card-subtitle>
-                <ion-card-subtitle class="outfit-price">{{ product.color }}</ion-card-subtitle>
-                <section class="outfit-card-action">
-                  <ion-button size="small" fill="clear" (click)="buyToStore(product)">
-                    <ion-icon name="cart"></ion-icon>
-                  </ion-button>
-                  <ion-button size="small" fill="clear" (click)="deleteItemWadro(product)">
-                    <ion-ripple-effect></ion-ripple-effect>
-                    <ion-icon name="trash-outline"></ion-icon>
-                  </ion-button>
-
-                </section>
-              </ion-card-content>
-            </div>
-
-          </ion-card>
-        </div>
-
+        <ng-container>
+          <app-products-grid [products]="wardrobeItem.items" [showRemoveBtn]="true" [showSaveBtn]="false"
+            (productsEvent)="selectItem($event)"> </app-products-grid>
+        </ng-container>
       </div>
+
+
+
     </ion-list>
   </div>

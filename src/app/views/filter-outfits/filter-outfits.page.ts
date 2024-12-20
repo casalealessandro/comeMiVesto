@@ -1,7 +1,9 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, signal } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
-import { categoryCloth, colors, filterItmClothing, outfitCategories, seasons, style, subCategoryCloth } from 'src/app/service/interface/outfit-all-interface';
+import { CategoryService } from 'src/app/service/category.service';
+import { categoryCloth, filterItmClothing, outfitCategories, seasons, style, subCategoryCloth } from 'src/app/service/interface/outfit-all-interface';
+import { sharedData, SharedDataService } from 'src/app/service/shared-data.service';
 
 @Component({
   selector: 'app-filter-outfits',
@@ -14,13 +16,13 @@ import { categoryCloth, colors, filterItmClothing, outfitCategories, seasons, st
 export class FilterOutfitsPage implements OnInit {
 
 
-  constructor(private modalController: ModalController, private appService: AppService) { }
+  constructor(private sharedDataService: SharedDataService, private appService: AppService, private categoryService: CategoryService, private modalController:ModalController) { }
 
   @Input() currentFilterSel: any
 
-  oufitCategories: outfitCategories[] = [];
-  oufitCompleteCategories: any[] = [];
-  simpleOufitSubCategories: any;
+  oufitCategories = signal<outfitCategories[]>([]);
+  oufitCompleteCategories = signal<outfitCategories[]>([]);
+  selectoufitCategories = signal<any>('');
 
   itmColor: any;
   itmStyles: any;
@@ -31,173 +33,117 @@ export class FilterOutfitsPage implements OnInit {
   ]
 
   selectedFilterClothIndex: any
-  selectedFilterStyleIndex: any
-  selectedFilterSeasonIndex: any
+  selectedFilterStyleIndex: any = signal(null)
+  selectedFilterSeasonIndex: any = signal(null)
 
   isModalOpenCat: boolean = false;
   isModalOpenColor: boolean = false;
 
   filterItmColor: any
   filterItmStyle: any;
-  filterItmClothing: Partial<filterItmClothing[]> = []
+  filterItmClothing: Partial<filterItmClothing> = {
+    categories: [
+      {
+        outfitCategory: '',
+        outfitSubCategoryName: 'Seleziona',
+        outfitSubCategory: '',
+        color:'',
+        colorName: 'Seleziona',
+        colorHex: '',
+      },
+      {
+        outfitCategory: '',
+        outfitSubCategoryName: 'Seleziona',
+        outfitSubCategory: '',
+        color:'',
+        colorName: 'Seleziona',
+        colorHex: '',
+      }
+    ],
+    season: '',
+
+    style: ''
+
+  }
+
   filterItmSeason: any;
 
   async ngOnInit() {
 
-    this.oufitCategories = await this.appService.getFilteredCollection('outfitsCategories', [{
-      field: 'parentCategory',
-      operator: '==',
-      value: ""
-    }]);
+    this.categoryService.categoriesSubject.subscribe(parentCategories => {
+      this.oufitCategories.set(parentCategories);
+      this.oufitCompleteCategories.set(this.oufitCategories())
+    })
 
-    await this.addSubCategories();
 
-    let dataR = this.oufitCategories
-    this.simpleOufitSubCategories = this.oufitCategories
-    /* this.oufitSubCategories = dataR.reduce((subCategories: any, item: any) => {
-      const category = item.parentCategory;
-   
-      subCategories[category] = subCategories[category] ?? [];
-      subCategories[category].push(item);
 
-      return subCategories;
 
-    }, {}); */
 
-    this.filterItmClothing.push(
-      {
-        image: '',
-        outfitCategory: '',
-        outfitSubCategoryName: 'Seleziona capo',
-        outfitSubCategory: '',
-        colorName: 'Seleziona colore',
-        color: '',
-        style: ''
 
-      },
-      {
-        image: '',
-        outfitCategory: '',
-        outfitSubCategoryName: 'Seleziona capo',
-        outfitSubCategory: '',
-        colorName: 'Seleziona colore',
-        color: ''
-      }
-    )
-    console.log('filterItmClothing-->', this.filterItmClothing);
 
-    this.itmColor = colors
+    this.appService.getAllData('outfitColors').subscribe(colors => {
+      this.itmColor = colors
+    })
     this.itmStyles = style
     this.itmSeasons = seasons;
 
 
-    if (typeof this.currentFilterSel.season != 'undefined') {
-      this.selectedFilterSeasonIndex = this.itmSeasons.findIndex((r: any) => r.id == this.currentFilterSel.season)
-    }
-
-    if (typeof this.currentFilterSel.style != 'undefined') {
-      this.selectedFilterStyleIndex = this.itmStyles.findIndex((r: any) => r.id == this.currentFilterSel.style)
-    }
-
-    if (typeof this.currentFilterSel.outfitCategory != 'undefined' && this.currentFilterSel.outfitCategory.length > 0) {
-      console.log(this.currentFilterSel.tags);
-      const filterOutfitCategory = this.currentFilterSel.outfitCategory
-      const outfitCategory = this.oufitCategories.filter(category => filterOutfitCategory.includes(category.id))
-
-      outfitCategory.forEach((res, i) => {
-        this.filterItmClothing[i] = {
-          ...this.filterItmClothing[i],
-          outfitCategory: res.id
+    
+    if (this.currentFilterSel && this.currentFilterSel.categories) {
+      for (let x = 0; x < this.currentFilterSel.categories.length; x++) {
+        if (this.filterItmClothing.categories && this.filterItmClothing.categories[x]) {
+          this.filterItmClothing.categories[x] = {
+            ...this.filterItmClothing.categories[x],
+            ...this.currentFilterSel.categories[x]
+          };
         }
-      })
+      }
     }
-    console.log('category', this.oufitCompleteCategories)
-    if (typeof this.currentFilterSel.outfitSubCategory != 'undefined') {
-      let outfitSubCategory: any[] = []
-      const filterOutfitSubCategory = this.currentFilterSel.outfitSubCategory
-      this.oufitCompleteCategories.forEach(category => {
-        console.log('category', category.outfitSubCategories)
-        console.log('filterOutfitSubCategory', filterOutfitSubCategory)
-        const matchingSubCategories = category.outfitSubCategories.filter((subCategory: any) =>
-          filterOutfitSubCategory.includes(subCategory.id)
-        );
-        if (matchingSubCategories.length > 0)
-          outfitSubCategory = matchingSubCategories
+    if(this.currentFilterSel.season){
+      this.selectedFilterSeasonIndex.set(this.itmSeasons.findIndex((r: any) => r.id == this.currentFilterSel.season))
+    
+      this.filterItmClothing.season = this.currentFilterSel.season
+    }
+    if(this.currentFilterSel.style){
 
-      });
-      if (outfitSubCategory.length > 0)
-        outfitSubCategory.forEach((res: any, i: any) => {
-          this.filterItmClothing[i] = {
-            ...this.filterItmClothing[i],
-            outfitSubCategory: res.id,
-            outfitSubCategoryName: res.categoryName,
-          }
-        })
+      this.selectedFilterStyleIndex.set(this.itmStyles.findIndex((r: any) => r.id == this.currentFilterSel.style))
+      this.filterItmClothing.style = this.currentFilterSel.style
     }
-    if (this.currentFilterSel.color != 'undefined') {
-      const colors = this.currentFilterSel.color
-      const outfitColor = this.itmColor.filter((color: any) => colors.includes(color.id))
-      console.log(outfitColor)
-      outfitColor.forEach((res: any, i: any) => {
-        this.filterItmClothing[i] = {
-          ...this.filterItmClothing[i],
-          color: res.id,
-          colorName: res.value,
-        }
-      })
-    }
+
   }
 
 
-  async addSubCategories(): Promise<void> {
 
-    const outfitCategories = JSON.parse(JSON.stringify(this.oufitCategories))
-
-    // Usiamo `map` per iterare su ogni categoria e gestire le operazioni asincrone
-    const updatedCategories = await Promise.all(outfitCategories.map(async (item: any) => {
-      const categoryID = item.id;
-
-      // Otteniamo le sottocategorie in modo asincrono
-      item.outfitSubCategories = await this.appService.getFilteredCollection('outfitsCategories', [
-        {
-          field: 'parentCategory',
-          operator: '==',
-          value: categoryID
-        }
-      ]);
-
-      return item;
-    }));
-
-    // Assegniamo l'array aggiornato alla variabile originale
-    this.oufitCompleteCategories = updatedCategories;
-  }
 
   selectedSubCat(itemSub?: any) {
-
     if (!itemSub) {
       this.isModalOpenCat = false;
-      this.selectedFilterClothIndex = undefined
-      return
+      this.selectedFilterClothIndex = undefined;
+      return;
     }
     this.isModalOpenCat = !this.isModalOpenCat;
 
     const index = this.selectedFilterClothIndex;
 
     const filterItmClothing = {
-
       outfitCategory: itemSub.parent,
       outfitSubCategoryName: itemSub.categoryName,
       outfitSubCategory: itemSub.id,
+    };
+
+    if (this.filterItmClothing.categories) {
+      this.filterItmClothing.categories[index] = {
+        ...this.filterItmClothing.categories[index],  // Mantiene le proprietà già esistenti
+        ...filterItmClothing  // Sovrascrive solo le proprietà che stai aggiornando
+      };
+    } else {
+      // Handle the case when index is out of range or undefined
+      console.error('Index is out of range or undefined');
     }
 
-    this.filterItmClothing[index] = {
-      ...this.filterItmClothing[index],  // Mantiene le proprietà già esistenti
-      ...filterItmClothing  // Sovrascrive solo le proprietà che stai aggiornando
-
-    }
-    this.selectedFilterClothIndex = undefined
+    this.selectedFilterClothIndex = undefined;
   }
+
 
   openCategory(index: any) {
 
@@ -207,17 +153,18 @@ export class FilterOutfitsPage implements OnInit {
 
 
   // Funzione per filtrare le categorie per donne
-  async filterCategory(gender?: any) {
-    await this.addSubCategories()
-    const filteredCategories = this.oufitCompleteCategories
-      .filter(category => category.gender.includes(gender.id))
-      .map(category => {
-        category.outfitSubCategories = category.outfitSubCategories.filter((subCategory: any) =>
-          subCategory.gender.includes(gender.id)
-        );
-        return category;
-      });
-    this.oufitCompleteCategories = filteredCategories
+  async filterCategory(category?: outfitCategories) {
+    if (!category) {
+      this.oufitCompleteCategories.set(this.oufitCategories())
+      this.selectoufitCategories.set('')
+      return
+    }
+    let newCategory = []
+    if (category.subcategories)
+      this.selectoufitCategories.set(category.id)
+    newCategory.push(category)
+    this.oufitCompleteCategories.set(newCategory)
+
   }
 
   selectedColor(itemColor?: any) {
@@ -232,35 +179,42 @@ export class FilterOutfitsPage implements OnInit {
     const index = this.selectedFilterClothIndex;
     const filterItmColor = {
       colorName: itemColor.value,
-      color: itemColor.id
+      color: itemColor.id,
+      colorHex: itemColor.hex,
 
     }
-    this.filterItmClothing[index] = {
-      ...this.filterItmClothing[index],
-      ...filterItmColor
-    };
+    if (this.filterItmClothing.categories) {
+      this.filterItmClothing.categories[index] = {
+        ...this.filterItmClothing.categories[index],
+        ...filterItmColor
+      };
+    }
     this.selectedFilterClothIndex = undefined
   }
 
   selStyle(indexStyle: any, selStyle: any) {
     if (this.selectedFilterStyleIndex == indexStyle) {
       this.filterItmStyle = null;
-      this.selectedFilterStyleIndex = null;
+      this.selectedFilterStyleIndex.set(null); 
+      this.filterItmClothing.style = ''
       return
     }
-    this.selectedFilterStyleIndex = indexStyle
+    this.selectedFilterStyleIndex.set(indexStyle); 
     this.filterItmStyle = selStyle
+    this.filterItmClothing.style = selStyle.id
   }
 
   selSeason(indexSeason: any, selSeason: any) {
 
     if (this.selectedFilterSeasonIndex == indexSeason) {
       this.filterItmSeason = null;
-      this.selectedFilterSeasonIndex = null;
+      this.selectedFilterSeasonIndex.set(null);
+      this.filterItmClothing.season = ''
       return
     }
-    this.selectedFilterSeasonIndex = indexSeason
+    this.selectedFilterSeasonIndex.set(indexSeason); 
     this.filterItmSeason = selSeason
+    this.filterItmClothing.season = selSeason.id
   }
 
   openColor(i: any) {
@@ -273,69 +227,50 @@ export class FilterOutfitsPage implements OnInit {
     evt.preventDefault()
     evt.stopPropagation()
 
-    this.filterItmClothing[i] = {
-      ...this.filterItmClothing[i],
-      outfitCategory: '',
-      outfitSubCategoryName: 'Seleziona capo',
-      outfitSubCategory: '',
+    if (this.filterItmClothing.categories) {
+      this.filterItmClothing.categories[i] = {
+        ...this.filterItmClothing.categories[i],
+        outfitCategory: '',
+        outfitSubCategoryName: 'Seleziona',
+        outfitSubCategory: '',
+      }
     }
+
   }
 
   delItmColor(evt: any, i: any) {
 
     evt.preventDefault()
     evt.stopPropagation()
-
-    this.filterItmClothing[i] = {
-      ...this.filterItmClothing[i],
-      colorName: 'Seleziona colore',
-      color: ''
+    if (this.filterItmClothing.categories) {
+      this.filterItmClothing.categories[i] = {
+        ...this.filterItmClothing.categories[i],
+        colorName: 'Seleziona',
+        color: '',
+        colorHex: ''
+      }
     }
+
   }
 
-  closeFilter() {
-    let tags
-    if (this.filterItmClothing) {
-      tags = this.filterItmClothing.reduce(
-        (acc: { outfitCategory: string[], outfitSubCategory: string[], color: string[] }, tag) => {
-          if (tag) {
-            if (tag.outfitCategory && !acc.outfitCategory.includes(tag.outfitCategory)) {
-              acc.outfitCategory.push(tag.outfitCategory);
-            }
-            if (tag.outfitSubCategory && !acc.outfitSubCategory.includes(tag.outfitSubCategory)) {
-              acc.outfitSubCategory.push(tag.outfitSubCategory);
-            }
-            if (tag.color && !acc.color.includes(tag.color)) {
-              acc.color.push(tag.color);
-            }
-          }
-          return acc;
-        },
-        { outfitCategory: [], outfitSubCategory: [], color: [] }
-      );
 
 
-    }
-    const season = !this.filterItmSeason ? '' : this.filterItmSeason.id
-    const style = !this.filterItmStyle ? '' : this.filterItmStyle.id
-
-    let createItmEl = {
-      color: '',
-
-      style: style,
-      season: season,
-      ...tags
-    }
-    this.modalController.dismiss(createItmEl);
+  clearAllFilters() {
+    this.sharedDataService.staredData$
   }
 
-  /*****Questo serve per la tua pigrizia***** */
-  addAllCategory() {
-    subCategoryCloth.forEach(subCategory => {
-      let id = `${subCategory.id}_${subCategory.value.replace(' ', '')}`
-      this.appService.saveInCollection('outfitsSubCategories', id, subCategory)
-    })
-
+  async saveSelecedFilter() {
+    
+    let data:sharedData ={    
+      componentName: 'FilterOutfitsPage',
+      data: this.filterItmClothing  
+    }
+    this.sharedDataService.setData(data);
+    const modal = await this.modalController.getTop();
+    if (modal) {
+      // Se c'è un modale aperto, chiudi il modale
+      modal.dismiss();
+    } 
   }
 
 }

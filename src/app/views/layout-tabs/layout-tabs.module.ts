@@ -7,13 +7,17 @@ import { IonicModule } from '@ionic/angular';
 import { LayoutTabsPageRoutingModule } from './layout-tabs-routing.module';
 
 import { LayoutTabsPage } from './layout-tabs.page';
+import { ComponentsModule } from "../../components/components.module";
+
 
 @NgModule({
   imports: [
     CommonModule,
     IonicModule,
-    LayoutTabsPageRoutingModule
-  ],
+    LayoutTabsPageRoutingModule,
+    ComponentsModule,
+    
+],
   declarations: [LayoutTabsPage]
 })
 export class LayoutTabsPageModule {}

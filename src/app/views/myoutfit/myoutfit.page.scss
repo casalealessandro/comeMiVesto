@@ -1,11 +1,65 @@
-.viewport {
-  height: 100%;
-}
-
 //Top Pagina
 .main-content {
-  .heading{
+  .heading {
     padding: 5px 0;
+
+    .filter-wrapper {
+      max-height: 34px;
+
+      .searchbox {
+        gap: 10px;
+        display: flex;
+        flex-direction: row;
+
+        align-items: center;
+
+        .form-search {
+          border: 0.5px solid var(--primary-color);
+          border-radius: 3px;
+          display: flex;
+
+          flex-direction: row;
+          justify-content: space-around;
+          align-items: center;
+          gap: 10px;
+          font-size: 12px;
+          padding: 10px 20px 10px 20px;
+          height: 34px;
+          width: 100%;
+          color: #000;
+
+          .fi {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+          }
+
+          .search-input {
+            min-height: 34px;
+            --border-width: 0px;
+            --border-color: transparent;
+            /*  --padding-top: 7px;
+            --padding-end: 25px;
+            --padding-bottom: 7px;
+            --padding-start: 25px; */
+
+
+          }
+
+        }
+
+        .search-button {
+          height: 24px;
+          width: 24px;
+
+          .fi {
+            font-size: 24px;
+          }
+        }
+      }
+
+
+    }
   }
 
   // Griglia e layout
@@ -22,116 +76,170 @@
       object-fit: cover;
     }
   }
-  .style-main{
-    padding: 20px 0px;
 
-    ion-col{
-      padding: 5px 1px;
+
+
+  .style-main {
+    .filter-outfits {
+      --background:transparent;
+       border-radius: 0px;
+      .stat-btn{
+        border-radius: 0;
+        &.segment-button-checked{
+          --background: transparent;
+          --indicator-box-shadow:none;
+          --border-width: 0;
+          border-bottom: 1px solid #000;
+        }
+      }
+      .stat {
+        margin-right: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
     }
-    .title{
-      padding: 5px;
-    }
+
+
     @media screen and (min-width: 1024px) {
       max-width: 630px;
-      margin: 0 auto; /* per centrare il contenuto */
+      margin: 0 auto;
+      /* per centrare il contenuto */
     }
-  }
-  
-  // Card dell'outfit
-  .outfit-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); 
-    margin: 24px 0;
-    box-shadow: none;
-    margin-bottom: 20px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 
-    .outfit-header-wrapper-title {
-      display: flex;
-      justify-content: flex-start;
-      flex-direction: row;
-      align-items: center;
-      margin: 1rem;
-      padding: 1px;
+    .style-col {
+      margin-top: 10px;
 
-      .outfit-card-avatar {
-        margin-right: 12px;
-        max-width: 35px;
-        max-height: 35px;
-      }
-    .outfit-card-title {
-        font-size: 24px;
-        font-weight: 700;
+      /* height: 495px;
+ */
+      .outfit-card {
+
+        position: relative;
+        /*  height: 495px; */
+        box-shadow: none !important;
+        border-radius: 0;
         margin: 0;
-        width: 70%;
-      }
-    }
-
-    .outfit-card-header {
-      color: var(--text-color);
-      padding: 10px;
-      text-align: left;
-      font-size: 16px;
-      .outfit-header-wrapper {
         display: flex;
-        justify-content: space-between;
-        flex: 1;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-content: center;
-        align-items: center;
-        margin-top: 0.3rem;
+        gap: 10px;
+        flex-direction: column;
 
-        .outfit-card-subTitle {
-          font-size: 14px;
-          font-weight: 600;
-          margin: 0;
-        }
-
-        .outfit-card-action {
+        .outfit-header {
           display: flex;
-          margin: 5px 0;
-          justify-content: flex-end;
+          justify-content: space-between;
+          flex-direction: row;
 
-          ion-button {
-            max-height: 18px;
-            min-height: 18px;
-            margin: 0 auto;
+          height: 24px;
+
+          .outfit-header-wrapper-title {
+            display: flex;
+            justify-content: flex-start;
+            flex-direction: row;
+            align-items: center;
+
+            gap: 8px;
+
+            .outfit-card-avatar {
+
+              width: 24px;
+              height: 24px;
+            }
+
+            .outfit-card-title {
+
+              font-size: 16px;
+              font-weight: 700;
+              line-height: 19.5px;
+              text-align: left;
+              text-underline-position: from-font;
+              text-decoration-skip-ink: none;
+
+            }
+
           }
 
-          ion-icon {
-            color: var(--text-color);
+          .outfit-header-wrapper-info {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            display: flex;
+            gap: 10px;
 
-            max-height: 20px;
+            ion-button {
+              --border-radius: 0;
+              --padding-top: 0;
+              --padding-start: 0;
+              --padding-end: 0;
+              --padding-bottom: 0;
+              min-height: 24px;
+              font-size: unset;
+
+              .fi {
+                font-size: 18px;
+              }
+            }
+
           }
-
-
 
         }
 
-      }
+        .outfit-center-wrapper {
+          .image-container {
+            .tag-toggle-button {
+              z-index: 1002;
+              color: #fff;
+            }
+          }
+        }
+
+        .outfit-bottom-content {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding-inline-start: 0;
+          padding-inline-end: 0;
+          padding-top: 0;
+          padding-bottom: 0;
+          .outfit-bottom-content-top {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            height: 17px;
+            .letf-bottom-content {
+              align-self: start;
+            }
+
+            .right-bottom-content {
+              height: 17px;
+            
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              .outfit-card-action{
+                height: 17px;
+                width: 17px;
+                min-height: 17px;
+                margin-top: 0px;
+                margin-bottom: 0px;
+                --padding-top: 0px;
+                --padding-end: 0px;
+                --padding-bottom: 0px;
+                --padding-start: 0px;
+                .fi {
+                  font-size: 14px;
+                }
+              }
+            }
+          }
+        }
 
 
-
-
-    }
-
-    .outfit-card-content {
-      padding: 13px 10px;
-
-      .outfit-description {
-        font-size: 14px;
-        font-weight: 400;
-
-      }
-
-      .ion-card-tags {
-        margin: 5px 0;
       }
     }
   }
+
+  // Card dell'outfit
+
 
 }
 

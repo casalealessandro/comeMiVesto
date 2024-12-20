@@ -12,7 +12,7 @@
 /** Ionic CSS Variables **/
 :root {
   /** primary **/
-  --ion-color-primary: #3F3F3F;
+  --ion-color-primary: #3f3f3f;
   --ion-color-primary-rgb: 20, 20, 22;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
@@ -87,8 +87,11 @@
   --input-border-color: #000000;
   --outfit-btn-text-color:#3f3f3f;
   --outfit-primary-text-color:#3f3f3f;
+  --outfit-secondary-color:#676767;
   --primary-color:#3f3f3f;
   --ion-font-family: 'Instrument Sans', sans-serif;
+  --ion-default-font: 'Instrument Sans', sans-serif;
+  
 }
 
 

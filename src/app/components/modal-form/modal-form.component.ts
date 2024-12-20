@@ -6,15 +6,13 @@ import { ModalController } from '@ionic/angular';
   templateUrl: './modal-form.component.html',
   styleUrls: ['./modal-form.component.scss'],
 })
-export class ModalFormComponent  implements OnInit {
+export class ModalFormComponent  {
   @Input() service: any = null;
   @Input() title: string = '';
   @Input() editData: any = {};
   constructor(private modalController: ModalController) {}
 
-  ngOnInit(): void {
-
-  }
+  
   dismiss() {
     this.modalController.dismiss();
   }

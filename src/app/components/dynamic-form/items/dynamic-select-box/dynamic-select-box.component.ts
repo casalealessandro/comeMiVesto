@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
@@ -11,7 +11,7 @@ import { DynamicFormField } from 'src/app/service/interface/dynamic-form-field';
   templateUrl: './dynamic-select-box.component.html',
   styleUrls: ['./dynamic-select-box.component.scss'],
 })
-export class DynamicSelectBoxComponent implements OnChanges {
+export class DynamicSelectBoxComponent implements OnChanges, OnInit {
   @Input() config!: DynamicFormField;
   @Input() formControlD!: FormControl;
   @Input() parentValue!: string;

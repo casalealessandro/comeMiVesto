@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
 import { ModalController, NavController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
+import { CategoryService } from 'src/app/service/category.service';
 import { FireBaseConditions, FireBaseOrderBy, outfitCategories, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
 import { UserProfile } from 'src/app/service/interface/user-interface';
 import { ProdottiOnlineService } from 'src/app/service/prodotti-online.service';
@@ -14,7 +15,7 @@ import { ProdottiOnlineService } from 'src/app/service/prodotti-online.service';
   styleUrls: ['./prodotti-online.page.scss'],
 })
 export class ProdottiOnlinePage implements OnInit {
-  constructor(private modalController: ModalController, private navController: NavController,private afAuth: AngularFireAuth,) { }
+  constructor(private modalController: ModalController, private categoryService:CategoryService, private navController: NavController,private afAuth: AngularFireAuth,) { }
 
   private appService = inject(AppService);
 
@@ -41,7 +42,10 @@ export class ProdottiOnlinePage implements OnInit {
 
           if (outfitUserProfile) {
             this.gender = outfitUserProfile.gender;
-            this.loadCategories(this.outfitCategory)
+           this.categoryService.categoriesSubject.subscribe((categories: outfitCategories[]) => {
+
+            this.categories =categories
+           })
             this.loadProducts(this.outfitCategory, this.outfitSubCategory);
           } 
         })
@@ -99,23 +103,18 @@ export class ProdottiOnlinePage implements OnInit {
 
   async loadCategories(parent?: any) {
 
-    let condictionCat: FireBaseConditions[] = [];
+    
     if (!parent) {
-      parent = ""
+      parent = "";
+      this.categoryService.categoriesSubject.subscribe((categories: outfitCategories[]) => {
+
+        this.categories =categories
+       })
+       return 
     }
-    condictionCat.push({
-      field: 'parentCategory',
-      operator: '==',
-      value: parent
-    })
-    condictionCat.push({
-      field: 'gender',
-      operator: 'array-contains',
-      value: this.gender
-    })
+    
 
-
-    this.categories = await this.appService.getFilteredCollection('outfitsCategories', condictionCat);
+    this.categories = await this.categoryService.categoriesByParent(parent, this.gender) 
     console.log('categories', this.categories)
   }
 

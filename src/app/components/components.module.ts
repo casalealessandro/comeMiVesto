@@ -14,6 +14,9 @@ import { DynamicFileBoxComponent } from './dynamic-form/items/dynamic-file-box/d
 import { ProductsGridComponent } from '../views/products-grid/products-grid.component';
 import { SharedModule } from "../views/shared/shared.module";
 
+import { HeaderComponent } from '../layout/header/header.component';
+import { MenuComponent } from '../layout/menu/menu.component';
+
 
 
 
@@ -25,9 +28,11 @@ import { SharedModule } from "../views/shared/shared.module";
 		DynamicFileBoxComponent,
 		ModalFormComponent,
 		ModalListComponent,
-		ProductsGridComponent
-			],
-	exports: [DynamicFormComponent,ModalFormComponent,ModalListComponent,ProductsGridComponent]
+		ProductsGridComponent,
+		MenuComponent,
+		HeaderComponent
+	],
+	exports: [DynamicFormComponent, ModalFormComponent, ModalListComponent, ProductsGridComponent, MenuComponent,HeaderComponent]
 })
 export class ComponentsModule {
 

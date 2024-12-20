@@ -50,6 +50,7 @@
         </ion-item>
         <ion-item *ngIf="field.type === 'fileBox'" lines="none">
             <app-dynamic-file-box
+            [labelPlacement]="labelplacement"
             [image]="formValues[field.name]"
             (eventFotoCaptured)="onValueChangeFile(field.name, $event)"
             ></app-dynamic-file-box> 

@@ -1,32 +1,52 @@
 .banner {
-  overflow: scroll;
   display: flex;
   flex-direction: row;
-  background-color: white;
-
+  align-items: center;
+  height: 65px;
+  ion-segment{
+    --background: #fff;
+  }
+ 
   .menu {
     width: 100%;
     display: flex;
     flex-direction: row;
-    padding: 5px 0;
+    align-items: center;
+    height:60px;
+    overflow-x: scroll;
+    width: 100%;
 
-
-
-    ion-chip {
-
-      background-color: white;
-      border: 2px solid lightgray;
-      border-radius: 1px;
-      padding: 5px 8px;
-      font-weight: 500;
-      font-size: 13px;
-      width: max-content;
+    .category {
       height: 32px;
+     
+     
 
-      &.styleselcted {
-        //border: 2px solid var(--ion-tab-bar-color-selected);
-        border: 2px solid var(--outfit-primary-text-color);
+      ion-chip {
 
+        background: white;
+        border: 0.5px solid #000;
+        border-radius: 5px;
+      
+        padding-inline: 5px;
+        padding-top: 3px;
+        padding-bottom: 2px;
+        min-height: 32px;
+
+        width: max-content;
+        .category-name{
+          font-size: 10px;
+          font-weight: 500;
+          line-height: 12.19px;
+          text-align: center;
+          text-underline-position: from-font;
+          text-decoration-skip-ink: none;
+        }
+       
+
+        &.styleselcted {
+          background: var(--outfit-primary-text-color);
+          color: #fff;
+        }
       }
     }
   }

@@ -1,23 +1,28 @@
 <ion-item *ngIf="noCustom" lines="none">
-  
-  <ion-select 
-    [multiple]="selectOptions.multiple"
-    [value]="selectedValue"
-    [label]="config.label"
-    class="selectbox" 
-    interface="action-sheet"
-    [labelPlacement]="labelPlacement"
-    (ionChange)="onValueChange($event)"
-    [disabled]="disabled"> <!-- Disabilita la selectbox se necessario -->
-    <ion-select-option *ngFor="let option of availableOptions" [value]="option[valueExp]">
-      {{ option[displayExp] }}
-    </ion-select-option>
-  </ion-select>
+  <div class="selectbox">
+    <div class="label-wrap">
+      <label position="stacked">{{ config.label }}</label>
+    </div>
+    <div class="native-wrapper">
+      <ion-select 
+        [multiple]="selectOptions.multiple" 
+        [value]="selectedValue" interface="action-sheet"
+        (ionChange)="onValueChange($event)" 
+        placeholder="Seleziona"
+        [disabled]="disabled"> <!-- Disabilita la selectbox se necessario -->
+        <ion-select-option *ngFor="let option of availableOptions" [value]="option[valueExp]">
+          {{ option[displayExp] }}
+        </ion-select-option>
+      </ion-select>
+    </div>
+  </div>
+
+
 </ion-item>
 
 
-<ion-item  *ngIf="!noCustom" (click)="openCustomSelect()" [disabled]="disabled" class="cstomselectbox">
+<ion-item *ngIf="!noCustom" (click)="openCustomSelect()" [disabled]="disabled" class="cstomselectbox">
   <ion-label [position]="labelPlacement">{{config.label}}</ion-label>
-  
+
   <ion-text>{{ noCustomOptions.length ? noCustomOptions.join(', ') : "Seleziona un'opzione" }}</ion-text>
 </ion-item>

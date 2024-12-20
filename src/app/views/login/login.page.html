@@ -26,11 +26,14 @@
           </div>
         </div>
         <div class="login-center-container">
-          <app-dynamic-form [service]="'loginForm'" [btnFormText]="'Accedi'"
-            (submitFormEvent)="submitFormEvent($event)"></app-dynamic-form>
+          <app-dynamic-form 
+            [service]="'loginForm'" 
+            [btnFormText]="'Accedi'"
+            (submitFormEvent)="submitFormEvent($event)">
+          </app-dynamic-form>
 
           <div class="login-links">
-            <span><ion-checkbox labelPlacement="end">Resta connesso</ion-checkbox></span>
+            <span><ion-checkbox labelPlacement="end"  (ionChange)="setStayConnected($event)" >Resta connesso</ion-checkbox></span>
             <span class="link" component="nav-profile recupPassword" (click)="showRecupPassword()">Password
               dimenticata</span>
 

@@ -7,14 +7,16 @@ import { IonicModule } from '@ionic/angular';
 import { FilterOutfitsPageRoutingModule } from './filter-outfits-routing.module';
 
 import { FilterOutfitsPage } from './filter-outfits.page';
+import { ComponentsModule } from "../../components/components.module";
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    FilterOutfitsPageRoutingModule
-  ],
+    FilterOutfitsPageRoutingModule,
+    ComponentsModule
+],
   declarations: [FilterOutfitsPage]
 })
 export class FilterOutfitsPageModule {}

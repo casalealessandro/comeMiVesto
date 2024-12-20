@@ -1,0 +1,52 @@
+.main-header{
+    height: 25px;
+    --background:#fff;
+    
+}
+.logo {
+    
+    max-height: 25px;
+    height: 25px;
+    object-fit: contain;
+   
+}
+.header-toolbar {
+    --min-height: 24px;
+    --padding-top: 0px;
+    --padding-bottom: 0px;
+    height: 24px;
+    --border-width: 0 0 0!important;
+    --background:transparent;
+    .ion-custom-buttons {
+
+        --padding-top: 0px;
+        --padding-bottom: 0px;
+        min-height: 24px !important;
+        height: 24px;
+
+        ion-button {
+            min-height: 24px;
+
+            --padding-top: 0px;
+            --padding-bottom: 0px;
+            /* .fi {
+                font-size: 24px;
+            } */
+        }
+    }
+}
+
+.profile-header-title {
+
+    .profile-name {
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 17.07px;
+        text-align: center;
+        text-underline-position: from-font;
+        text-decoration-skip-ink: none;
+
+    }
+
+   
+}

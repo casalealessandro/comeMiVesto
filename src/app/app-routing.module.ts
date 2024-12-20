@@ -85,9 +85,7 @@ const routes: Routes = [
     path: 'prodotti-online',
     loadChildren: () => import('./views/prodotti-online/prodotti-online.module').then( m => m.ProdottiOnlinePageModule)
   },
-
- 
-
+  
   
 
 ];

@@ -1,24 +1,17 @@
-<ion-header >
-  <ion-toolbar *ngIf="isModal">
-    <ion-title>{{selectedCategoryName}}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="handleBackButton()">
-        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+<div class="banner">
+ 
   <!-- Filtra per Categoria -->
-  <ion-segment value="all" class="banner">
+  <ion-segment value="all" >
     <div class="menu">
-      <div (click)="filterCategory()">
+      <div (click)="filterCategory()" class="category">
         <ion-chip  (click)="filterCategory()">
-          <ion-label>Tutte</ion-label>
+          <ion-label class="category-name">Tutte</ion-label>
         </ion-chip>
       </div>
      
-      <div *ngFor="let category of categories; let i = index" >
+      <div *ngFor="let category of categories; let i = index" class="category" >
         <ion-chip  [ngClass]="selectedFilterStyleIndex === i ? 'styleselcted' : ''"  (click)="filterCategory(i, category)" >
-          <ion-label>{{category.categoryName}}</ion-label>
+          <ion-label class="category-name">{{category.categoryName}}</ion-label>
         </ion-chip>
       </div>
      
@@ -26,7 +19,7 @@
     
     
   </ion-segment>
-</ion-header>
+</div>
 
 <ion-content  class="ion-padding scroll-y"
 >

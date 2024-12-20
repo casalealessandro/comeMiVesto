@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { lastValueFrom, Observable, of } from 'rxjs';
+import { firstValueFrom, lastValueFrom, Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { UserPreference, UserProfile } from './interface/user-interface';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
@@ -13,15 +13,29 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class UserService {
-apiFire="https://us-central1-comemivesto-5e5f9.cloudfunctions.net/api"
+apiFire="https://us-central1-comemivesto-5e5f9.cloudfunctions.net/api";
+private _userInfo?: UserProfile | null; // Variabile privata per memorizzare il valore
   constructor(private firestore: AngularFirestore, private afAuth: AngularFireAuth,private storage: AngularFireStorage, private appService:AppService, private httpClient:HttpClient) {}
+
+  set userInfo(userInfo:any) {
+    this._userInfo = userInfo; // Imposta il valore sulla variabile privata
+  }
+
+  get userInfo() {
+    return this._userInfo; // Ritorna il valore della variabile privata
+    
+  }
 
   getUserProfile(): Observable<UserProfile | null> {
     return this.afAuth.authState.pipe(
       switchMap(user => {
         if (user) {
           return this.firestore.collection('users').doc<UserProfile>(user.uid).valueChanges().pipe(
-            map(profile => profile || null) // Trasforma undefined in null
+            map(profile => {
+              this.userInfo = profile || null; // Imposta il valore tramite il setter
+              return profile || null; // Trasforma undefined in null\
+
+            }) // Trasforma undefined in null
           );
         } else {
           return of(null); // Ritorna un Observable che emette null
@@ -29,6 +43,7 @@ apiFire="https://us-central1-comemivesto-5e5f9.cloudfunctions.net/api"
       })
     );
   }
+
 
   async updateUserProfile(profileData: Partial<UserProfile>): Promise<boolean> {
     try {
@@ -51,7 +66,7 @@ apiFire="https://us-central1-comemivesto-5e5f9.cloudfunctions.net/api"
       const user = await this.afAuth.currentUser;
       if (user) {
         this.firestore.collection('usersPreference').doc(user.uid).set(profilePreferData);
-
+        this.getUserPreference()
         return true
       }
       return false
@@ -112,14 +127,22 @@ apiFire="https://us-central1-comemivesto-5e5f9.cloudfunctions.net/api"
     );
   }
 
-  async getUserPreference(): Promise<UserPreference[]> {
-    let result:any
-    const user = await this.afAuth.currentUser;
+  async getUserPreference(): Promise<UserPreference | null>  {
+    try {
+      const user = await this.afAuth.currentUser;
       if (user) {
-        result = await this.appService.getFilteredCollection('usersPreference',[{field:'uid',operator:'==',value:user.uid}])
+        const queryString = `uid=${user.uid}`;
+        const result$ = this.appService.getAll<UserPreference>('user-preferences', queryString);
+  
+        // Utilizza firstValueFrom per convertire l'Observable in una Promise
+        const result = await firstValueFrom(result$);
+        // Ritorna il primo elemento, se presente
+        return result.length ? result[0] : null;
       }
-      
-    return result  
+    } catch (error) {
+      console.error('Errore durante il recupero delle preferenze utente:', error);
+    }
+    return null; // Ritorna null se non c'è un utente o si verifica un errore
     
   }
 

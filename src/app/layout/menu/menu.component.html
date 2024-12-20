@@ -1,0 +1,37 @@
+
+
+<div class="ion-padding menu-container">
+
+  <div class="profile-content-inline">
+    <div class="profile-avatar-container">
+      <ion-avatar class="profile-avatar">
+        <img *ngIf="userProfile" class="profile-pic"
+          [src]="userProfile.photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+      </ion-avatar>
+      <div class="profile-info" *ngIf="userProfile">
+        <span class="profile-name">{{userProfile.name}} {{userProfile.cognome}}</span>
+        <span class="profile-displayName">{{userProfile.displayName}}</span>
+        <span class="profile-nav" (click)="navUserProfile()">Visualizza il mio profilo <i class="fi fi-rr-angle-small-right"></i></span>
+     
+
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-content-menu-link">
+    <ion-list lines="full" class="menu-list-top">
+      <ion-item *ngFor="let menuItem of menuListTop" (click)="menuItem.click()">
+        <i  *ngIf="menuItem.icon" [class]="menuItem.icon" slot="start"></i>
+        <ion-label class="menu-label">{{ menuItem.label }}</ion-label>
+      </ion-item>
+    </ion-list>
+
+    <ion-list lines="none" class="menu-list-bottom">
+      <ion-item *ngFor="let menuItem of menuListBottom" (click)="menuItem.click()">
+        <i *ngIf="menuItem.icon" [class]="menuItem.icon" slot="start"></i>
+        <ion-label class="menu-label">{{ menuItem.label }}</ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
+</div>
+  

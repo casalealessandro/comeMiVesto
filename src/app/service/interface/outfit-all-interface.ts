@@ -10,9 +10,10 @@ export interface Tag {
   brend?: string;
   outfitCategory: string;
   outfitSubCategory?: string;
-  prezzo?:number;
-  price?:number;
-  images?:string[]
+  prezzo?: number;
+  price?: number;
+  images?: string[]
+  imageUrl?: string
 }[]
 
 // Interfaccia principale per l'oggetto
@@ -27,13 +28,13 @@ export interface outfit {
   season: '' | 'winter' | 'spring' | 'summer' | 'autumn'; // Assumendo alcune stagioni possibili
   color?: string;
   userId: any;
-  visits?:number;
-  likes?:number;
-  createdAt?:any;
-  editedAt?:any;
-  outfitCategory?:any;
-  outfitSubCategory?:any;
-  status:'approvato' | 'rifiutato' | 'pending' 
+  visits?: number;
+  likes?: number;
+  createdAt?: any;
+  editedAt?: any;
+  outfitCategory?: any;
+  outfitSubCategory?: any;
+  status: 'approvato' | 'rifiutato' | 'pending'
 
 }
 
@@ -44,11 +45,11 @@ export interface wardrobesItem {
   outfitCategory: string;
   outfitSubCategory: string;
   brend: string;
-  color:string;
+  color: string;
   images: string[];
-  ImageUrl?:string;
-  prezzo?:number;
-  link:string
+  ImageUrl?: string;
+  prezzo?: number;
+  link: string
 }
 
 export interface categoryCloth {
@@ -57,16 +58,20 @@ export interface categoryCloth {
   parent: any
 }[]
 
-export interface filterItmClothing{
+export interface filterItmClothing {
+  categories:
+  {
+    outfitCategory?: string;
+    outfitSubCategoryName?: string;
+    outfitSubCategory?: string;
+    colorName?: string;
+    colorHex?: string;
+    color?: string;
+  }[],
+  season?: string,
+  style?: string,
   
-  image?:string;
-  outfitCategory?:string;
-  outfitSubCategoryName?:string;
-  outfitSubCategory?:string;
-  colorName?:string;
-  color?: string;
-  style?:string
- 
+
 }
 export interface buttons {
   icon: string;
@@ -75,12 +80,12 @@ export interface buttons {
 }[]
 
 export interface FireBaseConditions {
-  field: string; 
-  operator: string; 
-  value: any 
+  field: string;
+  operator: string;
+  value: any
 }[]
 
-export interface FireBaseOrderBy{
+export interface FireBaseOrderBy {
   field: string;
   by: 'asc' | 'desc'
 }[]
@@ -96,6 +101,7 @@ export interface outfitCategories {
   gender: any;
   createdAt: number;
   editedAt?: number
+  subcategories?: any
 }
 export const colors = [
   {
@@ -173,7 +179,7 @@ export const colors = [
 ]
 
 
-export const style=[
+export const style = [
   {
     "id": "C",
     "value": "Casual",
@@ -226,7 +232,7 @@ export const style=[
   }
 ]
 
-export const brend=[
+export const brend = [
   {
     "id": "A",
     "value": "Armani",
@@ -314,7 +320,7 @@ export const brend=[
   }
 ]
 
-export const categoryCloth =[
+export const categoryCloth = [
   {
     id: "M",
     value: "Maglieria",
@@ -356,7 +362,7 @@ export const categoryCloth =[
   }
 ]
 
-export const subCategoryCloth= [
+export const subCategoryCloth = [
   {
     id: "TS",
     value: "T-shirt",
@@ -529,25 +535,25 @@ export const subCategoryCloth= [
   }
 ]
 
-export const seasons=  [
-	{
-	  id: "E",
-	  value: "Estate",
-	  parent: null
-	},
-	{
-	  id: "P",
-	  value: "Primavera",
-	  parent: null
-	},
-	{
-	  id: "A",
-	  value: "Autunno",
-	  parent: null
-	},
-	{
-	  id: "I",
-	  value: "Inverno",
-	  parent: null
-	}
+export const seasons = [
+  {
+    id: "E",
+    value: "Estate",
+    parent: null
+  },
+  {
+    id: "P",
+    value: "Primavera",
+    parent: null
+  },
+  {
+    id: "A",
+    value: "Autunno",
+    parent: null
+  },
+  {
+    id: "I",
+    value: "Inverno",
+    parent: null
+  }
 ]

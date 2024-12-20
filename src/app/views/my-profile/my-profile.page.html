@@ -1,82 +1,139 @@
-<ion-content>
-  <div class="main-content">
-    <div class="profile-header">
-      <div class="profile-header-content">
-        <div class="profile-avatar-container">
-          <ion-avatar class="profile-avatar" (click)="changeProfilePicture()">
-            <img *ngIf="userProfile$ | async as userProfile" class="profile-pic"
-              [src]="userProfile.photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
-          </ion-avatar>
-  
-          <ion-icon name="add-circle" class="add-icon" (click)="changeProfilePicture()"></ion-icon>
-  
-  
-        </div>
-        <div class="profile-stats">
-          <div class="stat">
-            <span class="stats-number">{{outfitNumber}}</span>
-            <span class="stats-label">Outfit creati</span>
-          </div>
-          <div class="stat">
-            <span class="stats-number">{{wardrobesNumber}}</span>
-            <span class="stats-label">Vestiti nell'armadio</span>
-          </div>
-          <div class="stat">
-            <span class="stats-number">{{faveUserOutfitsNumber}}</span>
-            <span class="stats-label">Desiderati</span>
-          </div>
+<ion-content class="ion-padding" id="main-content">
+  <div class="main-content ">
+
+    <div class="profile-content">
+      <div class="profile-avatar-container">
+        <ion-avatar class="profile-avatar" (click)="changeProfilePicture()">
+          <img *ngIf="userProfile$ | async as userProfile" class="profile-pic"
+            [src]="userProfile.photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+
+
+        </ion-avatar>
+
+        <span class=" add-icon" (click)="changeProfilePicture()">
+          <i class="fi fi-bs-plus"></i>
+        </span>
+
+        <div class="profile-info" *ngIf="userProfile$ | async as userProfile">
+          <p class="profile-name">{{userProfile.displayName}}</p>
+          <p class="profile-bio">{{userProfile.bio}}</p>
+
         </div>
       </div>
-      <div *ngIf="userProfile$ | async as userProfile">
-        <h2 class="profile-name">{{userProfile.displayName}}</h2>
-        <p class="profile-bio">{{userProfile.bio}}</p>
-  
-      </div>
-  
       <div class="profile-buttons">
-        <ion-button class="btn profile-btn outfit-button" size="small" (click)="editProfile()">
+        <ion-button class="profile-btn" (click)="editProfile()">
           <ion-ripple-effect></ion-ripple-effect>
-          <ion-icon slot="start"  name="pencil-outline"></ion-icon> Modifica profilo</ion-button>
-        <ion-button class="btn profile-btn outfit-button" size="small" (click)="editUserPreference()">
+          <i class="fi fi-rr-user-pen"></i> Modifica profilo</ion-button>
+        <ion-button class="profile-btn" (click)="editUserPreference()">
           <ion-ripple-effect></ion-ripple-effect>
-          <ion-icon name="ice-cream-outline"></ion-icon>Modifica preferenze
+          <i class="fi fi-rr-edit"></i>Modifica preferenze
         </ion-button>
-        <ion-button class="btn profile-btn outfit-button" size="small" (click)="logOut()">
+        <!--  <ion-button class="btn profile-btn" size="small" (click)="logOut()">
           <ion-ripple-effect></ion-ripple-effect>
           <ion-icon name="log-out-outline"></ion-icon>
         </ion-button>
-        <ion-button class="btn profile-btn outfit-button" size="small" (click)="deleteAccount()">
+        <ion-button class="btn profile-btn" size="small" (click)="deleteAccount()">
           <ion-ripple-effect></ion-ripple-effect>
-        
-          <ion-icon name="trash-outline"></ion-icon>
-        </ion-button>
-        </div>
-    </div>
-    <div class="style-main">
-      <div class="title">
-        <ion-label>Outfit</ion-label>
-        <!-- <ion-label class="text">See All</ion-label -->
+  
+          <i class="fi fi-rr-trash"></i>
+        </ion-button> -->
       </div>
-   
-      <ion-row class="style">
-        <ion-col class="post-col" size="auto" *ngFor="let userOutfit of userOutfits">
-          <div class="post-image" (click)="openEditOutfit(userOutfit)">
-            <ion-thumbnail>
-              <img class="" [src]="userOutfit.imageUrl" [alt]="userOutfit.title">
-            </ion-thumbnail>
-            <span class="del-item" (click)="deleteOutfit($event,userOutfit)">
-              <ion-ripple-effect></ion-ripple-effect>
-              <ion-icon name="trash-outline"></ion-icon>
-            </span>
-          </div>
-  
-        </ion-col>
-  
-      </ion-row>
-      <!-- Aggiungi altre righe se necessario -->
+
     </div>
-  
+    <ion-segment class="stats" [value]="selectedSegment" (ionChange)="onSegmentChange($event)">
+      <ion-segment-button *ngFor="let button of segmentButtons" class="stat-btn" [value]="button.value"
+        [attr.content-id]="button.value">
+        <div class="stat">
+          <i class="icon" [class]="button.icon"></i>
+          <ion-label class="stats-label">{{ button.label }}</ion-label>
+          <span class="stats-number">{{ button.number }}</span>
+        </div>
+      </ion-segment-button>
+    </ion-segment>
+
+
+
+
+
+    <div class="style-main">
+
+
+      <!-- Contenuti dinamici -->
+      <div *ngIf="selectedSegment === 'outfit'" class="content">
+        <ion-grid>
+          <ion-row class="style">
+            <ng-container *ngIf="!outfitNumber">
+              <ion-text>Nessun outfit creato</ion-text>
+            </ng-container>
+            <ion-col class="post-col" size="6" *ngFor="let userOutfit of userOutfits">
+              <div class="post-image" (click)="openEditOutfit(userOutfit)">
+                <ion-img [src]="userOutfit.imageUrl" [alt]="userOutfit.title">
+                </ion-img>
+          
+
+                <div  class="del-item">
+                  <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="deleteOutfit($event,userOutfit)">
+                    <i class="fi fi-rr-cross"></i>
+                  </ion-button>
+                </div>
+              </div>
+
+            </ion-col>
+
+          </ion-row>
+
+        </ion-grid>
+
+
+      </div>
+
+      <div *ngIf="selectedSegment === 'wardrobes'" class="content">
+        <ng-container *ngIf="!wardrobesNumber">
+          <ion-text>Nessun vestino nel tuo armadio</ion-text>
+        </ng-container>
+        <ion-grid>
+          <ion-row class="style">
+            <ion-col class="post-col" size="6" *ngFor="let userWardrobe of userWardrobes">
+              <div class="post-image">
+                <ion-img [src]="userWardrobe.images" [alt]="userWardrobe.name">
+                </ion-img>
+           
+                <div  class="del-item">
+                  <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="deletewardrobesitem($event,userWardrobe)">
+                    <i class="fi fi-rr-cross"></i>
+                  </ion-button>
+                </div>
+              </div>
+
+            </ion-col>
+
+          </ion-row>
+        </ion-grid>
+      </div>
+
+      <div *ngIf="selectedSegment === 'fave'" class="content">
+        <ng-container *ngIf="!faveUserOutfitsNumber">
+          <ion-text>Nessun outfit preferito</ion-text>
+        </ng-container>
+        <ion-grid>
+          <ion-row class="style">
+            <ion-col class="post-col" size="6" *ngFor="let faveUserOutfit of faveUserOutfits">
+              <div class="post-image">
+                <ion-img [src]="faveUserOutfit.images" [alt]="faveUserOutfit.name">
+                </ion-img>
+                <span class="del-item">
+                  <ion-ripple-effect></ion-ripple-effect>
+                  <i class="fi fi-rr-trash"></i>
+                </span>
+              </div>
+
+            </ion-col>
+
+          </ion-row>
+        </ion-grid>
+      </div>
+    </div>
   </div>
 
-</ion-content>
 
+</ion-content>

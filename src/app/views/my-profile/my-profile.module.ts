@@ -5,13 +5,15 @@ import { ComponentsModule } from 'src/app/components/components.module';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 
+
 @NgModule({
   imports: [
     CommonModule,
     IonicModule,
     ComponentsModule,
+
+    MyProfilePageRoutingModule,
     
-    MyProfilePageRoutingModule
   ],
   declarations: [MyProfilePage]
 })

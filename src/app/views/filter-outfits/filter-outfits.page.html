@@ -1,133 +1,192 @@
 
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Cosa stai cercando?</ion-title>
-    <ion-buttons slot="end" >
-      <ion-button  fill="clear" (click)="closeFilter()" >
-       Chiudi
+<app-header 
+[canGoBack]="false"
+[showLogo]="false"
+[showTitleText]="true"
+[titleText]="'Cosa stai cercando?'"
+[showCloseBtn]="true"
+[showMenuBtn]="false"
+
+></app-header>
+
+<ion-content  class="ion-padding" id="main-content">
+  <div class="main-content ">
+   
+    <ion-card  *ngFor="let  filterItmCloth of filterItmClothing.categories; let  i = index " class="filter-cloth">
+      <ion-card-header class="header-filter-cloth">
+        <ion-card-title class="filter-cloth-title">Articolo {{i+1}}</ion-card-title>
+       
+      </ion-card-header>
+    
+      <ion-card-content class="content-filter-cloth">
+        <div class="filter-cloth">
+          <ion-label class="filter-label">Capo d’abbigliamento</ion-label>
+          <ion-chip  class="filter-button" (click)="openCategory(i)">
+            <ion-label class="filter-button-label">
+              {{filterItmCloth!['outfitSubCategoryName']}} 
+              <span class="del-itm-cloth" >
+                <i class="fi"
+                [ngClass]="{
+                    
+                  'fi-rr-angle-small-right': filterItmCloth!.outfitSubCategory === '',
+                  'fi-rr-cross-circle': filterItmCloth!.outfitSubCategory !== ''
+                }"
+                  (click)="filterItmCloth!.outfitSubCategory !== '' ? delItmCloth($event,i) : null"
+                ></i>
+              </span>
+              
+            </ion-label>
+          
+          </ion-chip>
+
+          <!--
+           {
+                    'fi-rr-cross-circle': selectedFilterClothIndex != '',
+                    'fi-rr-angle-small-right': selectedFilterClothIndex === undefined
+                  }
+          -->
+        </div>
+        <div class="filter-cloth">
+          <ion-label class="filter-label">Colore</ion-label>
+          <ion-chip  class="filter-button" (click)="openColor(i)">
+            <ion-label class="filter-button-label">
+              <span *ngIf="filterItmCloth?.colorHex" class="color-hex" [ngStyle]="{'background-color':filterItmCloth?.colorHex}"></span>
+              {{filterItmCloth!['colorName']}} 
+              <span class="del-itm-cloth" >
+                <i class="fi fi-rr-angle-small-right"
+                [ngClass]="{
+                    
+                  'fi-rr-angle-small-right': filterItmCloth?.color === '',
+                  'fi-rr-cross-circle': filterItmCloth?.color !== ''
+                }"
+                  
+                  (click)="filterItmCloth?.color !== '' ? delItmColor($event,i) : null"
+                ></i>
+              </span>
+            </ion-label>
+          
+          </ion-chip>
+        </div>
+      
+
+        
+      </ion-card-content>
+      
+    </ion-card>
+
+    <ion-card  class="filter-cloth">
+      <ion-card-header class="header-filter-cloth">
+        <ion-card-title class="filter-cloth-title">Stile</ion-card-title>
+       
+      </ion-card-header>
+    
+      <ion-card-content class="content-filter-cloth">
+        <div class="category-slot">
+         
+        
+          <ion-chip  [ngClass]="selectedFilterStyleIndex() === i ? 'categoryselcted' : ''" *ngFor="let  filterItmStyle of itmStyles; let  i = index "    (click)="selStyle(i,filterItmStyle)">
+              <ion-label class="category-name">
+                {{filterItmStyle!['value']}} 
+                
+              </ion-label>
+            
+            </ion-chip>
+         </div>   
+        
+      </ion-card-content>
+      
+    </ion-card>
+  
+    <ion-card  class="filter-cloth">
+      <ion-card-header class="header-filter-cloth">
+        <ion-card-title class="filter-cloth-title">Stagione</ion-card-title>
+       
+      </ion-card-header>
+    
+      <ion-card-content class="content-filter-cloth">
+        <div class="category-slot">
+          <ion-chip  [ngClass]="selectedFilterSeasonIndex() === i ? 'categoryselcted' : ''" *ngFor="let  filterItmSeason of itmSeasons; let  i = index "  (click)="selSeason(i,filterItmSeason)">
+            <ion-label class="category-name">
+              {{filterItmSeason!['value']}} 
+              
+            </ion-label>
+          
+          </ion-chip>
+        </div>
+      
+    
+
+        
+      </ion-card-content>
+      
+    </ion-card>
+
+    <div class="filter-buttons">
+      <ion-button class="filter-btn bg-white" (click)="clearAllFilters()">
+        <ion-ripple-effect></ion-ripple-effect>
+        Cancella tutti</ion-button>
+      <ion-button class="filter-btn" (click)="saveSelecedFilter()">
+        <ion-ripple-effect></ion-ripple-effect>
+        Applica filtri
       </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-  
-</ion-header>
-<ion-content>
-  
-  
-  <ion-card  *ngFor="let  filterItmCloth of filterItmClothing; let  i = index " class="card-filter-cloth">
-    <ion-card-header >
-      <!-- <ion-card-title>Capo d'abbiagliamento</ion-card-title> -->
-      <ion-card-subtitle>Selaziona un capo d'abbigliamento/colore </ion-card-subtitle>
-    </ion-card-header>
-  
-    <ion-card-content class="slot">
-      
-     <ion-chip  class="outfit-button" (click)="openCategory(i)">
-        <ion-label class="cloth-label">
-          {{filterItmCloth!['outfitSubCategoryName']}} 
-          <span class="del-itm-cloth" (click)="delItmCloth($event,i)">
-            <ion-icon name="close-circle-outline"></ion-icon>
-          </span>
-          
-        </ion-label>
-       
-      </ion-chip>
+     
+    </div>
 
-      <ion-chip   class="outfit-button" (click)="openColor(i)">
-        <ion-label>
-          {{filterItmCloth!['colorName']}} 
-          <span  class="del-itm-cloth" (click)="delItmColor($event,i)">
-            <ion-icon  name="close-circle-outline"></ion-icon>
-          </span>
-        </ion-label>
-       
-      </ion-chip>
-    </ion-card-content>
-    
-  </ion-card>
-
-  <ion-card>
-    <ion-card-header >
-       <ion-card-subtitle>Seleziona lo stile</ion-card-subtitle>
-    </ion-card-header>
-  
-    <ion-card-content class="slot">
-      
-     <ion-chip   [ngClass]="selectedFilterStyleIndex === i ? 'styleselcted' : ''" *ngFor="let  filterItmStyle of itmStyles; let  i = index "    (click)="selStyle(i,filterItmStyle)">
-        <ion-label >
-          {{filterItmStyle!['value']}} 
-          
-        </ion-label>
-       
-      </ion-chip>
-
-      
-    </ion-card-content>
-    
-  </ion-card>
- 
-  <ion-card>
-    <ion-card-header >
-       <ion-card-subtitle>Seleziona la stagione</ion-card-subtitle>
-    </ion-card-header>
-  
-    <ion-card-content class="slot">
-     <ion-chip  [ngClass]="selectedFilterSeasonIndex === i ? 'styleselcted' : ''" *ngFor="let  filterItmSeason of itmSeasons; let  i = index "  (click)="selSeason(i,filterItmSeason)">
-        <ion-label >
-          {{filterItmSeason!['value']}} 
-          
-        </ion-label>
-       
-      </ion-chip>
-
-      
-    </ion-card-content>
-    
-  </ion-card>
+  </div>  
 </ion-content>
 
   <!--Modale categorie-->
-  <ion-modal #categories [isOpen]="isModalOpenCat">
+  <ion-modal #categories [isOpen]="isModalOpenCat" [breakpoints]="[0, 0.80]">
     <ng-template>
       <ion-header>
         <ion-toolbar>
           <ion-title>Scegli la categoria </ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="selectedSubCat()">Chiudi</ion-button>
+            <ion-button (click)="selectedSubCat()">
+              <i class="fi fi-rr-cross"></i>
+
+            </ion-button>
           </ion-buttons>
         </ion-toolbar>
-         <!-- Filtra per Genere UOMO DONNA -->
-        <ion-segment value="all" class="banner">
-          <div class="menu">
-            <div (click)="filterCategory()">
-              <ion-segment-button [value]="" (click)="filterCategory()">
-                <ion-label>Tutte</ion-label>
-              </ion-segment-button>
-            </div>
-            
-            <div *ngFor="let gender of itmGenders" (click)="filterCategory(gender)" >
-              <ion-segment-button [value]="gender.id" (click)="filterCategory(gender)">
-                <ion-label>{{gender.value}}</ion-label>
-              </ion-segment-button>
-            </div>
-          
-          </div>
-          
-          
-        </ion-segment>
+
+        
       </ion-header>
       <ion-content class="ion-padding">
-        <ion-grid [fixed]="true">
-          <ion-row *ngFor="let oufitCategory of oufitCompleteCategories">
+        <div class="banner">
+ 
+          <!-- Filtra per Categoria -->
+          <ion-segment value="all" >
+            <div class="menu">
+              <div (click)="filterCategory()" class="category">
+                <ion-chip  (click)="filterCategory()">
+                  <ion-label class="category-name">Tutte</ion-label>
+                </ion-chip>
+              </div>
+             
+              <div *ngFor="let oufitCategory of oufitCategories()" (click)="filterCategory(oufitCategory)" class="category">
+                <ion-chip  (click)="filterCategory(oufitCategory)" [ngClass]="selectoufitCategories() === oufitCategory.id ? 'categoryselcted' : ''" >
+                  <ion-label class="category-name">{{oufitCategory.categoryName}}</ion-label>
+                </ion-chip>
+              </div>
+             
+            </div>
             
-              <ion-item-divider>
-                <ion-label>{{oufitCategory.categoryName}}</ion-label>
+            
+          </ion-segment>
+        </div>
+        
+        <div>
+          <ion-row *ngFor="let oufitCategory of  oufitCompleteCategories()">
+            
+              <ion-item-divider class="category-divider">
+                <ion-label class="category-divider-label">{{oufitCategory.categoryName}}</ion-label>
               </ion-item-divider>
           
             
             <!-- Verifica se ci sono sub-categorie per la categoria corrente -->
-            <ng-container *ngIf="oufitCategory.outfitSubCategories; else noSubCategories">
-              <ion-col size="3" *ngFor="let itemSub of oufitCategory.outfitSubCategories" class="sub-categories">
-                <div (click)="selectedSubCat(itemSub)">
+            <ng-container *ngIf="oufitCategory.subcategories.length>0; else noSubCategories">
+              <ion-col size="4" *ngFor="let itemSub of oufitCategory.subcategories" class="sub-categories">
+                <div class="sub-category" (click)="selectedSubCat(itemSub)">
                   <ion-thumbnail class="thumb-sub-categories">
                     <img [src]="itemSub.imageUrl || '../../../assets/images/sub_categories/generic.jpg'" [alt]="itemSub.categoryName">
                   </ion-thumbnail>
@@ -137,14 +196,18 @@
             </ng-container>
             
             <!-- Template per mostrare "nessun risultato" per una categoria specifica -->
-            <ng-template #noSubCategories>
-              <ion-col>
-                <p class="no-results">Nessun prodotto.</p>
+            <ng-template #noSubCategories >
+              <ion-col class="sub-categories"> 
+            
+                <div class="sub-category">
+                  <ion-label class="label-categories">Nessuna categoria.</ion-label>
+                </div>
               </ion-col>
+              
             </ng-template>
           </ion-row>
 
-        </ion-grid>
+        </div>
       </ion-content>
     </ng-template>
   </ion-modal>
@@ -152,19 +215,21 @@
   <ion-modal 
     #color 
     [isOpen]="isModalOpenColor"
-    class="ion-padding"
-    [initialBreakpoint]="0.75"
-    [breakpoints]="[0.75, 1]"
+    [breakpoints]="[0, 0.80]"
   >
     <ng-template>
       <ion-header>
         <ion-toolbar>
-          <ion-title>Scegli la Colore </ion-title>
+          <ion-title>Seleziona Colore </ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="selectedColor()">Close</ion-button>
+            <ion-button (click)="selectedColor()"> 
+              <i class="fi fi-rr-cross"></i>
+            </ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
+
+      
       <ion-content class="ion-padding">
        
           <ion-list >

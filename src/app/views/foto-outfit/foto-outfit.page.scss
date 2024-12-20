@@ -61,18 +61,9 @@
 
   .select-photo {
     --background: rgba(66, 66, 66, 1); // Sfondo semi-trasparente per il pulsante
-    --color: #fff; // Colore del testo bianco
+    --color: #000000; // Colore del testo bianco
   }
 
-  #toggle-button {
-    position: absolute;
-    bottom: 3px;
-    right: 3px;
-    z-index: 1002; // Assicuriamoci che il pulsante sia sopra l'immagine e i tag
-    --background: rgba(0, 0, 0, 0.6); // Sfondo semi-trasparente per il pulsante
-    --color: #fff; // Colore del testo bianco
-    font-size: 10px;
-  }
 
   .tag {
 
@@ -84,37 +75,69 @@
 
     .price-card {
 
-      display: inline-block;
+      display: flex;
       width: auto;
       background-color: rgba(255, 255, 255, 0.8);
       transition: background-color 0.3s ease;
-      border-radius: 15px;
-      padding: 2px;
-      margin: 0;
-      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
       position: relative;
-      text-align: center;
+      
+     
+      border-radius: 5px;
+      font-size: 11px;
+
 
       .price-card-content {
-        padding: 3px;
+        display: flex;
+        font-size: 11px;
+        flex-direction: column;
+        align-content: center;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 10px 8px 10px;
 
-        font-size: 12px;
-      }
+        .item-title {
+          max-width: 150px;
+          white-space: nowrap;
+          /* Evita che il testo vada a capo */
+          overflow: hidden;
+          /* Nasconde il testo in eccesso */
+          text-overflow: ellipsis;
+          /* Aggiunge i puntini di sospensione */
+          font-weight: bold;
+          color: #000;
+          font-size: 11px;
 
-      .item-title {
-        max-width: 150px;
-       white-space: nowrap;   /* Evita che il testo vada a capo */
-        overflow: hidden;      /* Nasconde il testo in eccesso */
-        text-overflow: ellipsis; /* Aggiunge i puntini di sospensione */
-        font-weight: bold;
-        color: #000;
-      }
+          font-size: 11px;
+          font-weight: 500;
+          line-height: 13.41px;
+          text-align: left;
+          text-underline-position: from-font;
+          text-decoration-skip-ink: none;
 
-      .item-price {
-        font-size: 13px;
-        font-weight: bold;
-        color: #000;
-        margin-top: 5px;
+        }
+
+        .item-price {
+
+          font-size: 11px;
+          font-weight: 500;
+          line-height: 13.41px;
+          text-align: left;
+          text-underline-position: from-font;
+          text-decoration-skip-ink: none;
+          color: #000;
+        }
+
+        .item-brend {
+
+          font-size: 9px;
+          font-weight: 500;
+          line-height: 10.97px;
+          text-align: left;
+          text-underline-position: from-font;
+          text-decoration-skip-ink: none;
+          color: var(--outfit-secondary-color);
+        }
       }
     }
 
@@ -123,7 +146,20 @@
 }
 
 .tag-toggle-button {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  z-index: 1002; // Assicuriamoci che il pulsante sia sopra l'immagine e i tag
+  --background: rgba(255, 255, 255, 0.7); // Sfondo semi-trasparente per il pulsante
+  --color: #000; // Colore del testo nero
+  font-size: 14px;
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+  border-radius: 2px;
   z-index: 1002;
-  color: #fff;
+  color: #000000;
+  --border-radius: 2px;
+  --padding-top: 0px;
+  --padding-bottom: 0;
 }
-

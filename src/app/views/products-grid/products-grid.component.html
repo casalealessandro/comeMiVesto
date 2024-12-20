@@ -1,32 +1,56 @@
-
-  <!-- Griglia dei prodotti -->
-  <div class="product-grid">
-    <ion-card class="outfit-card" *ngFor="let product of products" (click)="saveToWardrobe(product)">
-
-      <ion-img class="" [src]="product.imageUrl"></ion-img>
-    
-      <ion-card-header class="outfit-card-header">
+<!-- Griglia dei prodotti -->
+<div class="product-grid main-content">
+  <ion-card class="product-cards" *ngFor="let product of products" (click)="saveToWardrobe(product)">
+    <div class="product-card">
+      <div class="product-card-header">
         
-        <div class="outfit-header-wrapper">
-          <ion-card-title class="outfit-card-title" >{{ product.name }}</ion-card-title>
-          <ion-card-subtitle class="outfit-gender">{{product.brend}}</ion-card-subtitle>
+          <ion-text class="brend-title">{{product.brend}}</ion-text>
+        
+      </div>
+      <div class="product-image">
+        <ion-img class="image" [src]="product.imageUrl || product.images"></ion-img>
+        <div  class="remove-product" *ngIf="showRemoveBtn">
+          <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="removeProduct(product)">
+            <i class="fi fi-rr-cross"></i>
+          </ion-button>
         </div>
-       
-      </ion-card-header>
-
-      <ion-card-content class="outfit-card-content product-card-content">
-        <ion-card-subtitle class="outfit-price">{{ product.price | currencyFormat }}</ion-card-subtitle>
         
-        <section class="outfit-card-action">
-          <ion-button size="small" fill="clear" (click)="buyToStore(product)">
-            <ion-icon name="cart"></ion-icon>
-          </ion-button>
-          <ion-button size="small" fill="clear" (click)="saveToWardrobe(product)">
-            <ion-icon name="save"></ion-icon>
-          </ion-button>
-  
-        </section>
-      </ion-card-content>
-    </ion-card>
-  </div>  <!-- Pulsante per caricare altri prodotti 
+      </div>
+
+      <div class="product-card-content">
+        <ion-card-content class="product-info">
+          <div class="product-card-category">
+            <ion-text class="category-title">{{ getCategoryText(product.outfitSubCategory) }}</ion-text>
+
+          </div>
+          <div class="product-wrap-title" [ngStyle]="{ 'flex-direction': !product.price ? 'row' : null }">
+            <ion-card-title class="product-title">{{ product.name }}</ion-card-title>
+
+              <div class="product-price-wrapper">
+                <ion-card-subtitle class="product-price">{{ product.price | currencyFormat }}</ion-card-subtitle>
+
+                <div class="product-card-action">
+                 <ion-button size="small" slot="icon-only"  fill="clear" (click)="buyToStore(product)">
+                  <i class="fi fi-rr-shopping-cart"></i>
+                 </ion-button>
+                 <ion-button size="small" *ngIf="showSaveBtn" slot="icon-only" fill="clear" (click)="saveToWardrobe(product)">
+                  <i class="fi fi-rr-heart"></i>
+                 </ion-button>
+     
+              </div>
+             
+            </div>
+          </div>
+
+
+        
+        </ion-card-content>
+      </div>
+
+
+
+    </div>
+
+  </ion-card>
+</div> <!-- Pulsante per caricare altri prodotti 
     <ion-button expand="full" (click)="loadMoreProducts()">Carica altri prodotti</ion-button>-->

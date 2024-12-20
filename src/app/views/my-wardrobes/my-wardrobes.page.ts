@@ -6,13 +6,17 @@ import { AppService } from 'src/app/service/app-service';
 import { categoryCloth, outfitCategories, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
 import { ProdottiOnlinePage } from '../prodotti-online/prodotti-online.page';
 import { Browser } from '@capacitor/browser';
+import { Observable } from 'rxjs';
+import { UserProfile } from 'firebase/auth';
+import { UserService } from 'src/app/service/user.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-my-wardrobes',
   templateUrl: './my-wardrobes.page.html',
   styleUrls: ['./my-wardrobes.page.scss'],
 })
-export class MyWardrobesPage  {
+export class MyWardrobesPage implements OnInit  {
 
   @Output() selectedItem:EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
 
@@ -25,8 +29,8 @@ export class MyWardrobesPage  {
   categoryCloth:outfitCategories[] = [];
   subCategoryCloth:outfitCategories[] = [];
   openModal:any = null
-  
-  constructor(private appService: AppService, private afAuth: AngularFireAuth,private modalController:ModalController,) { }
+ 
+  constructor(private appService: AppService, private afAuth: AngularFireAuth,private modalController:ModalController,private userProfileService:UserService,private router:Router) { }
 
   ngOnInit() {
     
@@ -47,8 +51,7 @@ export class MyWardrobesPage  {
         this.groupItemsByCategory();
 
        this.openModal = await this.modalController.getTop();
-
-       // console.log('pmodal',this.openModal)
+      
       }
     });
   }
@@ -151,7 +154,7 @@ export class MyWardrobesPage  {
       outfitSubCategory: subCategoryID,
       color:data.color,
       userId: this.userID,
-      prezzo: data.prezzo,
+      prezzo: parseInt(data.price, 10),
       link: link,
     }
 
@@ -185,22 +188,23 @@ export class MyWardrobesPage  {
     if(!data){
       return
     }
-    const categoryID = data.outfitCategory;
-    const subCategoryID = data.outfitSubCategory;
-    const link = !data.link ? '#' : data.link
+    const dataP = data.data;
+    const categoryID = dataP.outfitCategory;
+    const subCategoryID = dataP.outfitSubCategory;
+    const link = !dataP.link ? '#' : dataP.link
    
     const id = this.generateGUID();
 
     let saveData:wardrobesItem = {
-      brend: data.brend,
+      brend: dataP.brend,
       id: id,
-      images: data.imageUrl,
-      name: data.name,
+      images: dataP.imageUrl,
+      name: dataP.name,
       outfitCategory: categoryID,
       outfitSubCategory: subCategoryID,
-      color:data.color,
+      color:dataP.color,
       userId: this.userID,
-      prezzo:parseInt(data.price, 10),
+      prezzo:parseInt(dataP.price, 10),
       link:link
     }
 
@@ -246,6 +250,7 @@ export class MyWardrobesPage  {
     if (modal) {
      this.modalController.dismiss(item)
     }else{
+      console.log('selectItem',item);
       this.selectedItem.emit(item)
     }
     
@@ -253,5 +258,9 @@ export class MyWardrobesPage  {
 
   dismissModal(evet:any){
     this.modalController.dismiss()
+  }
+
+  navUserProfile() {
+    this.router.navigate(['/tabs/my-profile'])
   }
 }

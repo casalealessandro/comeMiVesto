@@ -1,101 +1,149 @@
 //Top Pagina
 .main-content {
-  @media screen and (min-width: 1024px) {
-    max-width: 630px;
-    margin: 0 auto; /* per centrare il contenuto */
-  }
-  .heading {
-    padding: 5px 20px;
-
-    .location {
-      padding-bottom: 5px;
-
-      ion-icon {
-        padding-right: 5px;
-      }
-
-      .text {
-        font-weight: 400;
-       
-        color: var(--ion-color-medium);
-      }
-    }
-  }
-
-  .add-clothes-options {
-    text-align: center;
-  }
-
-  .option {
+  .clothes-intro {
     display: flex;
+    margin-bottom: 28px;
     flex-direction: column;
     align-items: center;
-    color: var(--color);
-  }
- 
-  p {
-    margin-top: 0.5rem;
-    //font-size: 1rem;
-    color: var(--color);
-  }
 
-  .updated-label {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .updated {
-    position: absolute;
-    top: -10px;
-    right: 10px;
-    background-color: rgba(255, 192, 203, 0.5);
-    /* colore rosa chiaro con trasparenza */
-    border-radius: 10px;
-    padding: 0.2rem 0.4rem;
-    font-size: 0.8rem;
-    color: white;
-  }
-  .product-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-gap: 0.5rem;
-    padding: 0px;
-  }
-  
-  .outfit-card {
-   
-    
-    ion-img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-    }
-    .outfit-card-subTitle{
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .product-card-content{
+    .clothes-intro-container {
       display: flex;
-      align-content: center;
-      flex-direction: row;
-      flex-wrap: wrap;
       align-items: center;
-      justify-content: flex-start;
-  
-      .outfit-price{
-        align-self: end;
-      }
-      .outfit-card-action{
-  
-        ion-button{
-          margin: 0;
+      justify-content: space-between;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 0;
+      align-items: start;
+
+      .clothes-intro-icon {
+        position: relative;
+        gap: 6px;
+        display: flex;
+
+        .intro-icon-pic {
+          border-radius: 50%;
+          object-fit: scale-down;
+          width: 67px;
+          height: 67px;
+
+
+        }
+
+
+
+        .intro-info {
+          color: #000;
+          display: flex;
+          flex-direction: column;
+          align-content: center;
+          justify-content: flex-start;
+          gap: 8px;
+          font-size: 10px;
+          padding-top: 3px;
+
+          .intro-name {
+            text-align: center;
+            color: var(--outfitsecondary--color);
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 17.07px;
+            text-align: left;
+            text-underline-position: from-font;
+            text-decoration-skip-ink: none;
+            text-align: center;
+
+          }
+
+          .intro-buttons {
+            display: flex;
+            gap: 16px;
+            color: #000;
+
+            .intro-button {
+              color: var(--outfit-btn-text-color);
+              border: 0.5px solid var(--outfit-btn-text-color);
+              border-radius: 3px;
+              font-size: 13px;
+              max-height: 38px;
+              min-width: 152px;
+              display: flex;
+              max-width: 170px;
+              padding: 10px 5px;
+              align-items: center;
+              .intro-btn {
+
+                --background: transparent;
+                --box-shadow: unset;
+                --border-radius: 0;
+                --padding-top: 0;
+                --padding-bottom: 0;
+                --padding-start: 0;
+                --padding-end: 0;
+                min-height: 38px;
+                color: #000;
+                margin-inline-start: 0;
+                margin-inline-end: 0;
+                margin-top: 0;
+                margin-bottom: 0;
+                min-height: 18px;
+                max-height: 18px;
+
+                font-size: 11px;
+                font-weight: 400;
+                line-height: 13.41px;
+                text-align: left;
+                text-underline-position: from-font;
+                text-decoration-skip-ink: none;
+              
+              
+
+                i {
+                  font-size: 18px;
+                  margin-right: 8PX;
+                }
+              }
+
+
+            }
+          }
+
+
         }
       }
+
+
+
     }
-    
+
+
   }
- 
+
+  .wardrobe-list {
+    display: flex;
+    gap: 24px;
+    flex-direction: column;
+  }
+
+  .wardrobe-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .wardrobe-group-item {
+      --min-height: 20px;
+      --padding-start: 0;
+
+      .wardrobe-group-title {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 19.5px;
+        text-align: left;
+        text-underline-position: from-font;
+        text-decoration-skip-ink: none;
+      }
+
+
+    }
+  }
+
 }

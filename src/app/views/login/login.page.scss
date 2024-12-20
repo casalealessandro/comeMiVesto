@@ -6,7 +6,7 @@
 */
 
 .login-wrapper {
-  --background: var(--primary-color);
+  
 
 
 
@@ -18,7 +18,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-
+      background: var(--primary-color);
       img {
         width: 100%;
         max-height: 30px;

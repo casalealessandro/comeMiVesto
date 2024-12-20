@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, AfterViewInit } from '@angular/core';
 import { AlertController } from '@ionic/angular';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Directory } from '@capacitor/filesystem';
@@ -10,12 +10,13 @@ import { Capacitor } from '@capacitor/core';
   styleUrls: ['./dynamic-file-box.component.scss'],
 
 })
-export class DynamicFileBoxComponent implements OnInit {
+export class DynamicFileBoxComponent implements AfterViewInit {
   @ViewChild('imageElement', { static: false }) imageElement: ElementRef | undefined;
 
   @Output() eventFotoCaptured: EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;  
   @Input() image: any = 'https://ionicframework.com/docs/img/demos/thumbnail.svg';
   @Input() enableNewImagecaptured: boolean=true;
+  @Input() labelPlacement:any='stacked';
 
   @Input() maxWidth = 300; // Larghezza massima per i post verticali tipo Instagram
   @Input() maxHeight = 1350; // Altezza massima per i post verticali tipo Instagram
@@ -29,7 +30,7 @@ export class DynamicFileBoxComponent implements OnInit {
 
   constructor(private alert:AlertController) { }
 
-  ngOnInit() { }
+  
   
   ngAfterViewInit(): void {
 

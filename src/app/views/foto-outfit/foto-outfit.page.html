@@ -10,8 +10,13 @@
     <div *ngFor="let tag of tags" class="tag" [ngStyle]="tagStyle[tag.id]" (click)="openItmClothing(tag)">
       <ion-card class="price-card">
         <ion-card-content class="price-card-content">
-          <div class="item-title">{{ tag.name  }}</div>
-          <div class="item-brend">{{ tag.brend }}</div>
+          <div >
+            <span class="item-brend">{{ tag.brend }}</span>
+            <p class="item-title">{{ tag.name  }}</p>
+           
+
+          </div>
+         
           <div class="item-price">{{ tag.prezzo | currencyFormat }}</div>
         </ion-card-content>
       </ion-card>
@@ -20,8 +25,8 @@
   </ng-container>
   <ion-button class="tag-toggle-button" *ngIf="tags.length>0" (click)="toggleTags()" id="toggle-button"
     [ngStyle]="tagToggleButton" fill="clear">
-    <ion-icon slot="icon-only" name="pricetags-outline"></ion-icon>
-    <!-- {{ showTag ? 'Nascondi Tags' : 'Mostra Tags' }} -->
+   
+    <i class="fi fi-rr-tags"></i>
   </ion-button>
   <ion-button *ngIf="enableNewImagecaptured" expand="full" size="small" class="select-photo" (click)="captureImage()">
 
