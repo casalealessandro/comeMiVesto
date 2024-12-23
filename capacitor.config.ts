@@ -9,6 +9,7 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     allowNavigation: ["*"]
   },
+  
   plugins: {
     SplashScreen: {
       launchShowDuration: 5500,  // La durata (in millisecondi) per cui lo splash screen viene mostrato all'avvio dell'applicazione. I
@@ -20,7 +21,8 @@ const config: CapacitorConfig = {
       splashFullScreen: true, //lo splash screen verrà visualizzato in modalità full screen (a schermo intero) nascondendo la barra di stato.
       splashImmersive: true //rende lo splash screen immersivo, nascondendo sia la barra di stato che la barra di navigazione (su dispositivi con tasti software) per offrire un'esperienza più coinvolgente.
     }
-  }
+  },
+ 
 };
 
 export default config;
