@@ -15,6 +15,7 @@ import { ProdottiOnlineService } from 'src/app/service/prodotti-online.service';
   styleUrls: ['./prodotti-online.page.scss'],
 })
 export class ProdottiOnlinePage implements OnInit {
+  
   constructor(private modalController: ModalController, private categoryService:CategoryService, private navController: NavController,private afAuth: AngularFireAuth,) { }
 
   private appService = inject(AppService);
@@ -26,6 +27,7 @@ export class ProdottiOnlinePage implements OnInit {
   public filteredproducts: any[] = []; // Array di prodotti
   public categories?: outfitCategories[]
   public currentPage: number = 1;
+  userID: any;
   gender=""
   outfitCategory = "";
   outfitSubCategory = "";
@@ -36,7 +38,7 @@ export class ProdottiOnlinePage implements OnInit {
     this.afAuth.authState.subscribe(async user => {
       if (user) {
         console.log('user',user)
-        //this.userID = user.uid;
+        this.userID = user.uid; 
         const userData$ = this.appService.getUserProfilebyId( user.uid);
         userData$.subscribe((outfitUserProfile: UserProfile) => {
 
@@ -166,12 +168,48 @@ export class ProdottiOnlinePage implements OnInit {
 
 
   // Salva il prodotto nel guardaroba
-  async saveToWardrobe(product: any) {
-    const modal = await this.modalController.getTop();
-    if (modal) {
-      this.modalController.dismiss(product);
-      return
-    }
+  async saveToWardrobe(dataProduct: any) {
+     const data = dataProduct.data
+        const categoryID = data.outfitCategory;
+        const subCategoryID = data.outfitSubCategory;
+        const link = !data.link ? '#' : data.link
+       
+        const id = data.id;
+    
+    
+        let coditions = [
+    
+          {
+            field: 'userId', operator: '==', value: this.userID
+          },
+          {
+            field: 'id', operator: '==', value: id
+          }
+        ]
+    
+        let check = await this.appService.getFilteredCollection('wardrobes', coditions);
+        if (check.length > 0) {
+        
+          return
+        }
+    
+        let saveData:wardrobesItem = {
+          
+          brend: data.brend,
+          id: id,
+          images: data.imageUrl,
+          name: data.name,
+          outfitCategory: categoryID,
+          outfitSubCategory: subCategoryID,
+          color:data.color,
+          userId: this.userID,
+          prezzo:parseInt(data.price, 10),
+          link:link
+        }
+    
+        let resSave = await this.appService.saveInCollection('wardrobes',undefined,saveData)
+        if(resSave)
+          alert('Elemento aggiunto alla tua wardrobe con successo!')
   }
 
   async handleBackButton() {

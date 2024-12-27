@@ -58,10 +58,12 @@ export class ProductsGridComponent implements  OnChanges {
    getCategoryText(idCategory:any):string{
     return this.categoryNames.get(idCategory) || 'Caricamento...';
   }
-  saveToWardrobe(evtProduct:any){
+  saveToWardrobe(evt:MouseEvent,product:any){
+    evt.stopImmediatePropagation();
+    evt.preventDefault();
     const dataTosend = {
       name:'saveToWardrobe',
-      data: evtProduct
+      data: product
     }
     this.productsEvent.emit(dataTosend)
   }
