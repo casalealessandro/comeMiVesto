@@ -24,6 +24,7 @@ export class AppService {
   private lastDocument: any | null = null;
   private apiFire = "https://us-central1-comemivesto-5e5f9.cloudfunctions.net/api/gen/"
   //private apiFire = "http://localhost:5001/comemivesto-5e5f9/us-central1/api/gen/"
+  //private apiFire = "http://localhost:5001/comemivesto-5e5f9/us-central1/api/"
    // Crea un Signal per il wardrobe
   resultsSignal = signal<any[]>([]);
   // Crea Signals per categoria e colore
@@ -75,6 +76,21 @@ export class AppService {
        catchError(this.handleError)
      );
    }
+
+   /**
+   * Metodo generico per inviare dati al server tramite POST.
+   * @param url - L'endpoint API.
+   * @param payload - I dati da inviare.
+   * @returns Observable<T> - L'oggetto generico restituito dalla risposta.
+   */
+  create<T>(api: string, payloadData: T): Observable<T[]> {
+    const completeApi = `${this.apiFire}${api}`;
+    return this.http.post<ApiResponse<T>>(completeApi, payloadData).pipe(
+      retry(2), // Riprova in caso di errore temporaneo
+      map((response) => response.data),
+      catchError(this.handleError)
+    );
+  }
 
    getFilteredOutfits(queryString:string,conditions: any): Observable<outfit[]> {
     const completeApi = `${this.apiFire}filter-outfits?${queryString}`;

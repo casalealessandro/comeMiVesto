@@ -1,35 +1,47 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="handleBackButton()" size="small"><ion-icon slot="icon-only"
-          name="chevron-back-outline"></ion-icon></ion-button>
-    </ion-buttons>
-    <ion-title>Registrati</ion-title>
-  </ion-toolbar>
-</ion-header>
 
-<ion-content>
-  <img src="assets/images/Logo-nero.png">
-  <div class="main-content">
+<ion-content class="login-wrapper">
+ 
+  <div class="login-container">
 
-
-    <div class="card">
-      <div class="title">
-        <ion-label>Inserisci i tuoi dati</ion-label>
-      </div>
-      
-      <div class="text">
-        <ion-label>Registrati e inizia a scoprire il tuo stile ideale</ion-label>
-      </div>
-      <app-dynamic-form [service]="'registerForm'"
-        [btnFormText]="'Registrati'"
-        (functionalCheckBoxEvent)="functionalCheckBox($event)"
-       (submitFormEvent)="register($event)"
-       >
-      </app-dynamic-form>
+    <div class="logo-container">
+      <img src="assets/images/Logo-bianco.png">
     </div>
-  </div>
+    <div class="login-card">
+      <div class="login-header-container">
+        <div class="title">
+          <ion-label>Inserisci i tuoi dati</ion-label>
+          <ion-label class="sub-title">Registrati e inizia a scoprire il tuo stile ideale</ion-label>
+        </div>
+      </div>
+      <div class="login-center-container">
+        <app-dynamic-form [service]="'registerForm'"
+          [btnFormText]="'Registrati'"
+          (functionalCheckBoxEvent)="functionalCheckBox($event)"
+        (submitFormEvent)="register($event)"
+        >
+        </app-dynamic-form>
 
+       
+
+       
+      </div>
+      <div class="login-footer-container">
+
+        <div class="footer-copy">
+          <ion-label class="footer-label">&copy; 2024 Alessandro Casale</ion-label>
+          <ion-label class="footer-label"><u>Terms of Service </u>. <u>Privacy Policy</u> .<u>Content Policy
+            </u></ion-label>
+        </div>
+
+
+
+
+      </div>
+    </div>
+
+
+
+  </div>
 
 
   <!--  <ion-item>

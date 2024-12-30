@@ -6,6 +6,7 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import { UserService } from 'src/app/service/user.service';
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
@@ -24,14 +25,20 @@ export class LoginPage {
   auth = getAuth(inject(FirebaseApp));
  
   recupPasswordError:string = 'Inserisci un email valida'
-  constructor(private afAuth: AngularFireAuth,private router: Router, private alert:AlertController) {}
+  constructor(private afAuth: AngularFireAuth,private userService: UserService, private alert:AlertController) {}
 
   async login() {
     
     const persistence = this.stayConnected  ? 'local' : 'session'
     await this.afAuth.setPersistence(persistence);
 
+    const userLoginData  = {
+      email: this.email,
+      password: this.password
+     
+    }
 
+    //this.userService.loginUser('/user/login',userLoginData)
     this.afAuth.signInWithEmailAndPassword(this.email, this.password)
       .then((userCredential:any) => {
         console.log('userCredential-->',userCredential)

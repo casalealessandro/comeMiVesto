@@ -5,11 +5,13 @@ import { Router } from '@angular/router';
 import { AlertController, ModalController, NavController } from '@ionic/angular';
 import { UserProfile } from 'src/app/service/interface/user-interface';
 import { TermsConditionsPage } from '../terms-conditions/terms-conditions.page';
+import { AppService } from 'src/app/service/app-service';
+import { UserService } from 'src/app/service/user.service';
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
-  styleUrls: ['./register.page.scss'],
+  styleUrls: ['./register.page.scss','../login/login.page.scss'],
 })
 
 export class RegisterPage {
@@ -20,13 +22,53 @@ export class RegisterPage {
   cognome: string = '';
   userType: string = 'creator'; // Default to creator
   modalController = inject(ModalController)
-  constructor(private afAuth: AngularFireAuth,private firestore: AngularFirestore, private navController: NavController,private alert:AlertController) {}
+  constructor(
+    private afAuth: AngularFireAuth,
+    private appService: AppService,
+    private userService: UserService,
+    private firestore: AngularFirestore,
+    private navController: NavController,
+    private alert:AlertController) {}
 
   
   register(registerData:any) {
-   
+    const displayName = !registerData.displayName ? `${this.nome} ${this.cognome}`:registerData.displayName
+    const user = displayName;
+    const bio = !registerData.bio ? '' : registerData.bio
+    const name = !registerData.nome ? '' : registerData.nome
+    const cognome = !registerData.cognome ? '' : registerData.cognome
+    const password = registerData.password;
+    const email = registerData.email ;
+    let userProfile:Partial<UserProfile> ={
+      displayName:displayName,
+      email: email,
+      password:password,
+      name:name,
+      nome:name,
+      cognome:cognome,
+      bio:bio,
+      photoURL:'https://ionicframework.com/docs/img/demos/avatar.svg',
+      gender:user.gender,
+      createAt: new Date().getTime()
+    }
+    this.userService.registerUser('/user/register',userProfile).subscribe(data=>{
+      this.alert.create(
+        { 
+         header:'Complimenti!',
+         message:`registrazione è avvenuta con successo,controlla la tua email per confermare l'account`,
+         buttons: ['Ok'],
+         }
+       ).then(
+          alert => {
+            alert.present();
+            setTimeout(() => {
+              this.handleBackButton()
+            }, 500);
+
+       });
+    })
     
-    this.afAuth.createUserWithEmailAndPassword(registerData.email, registerData.password)
+    /* this.afAuth.createUserWithEmailAndPassword(registerData.email, registerData.password)
       .then((userCredential:any) => {
         const displayName = !registerData.displayName ? `${this.nome} ${this.cognome}`:registerData.displayName
         const user = userCredential.user;
@@ -50,15 +92,9 @@ export class RegisterPage {
         console.log('Registration successful!');
       })
       .catch(error => {
-        this.alert.create(
-          { 
-           header:'Attenzione!',
-           message:`${error}`,
-           buttons: ['Ok'],
-           }
-         ).then(alert => alert.present());
+       
         console.error('Registration error:', error);
-      });
+      }); */
   }
 
   async functionalCheckBox(evt:any){

@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { firstValueFrom, lastValueFrom, Observable, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { firstValueFrom, lastValueFrom, Observable, of, throwError } from 'rxjs';
+import { catchError, map, retry, switchMap } from 'rxjs/operators';
 import { UserPreference, UserProfile } from './interface/user-interface';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
-import { AppService } from './app-service';
+import { ApiResponse, AppService } from './app-service';
 import { deleteUser } from 'firebase/auth';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +24,23 @@ private _userInfo?: UserProfile | null; // Variabile privata per memorizzare il 
   get userInfo() {
     return this._userInfo; // Ritorna il valore della variabile privata
     
+  }
+
+  registerUser<T>(api: string, payloadData: T): Observable<T[]>{
+    const completeApi = `${this.apiFire}${api}`;
+      return this.httpClient.post<ApiResponse<T>>(completeApi, payloadData).pipe(
+        retry(2), // Riprova in caso di errore temporaneo
+        map((response) => response.data),
+        catchError(this.handleError)
+      );
+  }
+  loginUser<T>(api: string, payloadData: T): Observable<T[]>{
+    const completeApi = `${this.apiFire}${api}`;
+      return this.httpClient.post<ApiResponse<T>>(completeApi, payloadData).pipe(
+        retry(2), // Riprova in caso di errore temporaneo
+        map((response) => response.data),
+        catchError(this.handleError)
+      );
   }
 
   getUserProfile(): Observable<UserProfile | null> {
@@ -197,4 +214,31 @@ private _userInfo?: UserProfile | null; // Variabile privata per memorizzare il 
     }
    
   }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+      let userFriendlyMessage: string;
+  
+      if (error.error instanceof ErrorEvent) {
+        // Errore lato client
+        console.error('Errore client-side:', error.error.message);
+        userFriendlyMessage = 'Si è verificato un problema di rete. Riprova più tardi.';
+      } else {
+        // Errore lato server
+        console.error(
+          `Errore server-side: codice ${error.status}, messaggio: ${error.message}`
+        );
+        switch (error.status) {
+          case 404:
+            userFriendlyMessage = 'Risorsa non trovata.';
+            break;
+          case 500:
+            userFriendlyMessage = 'Errore interno del server. Riprova più tardi.';
+            break;
+          default:
+            userFriendlyMessage = 'Si è verificato un errore imprevisto. Contatta il supporto.';
+        }
+      }
+  
+      return throwError(() => new Error(userFriendlyMessage));
+    }
 }
