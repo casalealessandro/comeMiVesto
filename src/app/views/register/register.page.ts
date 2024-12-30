@@ -39,6 +39,7 @@ export class RegisterPage {
     const cognome = !registerData.cognome ? '' : registerData.cognome
     const password = registerData.password;
     const email = registerData.email ;
+    const gender = !registerData.gender ? 'U' : registerData.gender
     let userProfile:Partial<UserProfile> ={
       displayName:displayName,
       email: email,
@@ -48,7 +49,7 @@ export class RegisterPage {
       cognome:cognome,
       bio:bio,
       photoURL:'https://ionicframework.com/docs/img/demos/avatar.svg',
-      gender:user.gender,
+      gender:gender,
       createAt: new Date().getTime()
     }
     this.userService.registerUser('/user/register',userProfile).subscribe(data=>{
