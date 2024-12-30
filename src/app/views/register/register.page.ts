@@ -39,6 +39,8 @@ export class RegisterPage {
     const cognome = !registerData.cognome ? '' : registerData.cognome
     const password = registerData.password;
     const email = registerData.email ;
+    const gender = !registerData.gender ? 'D' : registerData.gender;
+
     let userProfile:Partial<UserProfile> ={
       displayName:displayName,
       email: email,
