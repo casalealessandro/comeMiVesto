@@ -10,7 +10,7 @@
       <div class="product-image">
         <ion-img class="image" [src]="product.imageUrl || product.images"></ion-img>
         <div  class="remove-product" *ngIf="showRemoveBtn">
-          <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="removeProduct(product)">
+          <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="removeProduct($event,product)">
             <i class="fi fi-rr-cross"></i>
           </ion-button>
         </div>

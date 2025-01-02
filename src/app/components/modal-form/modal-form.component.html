@@ -2,10 +2,15 @@
   <ion-toolbar>
     <ion-title>{{title}}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss()">Chiudi</ion-button>
+      <ion-button class="menu-button" slot="icon-only" (click)="dismiss()">
+
+        <i class="fi fi-rr-cross"></i>
+      </ion-button>
+ 
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
 
 <ion-content>
   <app-dynamic-form

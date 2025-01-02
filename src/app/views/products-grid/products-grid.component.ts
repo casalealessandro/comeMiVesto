@@ -68,8 +68,9 @@ export class ProductsGridComponent implements  OnChanges {
     this.productsEvent.emit(dataTosend)
   }
 
-  removeProduct(evtProduct:any){
-
+  removeProduct(evt:MouseEvent,evtProduct:any){
+    evt.stopImmediatePropagation();
+    evt.preventDefault();
     const dataTosend = {
       name:'removeProduct',
       data: evtProduct

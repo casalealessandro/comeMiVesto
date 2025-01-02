@@ -165,10 +165,10 @@ export class AddOutfitPage {
   }
 
   async saveOutfit(event: any) {
-
+console.log(event);
     this.title = event.title;
     this.color = event.color;
-    this.description = event.description;
+    this.description = !event.description ? "" : event.description;
     this.gender = event.gender;
     this.season = event.season;
     this.style = event.style;

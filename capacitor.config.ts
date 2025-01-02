@@ -19,7 +19,10 @@ const config: CapacitorConfig = {
       androidScaleType: "CENTER_CROP",   // **Proprietà determina come l'immagine dello splash screen viene scalata su Android.
       showSpinner: true, //verrà mostrato un indicatore di caricamento (spinner) sopra lo splash screen, che è utile per far capire all'utente che l'app si sta caricando
       splashFullScreen: true, //lo splash screen verrà visualizzato in modalità full screen (a schermo intero) nascondendo la barra di stato.
-      splashImmersive: true //rende lo splash screen immersivo, nascondendo sia la barra di stato che la barra di navigazione (su dispositivi con tasti software) per offrire un'esperienza più coinvolgente.
+      splashImmersive: true, //rende lo splash screen immersivo, nascondendo sia la barra di stato che la barra di navigazione (su dispositivi con tasti software) per offrire un'esperienza più coinvolgente.
+      
+      spinnerColor: '#000000',       // Colore dello spinner
+    
     }
   },
  

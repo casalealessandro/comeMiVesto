@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
@@ -15,7 +15,7 @@ import { ProdottiOnlineService } from 'src/app/service/prodotti-online.service';
   styleUrls: ['./prodotti-online.page.scss'],
 })
 export class ProdottiOnlinePage implements OnInit {
-  
+  @Input() showHeader:boolean = false;
   constructor(private modalController: ModalController, private categoryService:CategoryService, private navController: NavController,private afAuth: AngularFireAuth,) { }
 
   private appService = inject(AppService);

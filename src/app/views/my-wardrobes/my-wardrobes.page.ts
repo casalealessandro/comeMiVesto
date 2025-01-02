@@ -185,6 +185,10 @@ export class MyWardrobesPage implements OnInit {
   async searchClothModal() {
     const modal = await this.modalController.create({
       component: ProdottiOnlinePage,
+      componentProps: {
+        showHeader: true,
+        
+      }
 
     });
     await modal.present();
@@ -249,15 +253,26 @@ export class MyWardrobesPage implements OnInit {
       await Browser.open({ url: link });
     }
   }
-  async selectItem(item: any) {
-    // Controlla se la pagina è aperta in un modale
-    const modal = await this.modalController.getTop();
-    if (modal) {
-      this.modalController.dismiss(item)
-    } else {
-      console.log('selectItem', item);
-      this.selectedItem.emit(item)
+  async selectItem(ev: any) {
+    const keyEvt = ev.name
+    const item = ev.data;
+    switch (keyEvt) {
+      case 'removeProduct':
+        this.deleteItemWadro(item)
+        break;
+    
+      default:
+        const modal = await this.modalController.getTop();
+        if (modal) {
+          this.modalController.dismiss(item)
+        } else {
+          console.log('selectItem', item);
+          this.selectedItem.emit(item)
+        }
+        break;
     }
+    // Controlla se la pagina è aperta in un modale
+    
 
   }
 

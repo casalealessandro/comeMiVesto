@@ -1,3 +1,18 @@
+<!--
+  @Input() canGoBack: boolean = false;
+  @Input() showLogo: boolean = true;
+  @Input() showUserInfo: boolean = false;
+  @Input() showTitleText: boolean = false;
+  @Input() titleText: string | undefined;
+  @Input() showCloseBtn:  boolean = false;
+  @Input() showMenuBtn:  boolean = true;
+-->
+<ng-container *ngIf="showHeader">
+  <app-header  [showCloseBtn]="true" [showLogo]="false"  [showTitleText]="true" [titleText]="'Seleziona i prodotti dal nostro store'" [showMenuBtn]="false"></app-header>
+</ng-container>
+
+
+
 <div class="banner">
  
   <!-- Filtra per Categoria -->
