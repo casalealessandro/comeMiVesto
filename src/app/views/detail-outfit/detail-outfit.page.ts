@@ -122,7 +122,8 @@ export class DetailOutfitPage implements OnInit {
       await Browser.open({ url: link });
     }
   }
-  async saveItem(data: any) {
+  async saveItem(dataProduct: any) {
+    const data = dataProduct.data
     const categoryID = data.outfitCategory;
     const subCategoryID = data.outfitSubCategory;
     const link = !data.link ? '#' : data.link
@@ -150,7 +151,7 @@ export class DetailOutfitPage implements OnInit {
       
       brend: data.brend,
       id: id,
-      images: data.imageUrl,
+      images: data.imageUrl || data.images,
       name: data.name,
       outfitCategory: categoryID,
       outfitSubCategory: subCategoryID,
