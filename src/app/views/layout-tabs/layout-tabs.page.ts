@@ -31,6 +31,21 @@ export class LayoutTabsPage  {
         });
 
         break;
+        case 'add-outfit':
+          this.sharedData.setData({
+            componentName:'HeaderComponent',
+            data: {
+             
+              showLogo:false,
+              showUserInfo:false,
+              showTitleText:true,
+              titleText:'Inserisci outfit',
+              canGoBack:true
+             
+            }
+          });
+  
+          break;
      case 'my-profile':
       this.sharedData.setData({
         componentName:'HeaderComponent',

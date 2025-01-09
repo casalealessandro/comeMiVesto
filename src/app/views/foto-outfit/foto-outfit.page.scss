@@ -61,7 +61,7 @@
 
   .select-photo {
     --background: rgba(66, 66, 66, 1); // Sfondo semi-trasparente per il pulsante
-    --color: #000000; // Colore del testo bianco
+    --color: #fff; // Colore del testo bianco
   }
 
 
@@ -80,8 +80,7 @@
       background-color: rgba(255, 255, 255, 0.8);
       transition: background-color 0.3s ease;
       position: relative;
-      
-     
+   
       border-radius: 5px;
       font-size: 11px;
 

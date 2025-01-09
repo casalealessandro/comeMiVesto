@@ -122,7 +122,7 @@
                 padding-top: 3px;
                 padding-bottom: 2px;
                 min-height: 32px;
-
+margin-left: 0!important;
                 width: max-content;
 
                 &.categoryselcted {
@@ -131,7 +131,7 @@
                 }
 
                 .category-name {
-                    font-size: 10px;
+                    font-size: 12px;
                     font-weight: 500;
                     line-height: 12.19px;
                     text-align: center;
@@ -166,9 +166,8 @@
     display: flex;
     height: 48px;
     flex-direction: row;
-    
-    justify-content: space-evenly;
-    align-items: center;    
+    justify-content: space-between;
+    align-items: start;
     gap: 12px;
     .filter-btn{
         min-width:162px;

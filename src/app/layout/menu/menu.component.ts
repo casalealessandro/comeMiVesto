@@ -35,7 +35,7 @@ export class MenuComponent implements OnInit {
 
   menuListBottom = [
     {
-      link: 'logOut', label: 'log out', click: () => { this.logOut() }, icon: ''
+      link: 'logOut', label: 'Log out', click: () => { this.logOut() }, icon: ''
     },
     {
       link: 'deleteAccount', label: 'Cancella account', click: () => { this.deleteAccount() }, icon: ''
