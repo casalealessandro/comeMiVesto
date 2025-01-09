@@ -229,7 +229,9 @@ export class MyProfilePage implements OnInit {
       component: AddOutfitPage,
       componentProps: {
         isEditMode: true,
-        outfitData: outfitData
+        outfitData: outfitData,
+        showheader:true
+
       }
     });
     await modal.present();

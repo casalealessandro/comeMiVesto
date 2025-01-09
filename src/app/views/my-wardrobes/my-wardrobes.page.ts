@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { ModalController } from '@ionic/angular';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
@@ -19,6 +19,7 @@ import { Router } from '@angular/router';
 export class MyWardrobesPage implements OnInit {
 
   @Output() selectedItem: EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
+   @Input() showheader: boolean = false;
 
   [x: string]: any;
   wardrobesItems = this.appService.resultsSignal; // Utilizza signal per rendere reattivo l'array

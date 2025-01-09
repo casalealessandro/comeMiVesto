@@ -1,4 +1,14 @@
 <ion-content class="ion-padding scroll-y">
+  <app-header 
+  *ngIf="showheader"
+  [canGoBack]="false"
+  [showLogo]="false"
+  [showTitleText]="true"
+  [titleText]="'Armadio personale'"
+  [showCloseBtn]="true"
+  [showMenuBtn]="false"
+  
+  ></app-header>
   <div class="main-content">
     <div class="clothes-intro">
 

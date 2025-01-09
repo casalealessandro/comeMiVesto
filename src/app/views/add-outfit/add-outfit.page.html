@@ -1,6 +1,15 @@
 <ion-content [fullscreen]="true">
 
- 
+  <app-header 
+  *ngIf="showheader"
+  [canGoBack]="false"
+  [showLogo]="false"
+  [showTitleText]="true"
+  [titleText]="'Modifica outfit'"
+  [showCloseBtn]="true"
+  [showMenuBtn]="false"
+  
+  ></app-header>
 
   <app-foto-outfit
   (eventFotoCaptured)="setImageCaptured($event)"

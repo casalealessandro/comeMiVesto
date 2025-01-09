@@ -20,6 +20,7 @@ export class AddOutfitPage {
   @ViewChild('imageContainer', { static: false }) imageContainer: ElementRef | undefined;
 
   @Input() isEditMode: boolean = false;
+  @Input() showheader: boolean = false;
   @Input() outfitData: any = {};
   image: Blob | undefined;
   tags: Tag[] = [];
