@@ -289,7 +289,7 @@ export class FotoOutfitPage implements OnInit {
     const modal = await this.modalController.create({
       component: MyWardrobesPage,
       componentProps: {
-       showHidden: true
+       showHeader: true
 
       }
     });
