@@ -798,8 +798,12 @@ export class MyOutFitPage implements OnInit {
   }
 
   async hasOutfitVisitFull(outfit: outfit) {
+    if(outfit.tags.length == 0) {
+      return
+    }
     this.router.navigate(['tabs/detail-outfit', outfit.id]).then(async res => {
-
+      
+      
       if (outfit.userId == this.cUserID) {
         return
       }

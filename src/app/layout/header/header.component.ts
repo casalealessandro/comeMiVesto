@@ -1,7 +1,7 @@
 import { Component, effect, Input, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { MenuController, ModalController, NavController } from '@ionic/angular';
-import { UserProfile } from 'firebase/auth';
+import { UserProfile } from 'src/app/service/interface/user-interface';;
 import { filter, Observable } from 'rxjs';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 import { UserService } from 'src/app/service/user.service';
@@ -28,7 +28,7 @@ export class HeaderComponent implements OnInit {
   @Input() showMenuBtn:  boolean = true;
 
   showHeader: boolean = true;
-  userProfile$!: Observable<UserProfile | null>;
+
   userProfile!: Partial<UserProfile>;
   uid: any;
 
@@ -58,12 +58,12 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit() {
 
-    this.userProfile$ = this.userProfileService.getUserProfile() as Observable<UserProfile | null>;
+    ;
 
-    this.userProfile$.subscribe(userProfile => {
+    this.userProfileService.getUserProfile().subscribe(userProfile => {
       if (userProfile)
         this.userProfile = userProfile;
-      this.uid = this.userProfile['uid']
+        this.uid = this.userProfile['uid']
     })
 
    

@@ -19,7 +19,7 @@ import { Router } from '@angular/router';
 export class MyWardrobesPage implements OnInit {
 
   @Output() selectedItem: EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
-   @Input() showheader: boolean = false;
+  @Input() showheader: boolean = false;
 
   [x: string]: any;
   wardrobesItems = this.appService.resultsSignal; // Utilizza signal per rendere reattivo l'array
@@ -147,20 +147,24 @@ export class MyWardrobesPage implements OnInit {
 
     const categoryID = data.outfitCategory;
     const subCategoryID = data.outfitSubCategory;
-    const link = !data.link ? '#' : data.link
-
+    const link = !data.link ? '#' : data.link;
+ 
+    let prezzo = !data.prezzo ? null : data.price
+    let images = !data.images ? "" : data.images
+    images = data.imageUrl ? data.imageUrl : images
+   
 
     const id = this.generateGUID();
     let saveData: wardrobesItem = {
       brend: data.brend,
       id: id,
-      images: data.Images,
+      images: images,
       name: data.name,
       outfitCategory: categoryID,
       outfitSubCategory: subCategoryID,
       color: data.color,
       userId: this.userID,
-      prezzo: parseInt(data.price, 10),
+      prezzo: prezzo ? parseInt(prezzo,20) : prezzo,
       link: link,
     }
 
@@ -188,7 +192,7 @@ export class MyWardrobesPage implements OnInit {
       component: ProdottiOnlinePage,
       componentProps: {
         showHeader: true,
-        
+
       }
 
     });
@@ -261,7 +265,7 @@ export class MyWardrobesPage implements OnInit {
       case 'removeProduct':
         this.deleteItemWadro(item)
         break;
-    
+
       default:
         const modal = await this.modalController.getTop();
         if (modal) {
@@ -273,7 +277,7 @@ export class MyWardrobesPage implements OnInit {
         break;
     }
     // Controlla se la pagina è aperta in un modale
-    
+
 
   }
 

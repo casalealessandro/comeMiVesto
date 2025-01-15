@@ -43,22 +43,27 @@ private _userInfo?: UserProfile | null; // Variabile privata per memorizzare il 
       );
   }
 
-  getUserProfile(): Observable<UserProfile | null> {
-    return this.afAuth.authState.pipe(
-      switchMap(user => {
-        if (user) {
-          return this.firestore.collection('users').doc<UserProfile>(user.uid).valueChanges().pipe(
-            map(profile => {
-              this.userInfo = profile || null; // Imposta il valore tramite il setter
-              return profile || null; // Trasforma undefined in null\
+  getUserProfile():Observable<UserProfile>  {
+ 
+    
 
-            }) // Trasforma undefined in null
-          );
-        } else {
-          return of(null); // Ritorna un Observable che emette null
-        }
-      })
-    );
+      let EndPoint = `${this.apiFire}/user/user-profile`
+      const uid = this.userInfo.uid;
+  
+      if (uid) {
+        EndPoint = `${EndPoint}/${uid}`
+      } 
+  
+  
+      //const HeaderOdata = {}
+  
+      const response = this.httpClient.get(EndPoint)
+  
+      return response.pipe(map((res: any) => {
+        return res as UserProfile;
+      }));
+        
+    
   }
 
 
