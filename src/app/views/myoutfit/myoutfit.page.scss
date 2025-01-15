@@ -16,7 +16,7 @@
         align-items: center;
 
         .form-search {
-          border: 0.5px solid var(--primary-color);
+          border: 1px solid var(--primary-color);
           border-radius: 3px;
           display: flex;
 
@@ -29,7 +29,7 @@
           height: 34px;
           width: 100%;
           color: #000;
-
+          //border-top: 0.5px solid var(--primary-color);
           .fi {
             font-size: 14px;
             width: 14px;
