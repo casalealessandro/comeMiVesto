@@ -24,12 +24,12 @@ export class HeaderComponent implements OnInit {
   @Input() showUserInfo: boolean = false;
   @Input() showTitleText: boolean = false;
   @Input() titleText: string | undefined;
-  @Input() showCloseBtn:  boolean = false;
-  @Input() showMenuBtn:  boolean = true;
+  @Input() showCloseBtn: boolean = false;
+  @Input() showMenuBtn: boolean = true;
 
   showHeader: boolean = true;
 
-  userProfile!: Partial<UserProfile>;
+  userProfile = this.userProfileService.gUserProfile();
   uid: any;
 
   // 👇 Reading the whole state
@@ -58,19 +58,16 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit() {
 
-    ;
 
-    this.userProfileService.getUserProfile().subscribe(userProfile => {
-      if (userProfile)
-        this.userProfile = userProfile;
-        this.uid = this.userProfile['uid']
-    })
 
-   
+    const userProfile = this.userProfile()
+    this.uid = userProfile!.uid
+
+
 
     this.sharedData.staredData$.subscribe(res => {
       console.log('HeaderComponent', res);
-      const sData = this.sharedData.data().filter(data => data.componentName === "HeaderComponent" );
+      const sData = this.sharedData.data().filter(data => data.componentName === "HeaderComponent");
       console.log('Header', sData)
       this.serVariable(sData[0].data)
       //this.setShowElements()
@@ -96,7 +93,7 @@ export class HeaderComponent implements OnInit {
     const currentUrl = this.router.url;
     this.canGoBack = !this.initialRoutes.has(currentUrl);
 
-   
+
 
   }
 

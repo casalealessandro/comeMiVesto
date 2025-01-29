@@ -88,7 +88,8 @@ export class AppService {
     return this.http.post<ApiResponse<T>>(completeApi, payloadData).pipe(
       retry(2), // Riprova in caso di errore temporaneo
       map((response) => response.data),
-      catchError(this.handleError)
+      catchError(this.handleError),
+      tap(() => console.info('Richiesta all’API effettuata con successo'))
     );
   }
 

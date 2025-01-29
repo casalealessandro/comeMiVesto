@@ -16,7 +16,7 @@ import { sharedData, SharedDataService } from 'src/app/service/shared-data.servi
 export class FilterOutfitsPage implements OnInit {
 
 
-  constructor(private sharedDataService: SharedDataService, private appService: AppService, private categoryService: CategoryService, private modalController:ModalController) { }
+  constructor(private sharedDataService: SharedDataService, private appService: AppService, private categoryService: CategoryService, private modalController: ModalController) { }
 
   @Input() currentFilterSel: any
 
@@ -47,7 +47,7 @@ export class FilterOutfitsPage implements OnInit {
         outfitCategory: '',
         outfitSubCategoryName: 'Seleziona',
         outfitSubCategory: '',
-        color:'',
+        color: '',
         colorName: 'Seleziona',
         colorHex: '',
       },
@@ -55,7 +55,7 @@ export class FilterOutfitsPage implements OnInit {
         outfitCategory: '',
         outfitSubCategoryName: 'Seleziona',
         outfitSubCategory: '',
-        color:'',
+        color: '',
         colorName: 'Seleziona',
         colorHex: '',
       }
@@ -88,7 +88,7 @@ export class FilterOutfitsPage implements OnInit {
     this.itmSeasons = seasons;
 
 
-    
+
     if (this.currentFilterSel && this.currentFilterSel.categories) {
       for (let x = 0; x < this.currentFilterSel.categories.length; x++) {
         if (this.filterItmClothing.categories && this.filterItmClothing.categories[x]) {
@@ -99,12 +99,12 @@ export class FilterOutfitsPage implements OnInit {
         }
       }
     }
-    if(this.currentFilterSel.season){
+    if (this.currentFilterSel.season) {
       this.selectedFilterSeasonIndex.set(this.itmSeasons.findIndex((r: any) => r.id == this.currentFilterSel.season))
-    
+
       this.filterItmClothing.season = this.currentFilterSel.season
     }
-    if(this.currentFilterSel.style){
+    if (this.currentFilterSel.style) {
 
       this.selectedFilterStyleIndex.set(this.itmStyles.findIndex((r: any) => r.id == this.currentFilterSel.style))
       this.filterItmClothing.style = this.currentFilterSel.style
@@ -195,11 +195,11 @@ export class FilterOutfitsPage implements OnInit {
   selStyle(indexStyle: any, selStyle: any) {
     if (this.selectedFilterStyleIndex == indexStyle) {
       this.filterItmStyle = null;
-      this.selectedFilterStyleIndex.set(null); 
+      this.selectedFilterStyleIndex.set(null);
       this.filterItmClothing.style = ''
       return
     }
-    this.selectedFilterStyleIndex.set(indexStyle); 
+    this.selectedFilterStyleIndex.set(indexStyle);
     this.filterItmStyle = selStyle
     this.filterItmClothing.style = selStyle.id
   }
@@ -212,7 +212,7 @@ export class FilterOutfitsPage implements OnInit {
       this.filterItmClothing.season = ''
       return
     }
-    this.selectedFilterSeasonIndex.set(indexSeason); 
+    this.selectedFilterSeasonIndex.set(indexSeason);
     this.filterItmSeason = selSeason
     this.filterItmClothing.season = selSeason.id
   }
@@ -255,22 +255,52 @@ export class FilterOutfitsPage implements OnInit {
 
 
 
-  clearAllFilters() {
-    this.sharedDataService.staredData$
+  async clearAllFilters() {
+    this.filterItmClothing = {
+      categories: [
+        {
+          outfitCategory: '',
+          outfitSubCategoryName: 'Seleziona',
+          outfitSubCategory: '',
+          color: '',
+          colorName: 'Seleziona',
+          colorHex: '',
+        },
+        {
+          outfitCategory: '',
+          outfitSubCategoryName: 'Seleziona',
+          outfitSubCategory: '',
+          color: '',
+          colorName: 'Seleziona',
+          colorHex: '',
+        }
+      ],
+      season: '',
+
+      style: ''
+
+    }
+
+    this.sharedDataService.clearData('FilterOutfitsPage');
+    const modal = await this.modalController.getTop();
+    if (modal) {
+      // Se c'è un modale aperto, chiudi il modale
+      modal.dismiss();
+    }
   }
 
   async saveSelecedFilter() {
-    
-    let data:sharedData ={    
+
+    let data: sharedData = {
       componentName: 'FilterOutfitsPage',
-      data: this.filterItmClothing  
+      data: this.filterItmClothing
     }
     this.sharedDataService.setData(data);
     const modal = await this.modalController.getTop();
     if (modal) {
       // Se c'è un modale aperto, chiudi il modale
       modal.dismiss();
-    } 
+    }
   }
 
 }

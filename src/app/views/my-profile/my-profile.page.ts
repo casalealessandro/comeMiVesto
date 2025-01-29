@@ -21,16 +21,16 @@ export class MyProfilePage implements OnInit {
 
   outfitNumber: number = 0;
 
-  userProfile$!: Observable<UserProfile | null>;
+  userProfile$= this.userProfileService.gUserProfile();
   userOutfits$!: Observable<outfit[]>;
   userWardrobes$!: Observable<wardrobesItem[]>;
-  faveUserOutfits$!: Observable<any[]>;
+  faveUserOutfits$= this.userProfileService.getFaveUserOutfits();
   userOutfits!: outfit[];
   wardrobesNumber: number = 0;
   userWardrobes!: wardrobesItem[];
   faveUserOutfitsNumber: number = 0;
-  faveUserOutfits!: any[];
-  userProfile!: Partial<UserProfile>;
+  //faveUserOutfits!: any[];
+
   uid: string | undefined;
   userPreference!: UserPreference | null;
   segmentButtons = [
@@ -70,19 +70,19 @@ export class MyProfilePage implements OnInit {
 
   async ngOnInit() {
 
-    this.userProfile$ = this.userProfileService.getUserProfile();
+    //this.userProfile$ = this.userProfileService.getUserProfile();
     this.userOutfits$ = this.userProfileService.getUserOutfits();
     this.userWardrobes$ = this.userProfileService.getUserWardrobes();
-    this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits();
+   
     this.userPreference = await this.userProfileService.getUserPreference();
 
-    //console.log('userOutfits',this.userOutfits$)
-    this.userProfile$.subscribe(userProfile => {
-      if (userProfile)
-        this.userProfile = userProfile;
-      this.uid = this.userProfile.uid
-    })
 
+
+    this.uid = this.userProfile$()?.uid;
+    
+    
+   
+    
     this.userOutfits$.subscribe(outfits => {
       this.outfitNumber = outfits.length;
       this.segmentButtons[0].number =this.outfitNumber 
@@ -95,12 +95,16 @@ export class MyProfilePage implements OnInit {
       this.segmentButtons[1].number =this.wardrobesNumber 
       this.userWardrobes = wardrobes
     });
-
-    this.faveUserOutfits$.subscribe(faveUserOutfits => {
+    
+    this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits();
+    
+    const faveUserOutfits = this.faveUserOutfits$()
+    
       this.faveUserOutfitsNumber = faveUserOutfits.length;
       this.segmentButtons[2].number =this.faveUserOutfitsNumber 
-      this.faveUserOutfits = faveUserOutfits
-    })
+      //this.faveUserOutfits = faveUserOutfits;
+     //console.log(this.faveUserOutfits)
+   
 
     
     
@@ -143,13 +147,13 @@ export class MyProfilePage implements OnInit {
       component: ModalFormComponent,
       componentProps: {
         service: 'profileForm',
-        editData: this.userProfile
+        editData: this.userProfile$()
       }
     });
     await modal.present();
 
     const { data } = await modal.onDidDismiss();
-    if (data.email != this.userProfile.email) {
+    if (data.email != this.userProfile$()!.email) {
       this.alert.create({
         header: 'Attenzione!',
         message: `Non è possibile cambiare email, pertanto l'email non verrà sostiuita`,
@@ -167,21 +171,24 @@ export class MyProfilePage implements OnInit {
       cognome: data.cognome,
       name: data.name,
       nome: nome,
-      email: this.userProfile.email,
+      email: this.userProfile$()?.email,
       bio: bio,
       gender: data.gender,
       editedAt: new Date().getTime()
 
     }
-    let isOk = await this.userProfileService.updateUserProfile(profileData)
-    if (isOk) {
-      this.alert.create({
-        header: 'Attenzione!',
-        message: `Profilo aggiornato`,
-        buttons: ['Ok'],
-      })
-      this.userProfile = profileData;
-    }
+    this.userProfileService.updateUserProfile(profileData).subscribe(data=>{
+      const isOk = data? true : false;
+      if (isOk) {
+        this.alert.create({
+          header: 'Attenzione!',
+          message: `Profilo aggiornato`,
+          buttons: ['Ok'],
+        })
+        //this.userProfile = profileData;
+      }
+    });
+    
 
   }
 
@@ -282,6 +289,34 @@ export class MyProfilePage implements OnInit {
     if (res) {
       this.userWardrobes$ = this.userProfileService.getUserWardrobes();
     }
+
+
+  }
+  async deleteFaveOutfit(event: any, faveItem: any) {
+
+    event.stopPropagation();
+    event.preventDefault();
+
+    let coditions = [
+
+      {
+        field: 'userId', operator: '==', value: this.uid
+      },
+      {
+        field: 'outfitId', operator: '==', value: faveItem.id
+      }
+    ]
+    let res = await this.appService.deleteDocuments('faveUserOutfits', coditions)
+/* 
+    if (res) {
+     this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits(this.uid);
+     this.faveUserOutfits$.subscribe(async faveUserOutfits => {
+      this.faveUserOutfitsNumber = faveUserOutfits.length;
+      this.segmentButtons[2].number =this.faveUserOutfitsNumber 
+      this.faveUserOutfits = faveUserOutfits;
+      console.log(this.faveUserOutfits)
+    }) 
+    }*/
 
 
   }

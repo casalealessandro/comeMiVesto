@@ -4,8 +4,8 @@
     <div class="profile-content">
       <div class="profile-avatar-container">
         <ion-avatar class="profile-avatar" (click)="changeProfilePicture()">
-          <img *ngIf="userProfile$ | async as userProfile" class="profile-pic"
-            [src]="userProfile.photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+          <img *ngIf="userProfile$()" class="profile-pic"
+            [src]="userProfile$()?.photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
 
 
         </ion-avatar>
@@ -14,9 +14,10 @@
           <i class="fi fi-bs-plus"></i>
         </span>
 
-        <div class="profile-info" *ngIf="userProfile$ | async as userProfile">
-          <p class="profile-name">{{userProfile.displayName}}</p>
-          <p class="profile-bio">{{userProfile.bio}}</p>
+        <div class="profile-info" *ngIf="userProfile$()">
+          <p class="profile-name">{{userProfile$()?.displayName}}</p>
+
+          <p class="profile-bio">{{userProfile$()?.bio}}</p>
 
         </div>
       </div>
@@ -117,14 +118,15 @@
         </ng-container>
         <ion-grid>
           <ion-row class="style">
-            <ion-col class="post-col" size="6" *ngFor="let faveUserOutfit of faveUserOutfits">
+            <ion-col class="post-col" size="6" *ngFor="let faveUserOutfit of faveUserOutfits$()">
               <div class="post-image">
-                <ion-img [src]="faveUserOutfit.images" [alt]="faveUserOutfit.name">
+                <ion-img [src]="faveUserOutfit.imageUrl" [alt]="faveUserOutfit.title">
                 </ion-img>
-                <span class="del-item">
-                  <ion-ripple-effect></ion-ripple-effect>
-                  <i class="fi fi-rr-trash"></i>
-                </span>
+                <div  class="del-item">
+                  <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="deleteFaveOutfit($event,faveUserOutfit)">
+                    <i class="fi fi-rr-cross"></i>
+                  </ion-button>
+                </div>
               </div>
 
             </ion-col>

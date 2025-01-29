@@ -11,10 +11,10 @@ import { TermsConditionsPage } from 'src/app/views/terms-conditions/terms-condit
   templateUrl: './menu.component.html',
   styleUrls: ['./menu.component.scss'],
 })
-export class MenuComponent implements OnInit {
+export class MenuComponent {
   
-  userProfile$!:Observable<UserProfile | null>;
-  userProfile!: Partial<UserProfile| null>;
+  //userProfile$:UserProfile | null= this.userProfileService._userInfo();
+  userProfile = this.userProfileService.gUserProfile();
   modalController = inject(ModalController)
   
   constructor(private router: Router, private userProfileService: UserService, private alert: AlertController,private menuCtrl: MenuController) { }
@@ -43,15 +43,7 @@ export class MenuComponent implements OnInit {
   ]
 
 
-  ngOnInit() {
-    this.userProfile$ = this.userProfileService.getUserProfile() as Observable<UserProfile | null>;
-    //console.log('userOutfits',this.userOutfits$)
-    this.userProfile$.subscribe(userProfile => {
-      if (userProfile)
-        this.userProfile = userProfile;
-      
-    })
-  }
+
   navUserProfile() {
     this.router.navigate(['/tabs/my-profile']).then(() => {this.closeMenu()});
   }
@@ -60,8 +52,10 @@ export class MenuComponent implements OnInit {
   }
   async logOut() {
     let logout = await this.userProfileService.logOut()
-
+   
+      
     if (logout) {
+      sessionStorage.clear()
       this.router.navigate(['/login'])
     }
   }

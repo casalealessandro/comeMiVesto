@@ -5,12 +5,12 @@
   <div class="profile-content-inline">
     <div class="profile-avatar-container">
       <ion-avatar class="profile-avatar">
-        <img *ngIf="userProfile" class="profile-pic"
-          [src]="userProfile.photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+        <img *ngIf="userProfile()" class="profile-pic"
+          [src]="userProfile()?.photoURL || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
       </ion-avatar>
       <div class="profile-info" *ngIf="userProfile">
-        <span class="profile-name">{{userProfile.name}} {{userProfile.cognome}}</span>
-        <span class="profile-displayName">{{userProfile.displayName}}</span>
+        <span class="profile-name">{{userProfile()?.name}} {{userProfile()?.cognome}}</span>
+        <span class="profile-displayName">{{userProfile()?.displayName}}</span>
         <span class="profile-nav" (click)="navUserProfile()">Visualizza il mio profilo <i class="fi fi-rr-angle-small-right"></i></span>
      
 

@@ -15,7 +15,7 @@
     </ion-title>
     <ion-title class="profile-header-title" *ngIf="showUserInfo">
       <div *ngIf="userProfile">
-        <span class="profile-name">{{userProfile['name']}} {{userProfile['cognome']}} </span>
+        <span class="profile-name">{{userProfile()?.name}} {{userProfile()?.cognome}} </span>
 
       </div>
     </ion-title>

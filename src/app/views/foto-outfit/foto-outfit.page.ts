@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, signal, ViewChild } from '@angular/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Browser } from '@capacitor/browser';
 import { Tag, outfit } from 'src/app/service/interface/outfit-all-interface';
@@ -35,7 +35,7 @@ export class FotoOutfitPage implements OnInit {
   fileName: any;
   format: string = '';
   openFullScreen:boolean=false
-  
+  showTooltip = signal(false);
   constructor(private modalController: ModalController,private alert:AlertController) { }
 
 
@@ -100,7 +100,7 @@ export class FotoOutfitPage implements OnInit {
     if (image && image.dataUrl) {  // Aggiungi un controllo per verificare che dataUrl non sia undefined
       const maxWidth = 1080; // Larghezza massima per i post verticali tipo Instagram
       const maxHeight = 1350; // Altezza massima per i post verticali tipo Instagram
-  
+      this.showTooltip.set(true);
       // Ridimensionamento dell'immagine
       const resizedImage = await this.resizeImage(image.dataUrl, maxWidth, maxHeight);
   
@@ -126,6 +126,11 @@ export class FotoOutfitPage implements OnInit {
         contentType: contentType,
       };
       this.eventFotoCaptured.emit(eventToEmit);
+
+     
+
+      // Nasconde il tooltip dopo 3 secondi
+      setTimeout(() => this.showTooltip.set(false), 3700)
     }
   }
   

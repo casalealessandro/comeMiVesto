@@ -20,12 +20,12 @@ export class LoginPage {
   email: string = '';
   password: string = '';
   showLogin:boolean=true;
-  stayConnected:boolean=false;
+  stayConnected:boolean=true;
   emailRecup:string=''
   auth = getAuth(inject(FirebaseApp));
  
   recupPasswordError:string = 'Inserisci un email valida'
-  constructor(private afAuth: AngularFireAuth,private userService: UserService, private alert:AlertController) {}
+  constructor(private afAuth: AngularFireAuth,private userService: UserService, private alert:AlertController,private router :Router) {}
 
   async login() {
     
@@ -41,10 +41,14 @@ export class LoginPage {
     //this.userService.loginUser('/user/login',userLoginData)
     this.afAuth.signInWithEmailAndPassword(this.email, this.password)
       .then((userCredential:any) => {
-        console.log('userCredential-->',userCredential)
-        //this.router.navigate(['/myoutfit'], { skipLocationChange: true, replaceUrl: true })
+        this.userService.getUserProfile(userCredential.uid).subscribe(userData => {
+          this.userService.setUserInfo(userData);
+          sessionStorage.setItem('userProfile',JSON.stringify(userData));
+          this.router.navigateByUrl('/tabs/myoutfit');
+        })
       })
       .catch(error => {
+        console.error(error)
         this.alert.create(
          { 
           header:'Attenzione!',
