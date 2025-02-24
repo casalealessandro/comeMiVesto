@@ -7,10 +7,14 @@ import { outfit } from 'src/app/service/interface/outfit-all-interface';
   providedIn: 'root', // Questo rende il servizio disponibile in tutta l'app
 })
 export class SocialSharing {
-  constructor(private router: Router) {} // Iniezione di Router tramite il costruttore
+  constructor(private router: Router) { } // Iniezione di Router tramite il costruttore
 
   private getShareUrl(id: number): string { // Cambiato 'any' in 'number'
-    return `https://comemivesto.app${this.router.createUrlTree(['/detail-outfit/', id]).toString()}`;
+    const appUrl = `myapp://outfit/${id}`; // Deep link per l'app
+    const webUrl = `https://comemivesto.app${this.router.createUrlTree(['/detail-outfit/', id]).toString()}`; // URL per il browser
+
+    // Puoi decidere quale URL mostrare in base all'ambiente
+    return appUrl;  // Torna il deep link per l'app
   }
 
   public async shareVia(outfit: outfit): Promise<void> {
@@ -23,7 +27,7 @@ export class SocialSharing {
       await Share.share({
         title: title,
         text: message,
-        url: url,
+        url: url,  // URL del deep link
         dialogTitle: dialogTitle,
       });
     } catch (error) {
