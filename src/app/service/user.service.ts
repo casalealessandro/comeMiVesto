@@ -17,6 +17,7 @@ export class UserService {
   apiFire = "https://us-central1-comemivesto-5e5f9.cloudfunctions.net/api";
   // Crea un Signal per il wardrobe
   faveUserOutfitsSignal =  signal<any[]>([]); // Stato reattivo
+  numberFaveUserOutfitsSignal =  signal<number>(0); // Stato reattivo
   angularFireAuth = inject(AngularFireAuth);
   //private _userInfo?: UserProfile | null; // Variabile privata per memorizzare il valore
   // Utilizzo di signal per mantenere lo stato reattivo
@@ -38,9 +39,12 @@ export class UserService {
     effect(() => {
       console.log('Outfit preferiti aggiornati:', this.faveUserOutfitsSignal());
       console.log('Profilo aggiornat:', this._userInfo());
+      console.log('N.Outfit preferiti aggiornati:', this.numberFaveUserOutfitsSignal());
     });
    // this.loadUser()
   }
+
+  /**INIZIO DELLA GESTIONE DATI UTENTE E PROFILO**/
   setUserInfo(userInfo: UserProfile)
   {
     this._userInfo.set({ ...userInfo }); // Imposta il profilo dell'utente nel signal
@@ -72,9 +76,6 @@ export class UserService {
     return this._userInfo;
   }
 
-
-  
-
   registerUser<T>(api: string, payloadData: T): Observable<T[]> {
     const completeApi = `${this.apiFire}${api}`;
     return this.httpClient.post<ApiResponse<T>>(completeApi, payloadData).pipe(
@@ -94,12 +95,6 @@ export class UserService {
 
   getUserProfile(userId?: any): Observable<UserProfile> {
 
-
-   /*
-      
-   
-    */
-
   const apiSubject = `${this.apiFire}/user/user-profile/${userId}`;
 
     return this.httpClient.get<UserProfile>(apiSubject).pipe(
@@ -110,7 +105,6 @@ export class UserService {
       catchError(this.handleError)
     );
   }
-
 
   updateUserProfile(profileData: Partial<UserProfile>): Observable<any> {
     
@@ -127,6 +121,19 @@ export class UserService {
   
   }
 
+  async updateProfilePicture(imageData: string): Promise<void> {
+    const user = await this.afAuth.currentUser;
+    if (user) {
+      const filePath = `profile_pictures/${user.uid}.jpg`;
+      const ref = this.storage.ref(filePath);
+      await ref.putString(imageData, 'data_url');
+
+      let photoURL = await lastValueFrom(ref.getDownloadURL())
+
+      this.updateUserProfile({ photoURL });
+    }
+  }
+  /**FINE GESTIONE DATI UTENTE**/
   async setUserPreference(profilePreferData: Partial<UserPreference>): Promise<boolean> {
     try {
       const user = await this.afAuth.currentUser;
@@ -143,18 +150,7 @@ export class UserService {
 
   }
 
-  async updateProfilePicture(imageData: string): Promise<void> {
-    const user = await this.afAuth.currentUser;
-    if (user) {
-      const filePath = `profile_pictures/${user.uid}.jpg`;
-      const ref = this.storage.ref(filePath);
-      await ref.putString(imageData, 'data_url');
-
-      let photoURL = await lastValueFrom(ref.getDownloadURL())
-
-      this.updateUserProfile({ photoURL });
-    }
-  }
+  
 
   getUserOutfits(): Observable<any[]> {
 
@@ -181,9 +177,18 @@ export class UserService {
     );
   }
 
-   /** Restituisce il signal per l'uso nei componenti */
+  /**GESTIONE OUTFIT PREFERITI**/
+  setFaveUserOutfits(faveOutfit: any)
+  {
+    this.faveUserOutfitsSignal.set(faveOutfit); // Imposta gli outfit preferiti nel signal
+
+    this.numberFaveUserOutfitsSignal.set(faveOutfit.length); //
+  }
   getFaveUserOutfits() {
     return this.faveUserOutfitsSignal;
+  }
+  getNumberFaveUserOutfitsNumber() {
+    return this.numberFaveUserOutfitsSignal;
   }
   loadFaveUserOutfits(uid: any): Observable<any[]> {
 
@@ -191,9 +196,9 @@ export class UserService {
 
     return this.httpClient.get<ApiResponse<any[]>>(apiSubject).pipe(
       retry(3),
-      tap((res) => this.faveUserOutfitsSignal.set(res.data)),
+      
       map((response: any) => response.data),
-
+      tap((data) => this.setFaveUserOutfits(data)), // Aggiorna la lista dopo la cancellazione),
       catchError(this.handleError)
     );
   }
@@ -203,19 +208,21 @@ export class UserService {
 
     return this.httpClient.delete<ApiResponse<any>>(completeApi).pipe(
       retry(2),
-      tap((response) => console.info(response.message)), // ✅ Stampa il messaggio di conferma
+      map((response) => response.data),
+      tap((data) => this.setFaveUserOutfits(data)), // Aggiorna la lista dopo la cancellazione
       catchError(this.handleError),
-      switchMap(() => this.loadFaveUserOutfits(uid)) // Aggiorna la lista dopo la cancellazione
+      
     );
   }
   saveFaveUserOutfits(payloadData: any): Observable<any[]> {
+    
     const completeApi = `${this.apiFire}/gen/save-fave-user-outfits`;
 
     return this.httpClient.post<ApiResponse<any>>(completeApi, payloadData).pipe(
       retry(2), // Riprova in caso di errore temporaneo
       map((response) => response.data),
       catchError(this.handleError),
-      tap(() => this.loadFaveUserOutfits(payloadData.uid)) // Aggiorna la lista dopo la cancellazione
+      tap((data) => this.setFaveUserOutfits(data)) // Aggiorna la lista dopo il salvataggio
     );
   }
 

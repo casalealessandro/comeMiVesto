@@ -130,7 +130,7 @@ export class FotoOutfitPage implements OnInit {
      
 
       // Nasconde il tooltip dopo 3 secondi
-      setTimeout(() => this.showTooltip.set(false), 3700)
+      setTimeout(() => this.showTooltip.set(false), 5500)
     }
   }
   

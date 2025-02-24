@@ -113,14 +113,14 @@
       </div>
 
       <div *ngIf="selectedSegment === 'fave'" class="content">
-        <ng-container *ngIf="!faveUserOutfitsNumber">
+        <ng-container *ngIf="faveUserOutfitsNumber$()===0">
           <ion-text>Nessun outfit preferito</ion-text>
         </ng-container>
         <ion-grid>
           <ion-row class="style">
             <ion-col class="post-col" size="6" *ngFor="let faveUserOutfit of faveUserOutfits$()">
               <div class="post-image">
-                <ion-img [src]="faveUserOutfit.imageUrl" [alt]="faveUserOutfit.title">
+                <ion-img [src]="faveUserOutfit.imageUrl" [alt]="faveUserOutfit.title" forceReload="true">
                 </ion-img>
                 <div  class="del-item">
                   <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="deleteFaveOutfit($event,faveUserOutfit)">

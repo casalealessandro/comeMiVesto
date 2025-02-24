@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, effect, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { UserService } from 'src/app/service/user.service';
@@ -21,14 +21,15 @@ export class MyProfilePage implements OnInit {
 
   outfitNumber: number = 0;
 
-  userProfile$= this.userProfileService.gUserProfile();
+  userProfile$ = this.userProfileService.gUserProfile();
   userOutfits$!: Observable<outfit[]>;
   userWardrobes$!: Observable<wardrobesItem[]>;
-  faveUserOutfits$= this.userProfileService.getFaveUserOutfits();
+  faveUserOutfits$ = this.userProfileService.getFaveUserOutfits();
+  faveUserOutfitsNumber$ = this.userProfileService.getNumberFaveUserOutfitsNumber();
   userOutfits!: outfit[];
   wardrobesNumber: number = 0;
   userWardrobes!: wardrobesItem[];
-  faveUserOutfitsNumber: number = 0;
+
   //faveUserOutfits!: any[];
 
   uid: string | undefined;
@@ -61,53 +62,61 @@ export class MyProfilePage implements OnInit {
 
 
   constructor(
-      private userProfileService: UserService,
-      private appService: AppService, 
-      private navController: NavController,
-      private modalController: ModalController, 
-      private alert: AlertController, 
-      private sharedData: SharedDataService) { }
+    private userProfileService: UserService,
+    private appService: AppService,
+    private navController: NavController,
+    private modalController: ModalController,
+    private alert: AlertController,
+    private sharedData: SharedDataService) { 
+
+       // Effetto per ascoltare i cambiamenti
+          effect(() => {
+            console.log('Outfit preferiti aggiornati:', this.faveUserOutfits$());
+            
+            console.log('N.Outfit preferiti aggiornati:', this.faveUserOutfitsNumber$());
+          });
+    }
 
   async ngOnInit() {
 
     //this.userProfile$ = this.userProfileService.getUserProfile();
     this.userOutfits$ = this.userProfileService.getUserOutfits();
     this.userWardrobes$ = this.userProfileService.getUserWardrobes();
-   
+
     this.userPreference = await this.userProfileService.getUserPreference();
 
 
 
     this.uid = this.userProfile$()?.uid;
-    
-    
-   
-    
+
+
+
+
     this.userOutfits$.subscribe(outfits => {
       this.outfitNumber = outfits.length;
-      this.segmentButtons[0].number =this.outfitNumber 
+      this.segmentButtons[0].number = this.outfitNumber
       this.userOutfits = outfits
     });
 
     this.userWardrobes$.subscribe(wardrobes => {
       this.wardrobesNumber = wardrobes.length;
 
-      this.segmentButtons[1].number =this.wardrobesNumber 
+      this.segmentButtons[1].number = this.wardrobesNumber
       this.userWardrobes = wardrobes
     });
-    
-    this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits();
-    
-    const faveUserOutfits = this.faveUserOutfits$()
-    
-      this.faveUserOutfitsNumber = faveUserOutfits.length;
-      this.segmentButtons[2].number =this.faveUserOutfitsNumber 
-      //this.faveUserOutfits = faveUserOutfits;
-     //console.log(this.faveUserOutfits)
-   
 
-    
-    
+    this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits();
+
+
+
+
+    this.segmentButtons[2].number = this.faveUserOutfitsNumber$()
+    //this.faveUserOutfits = faveUserOutfits;
+    //console.log(this.faveUserOutfits)
+
+
+
+
   }
 
   openMenu() {
@@ -177,8 +186,8 @@ export class MyProfilePage implements OnInit {
       editedAt: new Date().getTime()
 
     }
-    this.userProfileService.updateUserProfile(profileData).subscribe(data=>{
-      const isOk = data? true : false;
+    this.userProfileService.updateUserProfile(profileData).subscribe(data => {
+      const isOk = data ? true : false;
       if (isOk) {
         this.alert.create({
           header: 'Attenzione!',
@@ -188,7 +197,7 @@ export class MyProfilePage implements OnInit {
         //this.userProfile = profileData;
       }
     });
-    
+
 
   }
 
@@ -221,7 +230,7 @@ export class MyProfilePage implements OnInit {
     }
     let isOk = await this.userProfileService.setUserPreference(profilePrefData)
     if (isOk) {
-      
+
       this.alert.create({
         header: 'Attenzione!',
         message: `Preferenze aggiornate`,
@@ -237,7 +246,7 @@ export class MyProfilePage implements OnInit {
       componentProps: {
         isEditMode: true,
         outfitData: outfitData,
-        showheader:true
+        showheader: true
 
       }
     });
@@ -306,25 +315,33 @@ export class MyProfilePage implements OnInit {
         field: 'outfitId', operator: '==', value: faveItem.id
       }
     ]
-    let res = await this.appService.deleteDocuments('faveUserOutfits', coditions)
-/* 
-    if (res) {
-     this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits(this.uid);
-     this.faveUserOutfits$.subscribe(async faveUserOutfits => {
-      this.faveUserOutfitsNumber = faveUserOutfits.length;
-      this.segmentButtons[2].number =this.faveUserOutfitsNumber 
-      this.faveUserOutfits = faveUserOutfits;
-      console.log(this.faveUserOutfits)
-    }) 
-    }*/
+    this.userProfileService.delFaveUserOutfits(this.uid, faveItem.id).subscribe(res => {
+      if (res) {
+        this.alert.create({
+          header: 'Attenzione!',
+          message: `Outfiti preferiti aggiornati`,
+          buttons: ['Ok'],
+        })
+      }
+    })
+    /* 
+        if (res) {
+         this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits(this.uid);
+         this.faveUserOutfits$.subscribe(async faveUserOutfits => {
+          this.faveUserOutfitsNumber = faveUserOutfits.length;
+          this.segmentButtons[2].number =this.faveUserOutfitsNumber 
+          this.faveUserOutfits = faveUserOutfits;
+          console.log(this.faveUserOutfits)
+        }) 
+        }*/
 
 
   }
 
-  
+
   // Funzione per gestire l'evento di cambio segmento
   onSegmentChange(event: CustomEvent) {
     this.selectedSegment = event.detail.value; // Valore del pulsante selezionato
-    
+
   }
 }

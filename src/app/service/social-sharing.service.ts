@@ -10,7 +10,7 @@ export class SocialSharing {
   constructor(private router: Router) {} // Iniezione di Router tramite il costruttore
 
   private getShareUrl(id: number): string { // Cambiato 'any' in 'number'
-    return `${window.location.origin}${this.router.createUrlTree(['/detail-outfit/', id]).toString()}`;
+    return `https://comemivesto.app${this.router.createUrlTree(['/detail-outfit/', id]).toString()}`;
   }
 
   public async shareVia(outfit: outfit): Promise<void> {
