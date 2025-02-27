@@ -14,10 +14,7 @@ export class SocialSharing {
     const appUrl = `comemivesto://outfit/${id}`; // Deep link per l'app
     const webUrl = `https://comemivesto.app${this.router.createUrlTree(['/detail-outfit/', id]).toString()}`;
 
-    // Verifica la piattaforma (mobile o browser)
-    if (this.platform.is('mobile')) {
-      return appUrl;  // Restituisce il deep link se su dispositivo mobile
-    }
+        
     return webUrl; // Restituisce il link web per il browser
   }
 
