@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'www',
   bundledWebRuntime: false,
   server: {
-    androidScheme: 'https',
+    androidScheme: 'comemivesto',
     allowNavigation: ["*"]
   },
   
