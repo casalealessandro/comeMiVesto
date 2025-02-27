@@ -14,7 +14,7 @@ export class SocialSharing {
     const webUrl = `https://comemivesto.app${this.router.createUrlTree(['/detail-outfit/', id]).toString()}`; // URL per il browser
 
     // Puoi decidere quale URL mostrare in base all'ambiente
-    return appUrl;  // Torna il deep link per l'app
+    return webUrl;  // Torna il deep link per l'app
   }
 
   public async shareVia(outfit: outfit): Promise<void> {
