@@ -51,5 +51,14 @@
 	<string>La tua app ha bisogno di accedere alla libreria fotografica per otttenere le foto degli outfit da caricare e la foto profilo</string>
 	<key>NSCameraUsageDescription</key>
 	<string>La tua app ha bisogno di accedere alla libreria fotografica per otttenere le foto degli outfit da caricare e la foto profilo</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+	<dict>
+		<key>CFBundleURLSchemes</key>
+		<array>
+		<string>comemivesto</string>
+		</array>
+	</dict>
+	</array>
 </dict>
 </plist>

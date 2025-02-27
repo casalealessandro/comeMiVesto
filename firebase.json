@@ -6,17 +6,6 @@
       "**/.*",
       "**/node_modules/**"
     ],
-    "rewrites": [
-     
-      {
-        "source": "/.well-known/apple-app-site-association",
-        "destination": "/.well-known/apple-app-site-association"
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ],
     "headers": [
       {
         "source": "/.well-known/apple-app-site-association",
@@ -27,11 +16,21 @@
           },
           {
             "key": "Cache-Control",
-            "value": "no-cache"
+            "value": "no-store, no-cache, must-revalidate, proxy-revalidate"
           }
         ]
       }
     ],
-    "appAssociation": "NONE"
+    "rewrites": [
+      {
+        "source": "/.well-known/apple-app-site-association",
+        "destination": "/.well-known/apple-app-site-association"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "appAssociation": "AUTO"
   }
 }

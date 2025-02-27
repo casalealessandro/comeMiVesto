@@ -11,10 +11,10 @@ export class SocialSharing {
   constructor(private router: Router, private platform: Platform) {}
 
   private getShareUrl(id: number): string {
-    const appUrl = `comemivesto://outfit/${id}`; // Deep link per l'app
-    const webUrl = `https://comemivesto.app${this.router.createUrlTree(['/detail-outfit/', id]).toString()}`;
+    //const appUrl = `comemivesto://outfit/${id}`; // Deep link per l'app
+    //const webUrl = `https://comemivesto.app${this.router.createUrlTree(['/detail-outfit/', id]).toString()}`;
 
-        
+   const webUrl = `https://comemivesto.app/tabs/myoutfit`
     return webUrl; // Restituisce il link web per il browser
   }
 

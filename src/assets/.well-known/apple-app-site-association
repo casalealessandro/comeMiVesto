@@ -6,7 +6,7 @@
           "appID": "com.acasale.comemivesto.app",
           "paths": [
             "/*",
-            "/tabs/myoutfit/*",
+            "/tabs/myoutfit",
             "/detail-outfit/*"
           ]
         }
