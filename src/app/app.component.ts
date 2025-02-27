@@ -45,7 +45,7 @@ export class AppComponent {
       const url = event.url;
 
       // Verifica se l'URL è un deep link riconosciuto
-      if (url.startsWith('myapp://outfit/')) {
+      if (url.startsWith('comemivesto://outfit/')) {
         const outfitId = url.split('/')[2]; // Estrai l'ID dall'URL
         if (outfitId) {
           this.router.navigate([`/detail-outfit/${outfitId}`]);
