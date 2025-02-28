@@ -1,0 +1,12 @@
+[
+    {
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.acasale.comemivesto",
+        "sha256_cert_fingerprints": [
+          "D1:12:4B:91:90:1B:DB:4A:B6:85:A5:0F:A5:2A:70:14:FF:75:6B:40:D7:46:C9:02:6A:19:12:A1:9B:1E:7B:4C"
+        ]
+      }
+    }
+  ]

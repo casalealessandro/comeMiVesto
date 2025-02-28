@@ -1,16 +1,12 @@
-{
-    "applinks": {
-      "apps": [],
-      "details": [
-        {
-          "appID": "com.acasale.comemivesto.app",
-          "paths": [
-            "/tabs/detail-outfit/*",
-            "/tabs/myoutfit",
-            "/detail-outfit/*"
-          ]
-        }
-      ]
-    }
-  }
   
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "Z9SD7XVK87.com.acasale.comemivesto",
+        "paths": ["/deeplink/*"]
+      }
+    ]
+  }
+}
