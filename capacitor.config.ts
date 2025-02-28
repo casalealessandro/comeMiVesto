@@ -6,8 +6,8 @@ const config: CapacitorConfig = {
   webDir: 'www',
   bundledWebRuntime: false,
   server: {
-    androidScheme: 'comemivesto',
-    allowNavigation: ["*"]
+    androidScheme: 'https',
+    allowNavigation: ["*",'comemivesto.app']
   },
   
   plugins: {
