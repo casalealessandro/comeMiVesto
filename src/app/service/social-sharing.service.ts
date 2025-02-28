@@ -10,6 +10,7 @@ import { outfit } from 'src/app/service/interface/outfit-all-interface';
 export class SocialSharing {
   constructor(private router: Router, private platform: Platform) {}
 
+  
   private getShareUrl(id: number): string {
     //const appUrl = `comemivesto://outfit/${id}`; // Deep link per l'app
     const webUrl = `https://comemivesto.app${this.router.createUrlTree(['tabs/detail-outfit/', id]).toString()}`;
