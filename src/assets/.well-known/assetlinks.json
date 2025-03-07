@@ -1,12 +1,11 @@
 [
-    {
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.acasale.comemivesto",
-        "sha256_cert_fingerprints": [
-          "D1:12:4B:91:90:1B:DB:4A:B6:85:A5:0F:A5:2A:70:14:FF:75:6B:40:D7:46:C9:02:6A:19:12:A1:9B:1E:7B:4C"
-        ]
-      }
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.acasale.comemivesto",
+      "sha256_cert_fingerprints":
+        ["E5:77:99:55:22:98:57:42:13:C9:E6:44:0E:BC:0B:67:55:6C:C7:79:97:A7:70:2A:29:73:9A:F3:D0:0B:CE:76"]
     }
-  ]
+  }
+]

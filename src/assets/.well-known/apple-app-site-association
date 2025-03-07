@@ -5,7 +5,7 @@
     "details": [
       {
         "appID": "Z9SD7XVK87.com.acasale.comemivesto",
-        "paths": ["/deeplink/*"]
+        "paths": ["*"]
       }
     ]
   }

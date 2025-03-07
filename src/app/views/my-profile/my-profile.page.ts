@@ -90,8 +90,6 @@ export class MyProfilePage implements OnInit {
     this.uid = this.userProfile$()?.uid;
 
 
-
-
     this.userOutfits$.subscribe(outfits => {
       this.outfitNumber = outfits.length;
       this.segmentButtons[0].number = this.outfitNumber
