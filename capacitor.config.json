@@ -1,1 +1,26 @@
-{}
+{
+    "appId": "com.acasale.comemivesto",
+    "appName": "Come mi vesto",
+    "webDir": "www",
+    "server": {
+      "androidScheme": "https",
+      "allowNavigation": [
+        "comemivesto.app",
+        "*.comemivesto.app",
+        "localhost"
+      ]
+    },
+    "ios": {
+      "contentInset": "always"
+    },
+    "plugins": {
+      "DeepLinks": {
+        "appId": "com.acasale.comemivesto",
+        "schemes": ["https"],
+        "universalLinks": [
+          "https://comemivesto.app"
+        ]
+      }
+    }
+  }
+  

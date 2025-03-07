@@ -9,8 +9,19 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     allowNavigation: ["*",'comemivesto.app']
   },
-  
-  plugins: {
+  ios: {
+    "contentInset": "always"
+  },
+  plugins: { 
+    DeepLinks: {
+    appId: "com.yourapp",
+    schemes: ["https"],
+    universalLinks: [
+      "https://comemivesto.app",
+
+    ]
+  },
+    
     SplashScreen: {
       launchShowDuration: 5500,  // La durata (in millisecondi) per cui lo splash screen viene mostrato all'avvio dell'applicazione. I
       launchAutoHide: true,      // Fa in modo che lo splash screen si nasconda automaticamente dopo che il tempo definito in launchShowDuration è scaduto.
