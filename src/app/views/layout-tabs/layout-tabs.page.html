@@ -1,19 +1,19 @@
 <ion-menu side="end" contentId="main-content">
-  <ion-content class="menu-main-container" >
-   
-      <app-menu ></app-menu>
-    </ion-content>
-   
-    
-
-  
+  <ion-content class="menu-main-container">
+    <app-menu></app-menu>
+  </ion-content>
 </ion-menu>
 
 <app-header></app-header>
 
-<ion-content class="app-layout-tabs"  id="main-content">
+<ion-content class="app-layout-tabs" id="main-content">
   <ion-tabs (ionTabsDidChange)="onTabChange($event)">
-    <ion-tab-bar slot="bottom" class="outfit-bottom-bar" [translucent]="true">
+    <ion-tab-bar
+      style="padding-bottom: 0px !important"
+      slot="bottom"
+      class="outfit-bottom-bar"
+      [translucent]="true"
+    >
       <div class="toolbar-container">
         <div class="button-block">
           <ion-tab-button class="outfit-bar-button" tab="myoutfit">
@@ -29,15 +29,14 @@
             <span class="outfit-tab-text">Prodotti</span>
           </ion-tab-button>
         </div>
-        
+
         <div class="button-block">
           <div class="outfit-center-button">
-            <ion-tab-button class="outfit-bar-button " tab="add-outfit">
+            <ion-tab-button class="outfit-bar-button" tab="add-outfit">
               <ion-ripple-effect></ion-ripple-effect>
               <span class="fi fi-rr-plus"></span>
             </ion-tab-button>
           </div>
-          
         </div>
         <div class="button-block">
           <ion-tab-button class="outfit-bar-button" tab="my-wardrobes">
@@ -53,10 +52,7 @@
             <span class="outfit-tab-text">Profilo</span>
           </ion-tab-button>
         </div>
-        
- 
       </div>
-
     </ion-tab-bar>
   </ion-tabs>
 </ion-content>

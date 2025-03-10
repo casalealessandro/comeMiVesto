@@ -4,35 +4,44 @@ import { Router } from '@angular/router';
 import { UserService } from './service/user.service';
 import { App } from '@capacitor/app';
 import { Platform } from '@ionic/angular';
-
+import { StatusBar, Style } from '@capacitor/status-bar';
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent {
-  constructor(private afAuth: AngularFireAuth, private router: Router,private userService: UserService,private platform: Platform,) {
+  constructor(
+    private afAuth: AngularFireAuth,
+    private router: Router,
+    private userService: UserService,
+    private platform: Platform
+  ) {
     this.initializeApp();
     this.platform.ready().then(() => {
       this.setupDeepLinkListener();
+      this.setStatusBar();
     });
   }
 
+  async setStatusBar() {
+    try {
+      await StatusBar.setBackgroundColor({ color: '#FF0000' });
+      console.log('setting status bar');
+    } catch (error) {
+      console.error('Error setting status bar:', error);
+    }
+  }
   async initializeApp() {
-    this.afAuth.authState.subscribe(async user => {
-      
+    this.afAuth.authState.subscribe(async (user) => {
       if (user) {
         // L'utente è già autenticato, reindirizzalo alla pagina principale o a un'altra pagina;
-       
-            // Carica e memorizza i dettagli dell'utente nel servizio
+
+        // Carica e memorizza i dettagli dell'utente nel servizio
         const isUserLoaded = await this.userService.loadUser();
         if (isUserLoaded) {
           this.router.navigateByUrl('/tabs/myoutfit');
-        } 
-          
-          
-       
-        
+        }
       } else {
         // L'utente non è autenticato, reindirizzalo alla pagina di login
         this.router.navigateByUrl('/login');

@@ -1,40 +1,50 @@
 <!--Header 3-->
 
-<ion-header class="main-header ion-no-border" [translucent]="true"  >
-  <ion-toolbar class="header-toolbar">
+<ion-header class="main-header ion-no-border" [translucent]="true">
+  <ion-toolbar style="padding-top: 0px !important" class="header-toolbar">
     <ion-buttons slot="start" *ngIf="canGoBack" class="ion-custom-buttons">
       <ion-button (click)="handleBackButton()" size="small">
         <i class="fi fi-rr-angle-left"></i>
       </ion-button>
     </ion-buttons>
     <ion-title class="outfit-header-title" *ngIf="showLogo">
-      <ion-img class="logo" src="../../../assets/images/Logo-nero.png" alt="come mi vesto?"></ion-img>
+      <ion-img
+        class="logo"
+        src="../../../assets/images/Logo-nero.png"
+        alt="come mi vesto?"
+      ></ion-img>
     </ion-title>
-    <ion-title class="outfit-header-title profile-header-title" *ngIf="showTitleText">
-      <span class="profile-name"> {{titleText}} </span>
+    <ion-title
+      class="outfit-header-title profile-header-title"
+      *ngIf="showTitleText"
+    >
+      <span class="profile-name"> {{ titleText }} </span>
     </ion-title>
     <ion-title class="profile-header-title" *ngIf="showUserInfo">
       <div *ngIf="userProfile">
-        <span class="profile-name">{{userProfile()?.name}} {{userProfile()?.cognome}} </span>
-
+        <span class="profile-name"
+          >{{ userProfile()?.name }} {{ userProfile()?.cognome }}
+        </span>
       </div>
     </ion-title>
 
     <ion-buttons slot="end" class="ion-custom-buttons">
-      <ion-button *ngIf="showMenuBtn" class="menu-button" slot="icon-only" (click)="toggleMenu()">
-
+      <ion-button
+        *ngIf="showMenuBtn"
+        class="menu-button"
+        slot="icon-only"
+        (click)="toggleMenu()"
+      >
         <i class="fi fi-rr-menu-burger"></i>
       </ion-button>
-      <ion-button *ngIf="showCloseBtn" class="menu-button" slot="icon-only" (click)="handleBackButton()">
-
+      <ion-button
+        *ngIf="showCloseBtn"
+        class="menu-button"
+        slot="icon-only"
+        (click)="handleBackButton()"
+      >
         <i class="fi fi-rr-cross"></i>
       </ion-button>
-
     </ion-buttons>
-
-
-
-
-
   </ion-toolbar>
 </ion-header>
