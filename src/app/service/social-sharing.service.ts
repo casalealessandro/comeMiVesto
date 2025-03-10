@@ -8,12 +8,11 @@ import { outfit } from 'src/app/service/interface/outfit-all-interface';
   providedIn: 'root',
 })
 export class SocialSharing {
-  constructor(private router: Router, private platform: Platform) {}
+  constructor(private router: Router) { } // Iniezione di Router tramite il costruttore
 
-  
-  private getShareUrl(id: number): string {
-    //const appUrl = `comemivesto://outfit/${id}`; // Deep link per l'app
-    const webUrl = `https://comemivesto.app${this.router.createUrlTree(['tabs/detail-outfit/', id]).toString()}`;
+  private getShareUrl(id: number): string { // Cambiato 'any' in 'number'
+    const appUrl = `comemivesto://outfit/${id}`; // Deep link per l'app
+    const webUrl = `https://comemivesto.app${this.router.createUrlTree(['/detail-outfit/', id]).toString()}`; // URL per il browser
 
    
     return webUrl; // Restituisce il link web per il browser

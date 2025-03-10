@@ -53,14 +53,6 @@
 	<string>La tua app ha bisogno di accedere alla libreria fotografica per otttenere le foto degli outfit da caricare e la foto profilo</string>
 	<key>CFBundleURLTypes</key>
 	<array>
-<<<<<<< HEAD
-	<dict>
-		<key>CFBundleURLSchemes</key>
-		<array>
-		<string>comemivesto</string>
-		</array>
-	</dict>
-=======
 		<dict>
 			<key>CFBundleURLName</key>
 			<string>com.acasale.comemivesto</string>
@@ -69,7 +61,6 @@
 				<string>comemivesto</string>
 			</array>
 		</dict>
->>>>>>> 4453f8c (p)
 	</array>
 </dict>
 </plist>

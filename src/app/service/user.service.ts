@@ -153,6 +153,7 @@ export class UserService {
 
   // Funzione per controllare se l'utente è loggato e caricare i dettagli
   async isUserLoggin(): Promise<boolean> {
+    
     const user = await firstValueFrom(this.afAuth.authState);
 
     if (user) {
