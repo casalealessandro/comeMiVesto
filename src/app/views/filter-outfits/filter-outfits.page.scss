@@ -122,7 +122,7 @@
                 padding-top: 3px;
                 padding-bottom: 2px;
                 min-height: 32px;
-margin-left: 0!important;
+                margin-left: 0!important;
                 width: max-content;
 
                 &.categoryselcted {
@@ -170,7 +170,7 @@ margin-left: 0!important;
     align-items: start;
     gap: 12px;
     .filter-btn{
-        min-width:162px;
+        max-width:162px;
         max-height:48px;
        
         gap: 10px;

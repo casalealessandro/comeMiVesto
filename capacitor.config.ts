@@ -14,7 +14,7 @@ const config: CapacitorConfig = {
   },
   plugins: { 
     DeepLinks: {
-    appId: "com.yourapp",
+    appId: "com.acasale.comemivesto",
     schemes: ["https"],
     universalLinks: [
       "https://comemivesto.app",
@@ -23,9 +23,9 @@ const config: CapacitorConfig = {
   },
     
     SplashScreen: {
-      launchShowDuration: 5500,  // La durata (in millisecondi) per cui lo splash screen viene mostrato all'avvio dell'applicazione. I
+      launchShowDuration: 5000,  // La durata (in millisecondi) per cui lo splash screen viene mostrato all'avvio dell'applicazione. I
       launchAutoHide: true,      // Fa in modo che lo splash screen si nasconda automaticamente dopo che il tempo definito in launchShowDuration è scaduto.
-      backgroundColor: "#ffffff",// Definisce il colore di sfondo dello splash screen.
+      backgroundColor: "#cccc",// Definisce il colore di sfondo dello splash screen.
       androidSplashResourceName: "splash", //Specifica il nome della risorsa dell'immagine dello splash screen su Android. Qui è indicato il file chiamato splash, che deve essere presente tra le risorse Android del progetto.
       androidScaleType: "CENTER_CROP",   // **Proprietà determina come l'immagine dello splash screen viene scalata su Android.
       showSpinner: true, //verrà mostrato un indicatore di caricamento (spinner) sopra lo splash screen, che è utile per far capire all'utente che l'app si sta caricando

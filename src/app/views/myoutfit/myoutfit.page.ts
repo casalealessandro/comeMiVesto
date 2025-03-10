@@ -81,8 +81,7 @@ export class MyOutFitPage  {
 
   ionViewWillEnter() {
 
-
-    
+   
     
     this.cUserInfo = this.userProfileService.gUserProfile();
     
@@ -109,9 +108,6 @@ export class MyOutFitPage  {
     )
 
     // this.loadOutfits();
-
-
-
 
   }
 

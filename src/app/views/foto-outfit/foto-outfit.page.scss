@@ -84,7 +84,7 @@
   
   .tag {
     position: absolute;
-    background: red;
+    //background: red;
     color: white;
     width: 20px;
     height: 20px;
@@ -106,7 +106,7 @@
     .price-card {
 
       display: flex;
-      width: auto;
+      width: fit-content;
       background-color: rgba(255, 255, 255, 0.8);
       transition: background-color 0.3s ease;
       position: relative;

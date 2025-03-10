@@ -8,6 +8,7 @@ import { CategoryService } from 'src/app/service/category.service';
 import { FireBaseConditions, FireBaseOrderBy, outfitCategories, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
 import { UserProfile } from 'src/app/service/interface/user-interface';
 import { ProdottiOnlineService } from 'src/app/service/prodotti-online.service';
+import { UserService } from 'src/app/service/user.service';
 
 @Component({
   selector: 'app-prodotti-online',
@@ -16,13 +17,21 @@ import { ProdottiOnlineService } from 'src/app/service/prodotti-online.service';
 })
 export class ProdottiOnlinePage implements OnInit {
   @Input() showHeader:boolean = false;
-  constructor(private modalController: ModalController, private categoryService:CategoryService, private navController: NavController,private afAuth: AngularFireAuth,) { }
+  constructor(
+    private modalController: ModalController,
+    private categoryService:CategoryService,
+    private navController: NavController,
+    private afAuth: AngularFireAuth,
+    private userProfileService: UserService,
+
+  ) { }
 
   private appService = inject(AppService);
 
 
   // Store selezionato
-
+  userProfile$ = this.userProfileService.gUserProfile();
+  
   public products: any[] = []; // Array di prodotti
   public filteredproducts: any[] = []; // Array di prodotti
   public categories?: outfitCategories[]
@@ -37,20 +46,15 @@ export class ProdottiOnlinePage implements OnInit {
   ngOnInit() {
     this.afAuth.authState.subscribe(async user => {
       if (user) {
-        console.log('user',user)
-        this.userID = user.uid; 
-        const userData$ = this.appService.getUserProfilebyId( user.uid);
-        userData$.subscribe((outfitUserProfile: UserProfile) => {
+       
+        this.userID =  this.userProfile$()?.uid; 
+        this.gender = this.userProfile$()?.gender || '';
+        //this.gender = outfitUserProfile.gender;
+        this.categoryService.categoriesSubject.subscribe((categories: outfitCategories[]) => {
 
-          if (outfitUserProfile) {
-            this.gender = outfitUserProfile.gender;
-           this.categoryService.categoriesSubject.subscribe((categories: outfitCategories[]) => {
-
-            this.categories =categories
-           })
-            this.loadProducts(this.outfitCategory, this.outfitSubCategory);
-          } 
+          this.categories =categories
         })
+        this.loadProducts(this.outfitCategory, this.outfitSubCategory);
          
       }else{
         this.handleBackButton()

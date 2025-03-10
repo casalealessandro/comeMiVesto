@@ -41,7 +41,13 @@ export class LoginPage {
     //this.userService.loginUser('/user/login',userLoginData)
     this.afAuth.signInWithEmailAndPassword(this.email, this.password)
       .then((userCredential:any) => {
-        this.userService.getUserProfile(userCredential.uid).subscribe(userData => {
+        if (!userCredential || !userCredential.user) {
+          alert('Qualcosa è andato storto');
+          return;
+        }
+        
+        const uid = userCredential.user.uid; // Recupera correttamente l'UID
+        this.userService.getUserProfile(uid).subscribe(userData => {
           this.userService.setUserInfo(userData);
           sessionStorage.setItem('userProfile',JSON.stringify(userData));
           this.router.navigateByUrl('/tabs/myoutfit');

@@ -31,7 +31,7 @@ export class MyWardrobesPage implements OnInit {
   categoryCloth: outfitCategories[] = [];
   subCategoryCloth: outfitCategories[] = [];
   openModal: any = null
-
+  
   constructor(private appService: AppService, private afAuth: AngularFireAuth, private modalController: ModalController, private userProfileService: UserService, private router: Router) { }
 
   ngOnInit() {

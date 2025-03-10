@@ -1,6 +1,6 @@
 import { Component, inject, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, MenuController, ModalController } from '@ionic/angular';
+import { AlertController, MenuController, ModalController, NavController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { UserService } from 'src/app/service/user.service';
@@ -17,7 +17,7 @@ export class MenuComponent {
   userProfile = this.userProfileService.gUserProfile();
   modalController = inject(ModalController)
   
-  constructor(private router: Router, private userProfileService: UserService, private alert: AlertController,private menuCtrl: MenuController) { }
+  constructor(private router: Router, private userProfileService: UserService, private alert: AlertController,private menuCtrl: MenuController,private navCtrl: NavController) { }
   
   menuListTop = [
     {
@@ -56,7 +56,8 @@ export class MenuComponent {
       
     if (logout) {
       sessionStorage.clear()
-      this.router.navigate(['/login'])
+      //this.router.navigate(['/login']);
+      this.navCtrl.navigateRoot('/login'); // Reset totale della navigazione
     }
   }
 

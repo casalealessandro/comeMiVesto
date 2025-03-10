@@ -1,6 +1,6 @@
+import { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { CanActivateFn } from '@angular/router';
 import { UserService } from './service/user.service';
 import { firstValueFrom } from 'rxjs';
 
@@ -9,20 +9,32 @@ export const authGuard: CanActivateFn = async (route, state) => {
   const userService = inject(UserService);
 
   try {
-    // Attendi il primo valore disponibile dallo stato di autenticazione
+    // Otteniamo l'utente autenticato
     const user = await firstValueFrom(angularFireAuth.authState);
 
-    if (user) {
-      const token = await user.getIdToken();
-      //userService.userInfo = user;
-
-      return !!token; //trasforma il token stringa in boolean se è diverso da vuoto è true
-    } else {
-      
+    if (!user) {
+      console.warn('Utente non autenticato, reindirizzamento alla login.');
       return false;
     }
+
+    // Otteniamo il token di autenticazione
+    const token = await user.getIdToken();
+    if (!token) {
+      console.warn('Token non valido, reindirizzamento alla login.');
+      return false;
+    }
+
+    // Recuperiamo il profilo utente dal backend
+    try {
+      const profile = await firstValueFrom(userService.getUserProfile(user.uid));
+      userService.setUserInfo(profile); // Salviamo il profilo nel service
+    } catch (error) {
+      console.error('Errore nel recupero del profilo utente:', error);
+    }
+
+    return true;
   } catch (error) {
-    console.error('Errore nel recupero dello stato di autenticazione:', error);
+    console.error('Errore nella verifica dello stato di autenticazione:', error);
     return false;
   }
 };

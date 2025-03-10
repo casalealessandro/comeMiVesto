@@ -19,6 +19,7 @@ export class UserService {
   faveUserOutfitsSignal =  signal<any[]>([]); // Stato reattivo
   numberFaveUserOutfitsSignal =  signal<number>(0); // Stato reattivo
   angularFireAuth = inject(AngularFireAuth);
+
   //private _userInfo?: UserProfile | null; // Variabile privata per memorizzare il valore
   // Utilizzo di signal per mantenere lo stato reattivo
   _userInfo = signal<UserProfile | null>({
@@ -148,6 +149,20 @@ export class UserService {
       return false
     }
 
+  }
+
+  // Funzione per controllare se l'utente è loggato e caricare i dettagli
+  async isUserLoggin(): Promise<boolean> {
+    const user = await firstValueFrom(this.afAuth.authState);
+
+    if (user) {
+      const token = await user.getIdToken();
+      if (token) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   
