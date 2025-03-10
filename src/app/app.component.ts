@@ -26,7 +26,9 @@ export class AppComponent {
 
   async setStatusBar() {
     try {
-      await StatusBar.setBackgroundColor({ color: '#FF0000' });
+      await StatusBar.setBackgroundColor({ color: '#F4F5F8' });
+      await StatusBar.setStyle({ style: Style.Light });
+      
       console.log('setting status bar');
     } catch (error) {
       console.error('Error setting status bar:', error);
