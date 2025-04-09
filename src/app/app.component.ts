@@ -11,8 +11,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent {
-
-  isUserLogin:boolean = false;
+  isUserLogin: boolean = false;
 
   constructor(
     private afAuth: AngularFireAuth,
@@ -20,7 +19,6 @@ export class AppComponent {
     private userService: UserService,
     private platform: Platform
   ) {
-   
     this.platform.ready().then(() => {
       this.setupDeepLinkListener();
       this.setStatusBar();
@@ -31,7 +29,7 @@ export class AppComponent {
     try {
       await StatusBar.setBackgroundColor({ color: '#F4F5F8' });
       await StatusBar.setStyle({ style: Style.Light });
-      
+
       console.log('setting status bar');
     } catch (error) {
       console.error('Error setting status bar:', error);
@@ -48,19 +46,19 @@ export class AppComponent {
           this.router.navigateByUrl('/tabs/myoutfit');
         }
       } else {
-        this.forceRedirect()
-       
+        this.forceRedirect();
       }
-    })
+    });
   }
 
-  async forceRedirect(){
-    const isLogin  = await this.userService.isUserLoggin()
-    if(isLogin){
+  async forceRedirect() {
+    const isLogin = await this.userService.isUserLoggin();
+    if (isLogin) {
       this.router.navigateByUrl('/tabs/myoutfit'); // Naviga alla home se loggato
     }
-
+    console.log('isLogin -- ', isLogin);
     this.router.navigateByUrl('/login'); // Torna alla login se non loggato
+    //this.router.navigateByUrl('/intro'); // Torna alla login se non loggato
   }
   private setupDeepLinkListener() {
     App.addListener('appUrlOpen', (event: any) => {

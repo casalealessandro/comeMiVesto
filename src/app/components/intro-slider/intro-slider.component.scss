@@ -1,0 +1,71 @@
+ion-content {
+  --background: var(--ion-color-light);
+  height: 100%;
+}
+
+swiper-container {
+  width: 100%;
+  height: 100%;
+  --swiper-pagination-color: var(--ion-color-primary);
+}
+
+.slide-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+  background: var(--ion-color-light);
+
+  img {
+    width: 80%;
+    max-width: 300px;
+    height: auto;
+    margin-bottom: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    object-fit: contain;
+  }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--ion-color-medium);
+    margin-bottom: 2rem;
+    max-width: 80%;
+  }
+
+  ion-button {
+    margin-top: 1rem;
+    --padding-start: 2rem;
+    --padding-end: 2rem;
+  }
+}
+
+// Swiper pagination styles
+::ng-deep {
+  .swiper-pagination {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    z-index: 10;
+  }
+
+  .swiper-pagination-bullet {
+    background: var(--ion-color-primary);
+    opacity: 0.5;
+    &-active {
+      opacity: 1;
+    }
+  }
+}

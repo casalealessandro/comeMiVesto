@@ -1,0 +1,51 @@
+<ion-content class="ion-padding">
+  <swiper-container
+    class="swiper"
+    init="false"
+    slides-per-view="1"
+    space-between="0"
+    loop="false"
+    speed="400"
+    pagination="true"
+    pagination-clickable="true"
+    keyboard="true"
+    keyboard-only-in-viewport="true"
+  >
+    <!-- Slide 1 -->
+    <swiper-slide>
+      <div class="slide-content">
+        <img [src]="'assets/step1.jpg'" alt="Welcome" loading="eager" />
+        <h2>Condividi i tuoi outfit</h2>
+        <p>
+          Posta i tuoi look preferiti con un semplice tap sul + nella barra di
+          navigazione. Mostra il tuo stile e ispira gli altri!
+        </p>
+      </div>
+    </swiper-slide>
+
+    <!-- Slide 2 -->
+    <swiper-slide>
+      <div class="slide-content">
+        <img [src]="'assets/step2.jpg'" alt="Features" loading="eager" />
+        <h2>Aggiungi i tag</h2>
+        <p>
+          Tagga i brand dei tuoi capi d'abbigliamento per aiutare gli altri a
+          scoprire dove trovarli.
+        </p>
+      </div>
+    </swiper-slide>
+
+    <!-- Slide 3 -->
+    <swiper-slide>
+      <div class="slide-content">
+        <img [src]="'assets/step3.jpg'" alt="Get Started" loading="eager" />
+        <h2>Il tuo armadio virtuale</h2>
+        <p>
+          Salva i tuoi outfit preferiti e tieni traccia dei capi che ami. Un
+          posto unico per organizzare il tuo stile!
+        </p>
+        <ion-button expand="block" (click)="finish()"> Get Started </ion-button>
+      </div>
+    </swiper-slide>
+  </swiper-container>
+</ion-content>
