@@ -51,7 +51,7 @@ export class AppComponent {
         this.forceRedirect()
        
       }
-    }); */
+    })
   }
 
   async forceRedirect(){
