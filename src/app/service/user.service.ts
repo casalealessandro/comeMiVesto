@@ -80,7 +80,6 @@ export class UserService {
   registerUser<T>(api: string, payloadData: T): Observable<T[]> {
     const completeApi = `${this.apiFire}${api}`;
     return this.httpClient.post<ApiResponse<T>>(completeApi, payloadData).pipe(
-      retry(2), // Riprova in caso di errore temporaneo
       map((response) => response.data),
       catchError(this.handleError)
     );

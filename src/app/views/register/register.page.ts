@@ -7,6 +7,7 @@ import { UserProfile } from 'src/app/service/interface/user-interface';
 import { TermsConditionsPage } from '../terms-conditions/terms-conditions.page';
 import { AppService } from 'src/app/service/app-service';
 import { UserService } from 'src/app/service/user.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -22,6 +23,7 @@ export class RegisterPage {
   cognome: string = '';
   userType: string = 'creator'; // Default to creator
   modalController = inject(ModalController)
+  submitting: boolean = false;
   constructor(
     private afAuth: AngularFireAuth,
     private appService: AppService,
@@ -32,6 +34,9 @@ export class RegisterPage {
 
   
   register(registerData:any) {
+
+    if (this.submitting) return;
+
     const displayName = !registerData.displayName ? `${this.nome} ${this.cognome}`:registerData.displayName
     const user = displayName;
     const bio = !registerData.bio ? '' : registerData.bio
@@ -52,7 +57,11 @@ export class RegisterPage {
       gender:gender,
       createAt: new Date().getTime()
     }
-    this.userService.registerUser('/user/register',userProfile).subscribe(data=>{
+    
+    this.submitting = true;
+    this.userService.registerUser('/user/register',userProfile)
+    .pipe(finalize(() => this.submitting = false))
+    .subscribe(data=>{
       this.alert.create(
         { 
          header:'Complimenti!',
