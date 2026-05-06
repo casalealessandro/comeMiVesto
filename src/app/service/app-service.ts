@@ -33,6 +33,13 @@ export class AppService {
 
   constructor(private firestore: AngularFirestore, private storage: AngularFireStorage, private alertController: AlertController, private http:HttpClient) { }
 
+  private normalizeQueryString(queryString: string = ''): string {
+    if (!queryString) {
+      return '';
+    }
+    return queryString.startsWith('?') ? queryString.slice(1) : queryString;
+  }
+
   getFormFields(nomeAnagrafica: string): Observable<DynamicFormField[]> {
     return this.firestore.collection('forms').doc(nomeAnagrafica).valueChanges()
       .pipe(
@@ -44,9 +51,8 @@ export class AppService {
   }
 
   async getData(api:string,queryString:string):Promise<any>{
-
-    
-    let Query = !queryString ? '' : `${queryString}`
+    const normalizedQuery = this.normalizeQueryString(queryString);
+    let Query = !normalizedQuery ? '' : `${normalizedQuery}`
 
     const completeApi = `${this.apiFire}${api}${Query}`
     const call = this.http.get(completeApi)
@@ -54,10 +60,9 @@ export class AppService {
     return await lastValueFrom(call)
   }
   getAllData(api: string, queryString: string = ''): Observable<any> {
-
-    
+    const normalizedQuery = this.normalizeQueryString(queryString);
     // Composizione dell'URL completo
-    const completeApi = `${this.apiFire}${api}${queryString ? '?' + queryString : ''}`;
+    const completeApi = `${this.apiFire}${api}${normalizedQuery ? '?' + normalizedQuery : ''}`;
     
     // Chiamata HTTP
     return this.http.get(completeApi);
@@ -68,7 +73,8 @@ export class AppService {
    * @returns Observable<oufits[]> - Lista di outfits.
    */
    getAll<T>(api: string, queryString: string = ''): Observable<T[]> {
-     const completeApi = `${this.apiFire}${api}${queryString ? '?' + queryString : ''}`;
+     const normalizedQuery = this.normalizeQueryString(queryString);
+     const completeApi = `${this.apiFire}${api}${normalizedQuery ? '?' + normalizedQuery : ''}`;
      return this.http.get<ApiResponse<T>>(completeApi).pipe(
        retry(3),
        tap(() => console.info('Richiesta all’API effettuata con successo')),
@@ -354,5 +360,4 @@ export class AppService {
     }
   }
 }
-
 

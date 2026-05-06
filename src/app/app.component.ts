@@ -55,6 +55,7 @@ export class AppComponent {
     const isLogin = await this.userService.isUserLoggin();
     if (isLogin) {
       this.router.navigateByUrl('/tabs/myoutfit'); // Naviga alla home se loggato
+      return;
     }
     console.log('isLogin -- ', isLogin);
     this.router.navigateByUrl('/login'); // Torna alla login se non loggato

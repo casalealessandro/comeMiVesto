@@ -86,11 +86,19 @@ export class LoginPage {
 
   }
 
-  recuperaPassword(evtForm:any) {
+  async recuperaPassword(evtForm:any) {
     const email = evtForm.formData.emailRecup
-    sendPasswordResetEmail(this.auth,email);
-    this.showLogin = !this.showLogin;
-    
-    
+    try {
+      await sendPasswordResetEmail(this.auth,email);
+      this.showLogin = !this.showLogin;
+    } catch (error) {
+      this.alert.create(
+        {
+          header:'Attenzione!',
+          message:'Impossibile inviare email di recupero password.',
+          buttons: ['Ok'],
+        }
+      ).then(alert => alert.present());
+    }
   }
 }
