@@ -30,6 +30,7 @@ export const authGuard: CanActivateFn = async (route, state) => {
       userService.setUserInfo(profile); // Salviamo il profilo nel service
     } catch (error) {
       console.error('Errore nel recupero del profilo utente:', error);
+      return false;
     }
 
     return true;
