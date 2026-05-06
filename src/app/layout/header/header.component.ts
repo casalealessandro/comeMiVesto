@@ -71,6 +71,9 @@ export class HeaderComponent implements OnInit {
       console.log('HeaderComponent', res);
       const sData = this.sharedData.data().filter(data => data.componentName === "HeaderComponent");
       console.log('Header', sData)
+      if (!sData.length || !sData[0]?.data) {
+        return;
+      }
       this.serVariable(sData[0].data)
       //this.setShowElements()
     })

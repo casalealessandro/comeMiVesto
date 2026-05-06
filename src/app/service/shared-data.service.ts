@@ -60,11 +60,11 @@ export class SharedDataService {
     if (componentName) {
   
       this.data.update((currentData) => {
-        const index = currentData.findIndex(d => d.componentName === componentName);
-        currentData.slice(index, currentData.length);
-        return currentData;
+        return currentData.filter(d => d.componentName !== componentName);
       });
 
+    } else {
+      this.data.set([]);
     }
     this.sharedData.next(this.data()); // Passa i dati 
     //return this.data()

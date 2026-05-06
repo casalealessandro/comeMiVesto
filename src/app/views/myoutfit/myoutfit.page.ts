@@ -181,6 +181,9 @@ export class MyOutFitPage  {
     this.sharedDataService.staredData$.pipe(take(1)).subscribe(res => {
 
       const fData = this.sharedDataService.data().filter(data => data.componentName === "FilterOutfitsPage");
+      if (!fData.length || !fData[0]?.data) {
+        return;
+      }
 
       this.filtersData = []
       const data = fData[0].data;
