@@ -1,9 +1,11 @@
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, inject, signal } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
 import { CategoryService } from 'src/app/service/category.service';
 import { categoryCloth, filterItmClothing, outfitCategories, seasons, style, subCategoryCloth } from 'src/app/service/interface/outfit-all-interface';
 import { sharedData, SharedDataService } from 'src/app/service/shared-data.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-filter-outfits',
@@ -14,6 +16,7 @@ import { sharedData, SharedDataService } from 'src/app/service/shared-data.servi
 
 
 export class FilterOutfitsPage implements OnInit {
+  private destroyRef = inject(DestroyRef);
 
 
   constructor(private sharedDataService: SharedDataService, private appService: AppService, private categoryService: CategoryService, private modalController: ModalController) { }
@@ -70,7 +73,7 @@ export class FilterOutfitsPage implements OnInit {
 
   async ngOnInit() {
 
-    this.categoryService.categoriesSubject.subscribe(parentCategories => {
+    this.categoryService.categoriesSubject.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(parentCategories => {
       this.oufitCategories.set(parentCategories);
       this.oufitCompleteCategories.set(this.oufitCategories())
     })
@@ -81,7 +84,7 @@ export class FilterOutfitsPage implements OnInit {
 
 
 
-    this.appService.getAllData('outfitColors').subscribe(colors => {
+    this.appService.getAllData('outfitColors').pipe(take(1)).subscribe(colors => {
       this.itmColor = colors
     })
     this.itmStyles = style

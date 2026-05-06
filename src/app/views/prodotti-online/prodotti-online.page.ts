@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
@@ -9,6 +9,8 @@ import { FireBaseConditions, FireBaseOrderBy, outfitCategories, wardrobesItem } 
 import { UserProfile } from 'src/app/service/interface/user-interface';
 import { ProdottiOnlineService } from 'src/app/service/prodotti-online.service';
 import { UserService } from 'src/app/service/user.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-prodotti-online',
@@ -27,6 +29,7 @@ export class ProdottiOnlinePage implements OnInit {
   ) { }
 
   private appService = inject(AppService);
+  private destroyRef = inject(DestroyRef);
 
 
   // Store selezionato
@@ -44,13 +47,13 @@ export class ProdottiOnlinePage implements OnInit {
   selectedFilterStyleIndex?:number;
   isModal:boolean = true
   ngOnInit() {
-    this.afAuth.authState.subscribe(async user => {
+    this.afAuth.authState.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async user => {
       if (user) {
        
         this.userID =  this.userProfile$()?.uid; 
         this.gender = this.userProfile$()?.gender || '';
         //this.gender = outfitUserProfile.gender;
-        this.categoryService.categoriesSubject.subscribe((categories: outfitCategories[]) => {
+        this.categoryService.categoriesSubject.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((categories: outfitCategories[]) => {
 
           this.categories =categories
         })
@@ -112,7 +115,7 @@ export class ProdottiOnlinePage implements OnInit {
     
     if (!parent) {
       parent = "";
-      this.categoryService.categoriesSubject.subscribe((categories: outfitCategories[]) => {
+      this.categoryService.categoriesSubject.pipe(take(1)).subscribe((categories: outfitCategories[]) => {
 
         this.categories =categories
        })

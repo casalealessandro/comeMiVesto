@@ -9,6 +9,7 @@ import { buttons, FireBaseConditions, FireBaseOrderBy, outfit, seasons, Tag } fr
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
 import { Observable } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
 import { IonRefresherCustomEvent } from '@ionic/core';
@@ -151,7 +152,7 @@ export class MyOutFitPage  {
       
 
       this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
-      this.outfitUserProfile$.subscribe((outfitUserProfile: UserProfile) => {
+      this.outfitUserProfile$.pipe(take(1)).subscribe((outfitUserProfile: UserProfile) => {
 
         this.outfitUserProfile[rr.userId] = outfitUserProfile
       })
@@ -177,7 +178,7 @@ export class MyOutFitPage  {
     await modal.present();
 
 
-    this.sharedDataService.staredData$.subscribe(res => {
+    this.sharedDataService.staredData$.pipe(take(1)).subscribe(res => {
 
       const fData = this.sharedDataService.data().filter(data => data.componentName === "FilterOutfitsPage");
 
@@ -393,7 +394,7 @@ export class MyOutFitPage  {
       
 
       this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
-      this.outfitUserProfile$.subscribe((outfitUserProfile: UserProfile) => {
+      this.outfitUserProfile$.pipe(take(1)).subscribe((outfitUserProfile: UserProfile) => {
 
         this.outfitUserProfile[rr.userId] = outfitUserProfile
       })

@@ -1,10 +1,11 @@
-import { Component, effect, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, effect, Input, OnInit, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { MenuController, ModalController, NavController } from '@ionic/angular';
 import { UserProfile } from 'src/app/service/interface/user-interface';;
 import { filter, Observable } from 'rxjs';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 import { UserService } from 'src/app/service/user.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-header',
@@ -12,6 +13,7 @@ import { UserService } from 'src/app/service/user.service';
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
 
   /**
    * Input() canGoBack,showLogo,showUserInfo
@@ -65,7 +67,7 @@ export class HeaderComponent implements OnInit {
 
 
 
-    this.sharedData.staredData$.subscribe(res => {
+    this.sharedData.staredData$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(res => {
       console.log('HeaderComponent', res);
       const sData = this.sharedData.data().filter(data => data.componentName === "HeaderComponent");
       console.log('Header', sData)
