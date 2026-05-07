@@ -90,7 +90,7 @@
     </ion-list>
     <div class="form-footer">
       <ion-item>
-        <ion-button type="submit"  expand="block"  class="btn outfit-button">
+        <ion-button type="submit" [disabled]="isSubmitting" expand="block"  class="btn outfit-button">
           <ion-ripple-effect></ion-ripple-effect>
           {{btnFormText}}
         

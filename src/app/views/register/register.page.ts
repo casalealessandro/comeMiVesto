@@ -61,21 +61,32 @@ export class RegisterPage {
     this.submitting = true;
     this.userService.registerUser('/user/register',userProfile)
     .pipe(finalize(() => this.submitting = false))
-    .subscribe(data=>{
-      this.alert.create(
-        { 
-         header:'Complimenti!',
-         message:`registrazione è avvenuta con successo,controlla la tua email per confermare l'account`,
-         buttons: ['Ok'],
-         }
-       ).then(
-          alert => {
-            alert.present();
-            setTimeout(() => {
-              this.handleBackButton()
-            }, 500);
+    .subscribe({
+      next: (data) => {
+        this.alert.create(
+          {
+            header:'Complimenti!',
+            message:`registrazione è avvenuta con successo,controlla la tua email per confermare l'account`,
+            buttons: ['Ok'],
+            }
+          ).then(
+            alert => {
+              alert.present();
+              setTimeout(() => {
+                this.handleBackButton()
+              }, 500);
 
-       });
+        });
+      },
+      error: () => {
+        this.alert.create(
+          {
+            header:'Attenzione!',
+            message:'Registrazione non completata. Verifica la connessione e riprova.',
+            buttons: ['Ok'],
+          }
+        ).then(alert => alert.present());
+      }
     })
     
     /* this.afAuth.createUserWithEmailAndPassword(registerData.email, registerData.password)

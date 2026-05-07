@@ -16,6 +16,7 @@
       <div class="login-center-container">
         <app-dynamic-form [service]="'registerForm'"
           [btnFormText]="'Registrati'"
+          [isSubmitting]="submitting"
           (functionalCheckBoxEvent)="functionalCheckBox($event)"
           (submitFormEvent)="register($event)"
         >

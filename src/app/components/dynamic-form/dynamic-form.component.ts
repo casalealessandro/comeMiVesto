@@ -19,6 +19,7 @@ export class DynamicFormComponent implements OnInit {
   @Input() service: string | undefined;
   @Input() editData: any  | undefined;
   @Input() btnFormText:string ='Salva';
+  @Input() isSubmitting: boolean = false;
 
   @Output() submitFormEvent: EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
   @Output() functionalInputFormEvent: EventEmitter<any> = new EventEmitter<any>(); //Emit all'esterno;
