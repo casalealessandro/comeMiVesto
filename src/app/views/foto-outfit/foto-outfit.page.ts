@@ -3,7 +3,7 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Browser } from '@capacitor/browser';
 import { Tag, outfit } from 'src/app/service/interface/outfit-all-interface';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
-import { AlertController, ModalController } from '@ionic/angular';
+import { ActionSheetController, AlertController, ModalController } from '@ionic/angular';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { MyWardrobesPage } from '../my-wardrobes/my-wardrobes.page';
 
@@ -36,14 +36,15 @@ export class FotoOutfitPage implements OnInit {
   format: string = '';
   openFullScreen:boolean=false
   showTooltip = signal(false);
-  constructor(private modalController: ModalController,private alert:AlertController) { }
+  private hasAutoOpenedImageSelector = false;
+  constructor(
+    private modalController: ModalController,
+    private alert: AlertController,
+    private actionSheetController: ActionSheetController,
+  ) { }
 
 
-  ngOnInit(): void {
-    if (this.enableNewImagecaptured) {
-      //this.captureImage()
-    }
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     
@@ -63,6 +64,11 @@ export class FotoOutfitPage implements OnInit {
     //Nascondi loader se sto in inserimento
     if (this.enableNewImagecaptured) {
       this.imageLoading = false;
+
+      if (!this.image && !this.hasAutoOpenedImageSelector) {
+        this.hasAutoOpenedImageSelector = true;
+        setTimeout(() => this.openImageSourceSelector(), 250);
+      }
     }
 
      
@@ -79,7 +85,29 @@ export class FotoOutfitPage implements OnInit {
   }
 
 
-  async captureImage() {
+  async openImageSourceSelector() {
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Aggiungi foto outfit',
+      buttons: [
+        {
+          text: 'Scegli dalla galleria',
+          handler: () => this.captureImage(CameraSource.Photos)
+        },
+        {
+          text: 'Scatta una foto',
+          handler: () => this.captureImage(CameraSource.Camera)
+        },
+        {
+          text: 'Annulla',
+          role: 'cancel',
+        }
+      ]
+    });
+
+    await actionSheet.present();
+  }
+
+  async captureImage(source: CameraSource = CameraSource.Photos) {
     if (this.tags.length > 0 && typeof this.image !== 'undefined') {
       let respo = await this.confirmChangeFoto();
       if (!respo) {
@@ -91,7 +119,7 @@ export class FotoOutfitPage implements OnInit {
       quality: 90,
       allowEditing: false,
       resultType: CameraResultType.DataUrl,
-      source: CameraSource.Prompt,
+      source,
       promptLabelPhoto: 'Seleziona dalla galleria ',
       promptLabelPicture: 'Scatta una foto',
       promptLabelCancel: 'Cancella',
