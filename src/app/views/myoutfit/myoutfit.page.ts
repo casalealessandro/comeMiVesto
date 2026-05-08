@@ -80,16 +80,20 @@ export class MyOutFitPage  {
 
   }
 
-  ionViewWillEnter() {
+  async ionViewWillEnter() {
 
    
     
     this.cUserInfo = this.userProfileService.gUserProfile();
     
-    const cUserInfo =this.cUserInfo()
+    let cUserInfo = this.cUserInfo()
     if (!cUserInfo?.uid || !cUserInfo?.gender) {
-      this.isLoading = false;
-      return;
+      const isUserLoaded = await this.userProfileService.loadUser();
+      cUserInfo = this.cUserInfo();
+      if (!isUserLoaded || !cUserInfo?.uid || !cUserInfo?.gender) {
+        this.isLoading = false;
+        return;
+      }
     }
    
     

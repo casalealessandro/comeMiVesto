@@ -48,8 +48,7 @@
       <div class="style-main" *ngIf="!isLoading">
 
         <ion-segment class="filter-outfits" [value]="selectedSegment" (ionChange)="onSegmentChange($event)">
-          <ion-segment-button *ngFor="let button of segmentButtons" class="stat-btn" [value]="button.value"
-            [attr.content-id]="button.value">
+          <ion-segment-button *ngFor="let button of segmentButtons" class="stat-btn" [value]="button.value">
             <div class="stat">
               <i class="icon" [class]="button.icon"></i>
               <ion-label class="stats-label">{{ button.label }}</ion-label>
