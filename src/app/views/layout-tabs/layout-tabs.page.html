@@ -4,55 +4,52 @@
   </ion-content>
 </ion-menu>
 
-<app-header></app-header>
+<ion-tabs class="app-layout-tabs" id="main-content" (ionTabsDidChange)="onTabChange($event)">
+  <app-header slot="top"></app-header>
+  <ion-tab-bar
+    style="padding-bottom: 0px !important"
+    slot="bottom"
+    class="outfit-bottom-bar"
+    [translucent]="true"
+  >
+    <div class="toolbar-container">
+      <div class="button-block">
+        <ion-tab-button class="outfit-bar-button" tab="myoutfit">
+          <ion-ripple-effect></ion-ripple-effect>
+          <span class="fi fi-rr-house-chimney"></span>
+          <span class="outfit-tab-text">Home</span>
+        </ion-tab-button>
+      </div>
+      <div class="button-block">
+        <ion-tab-button class="outfit-bar-button" tab="outfit-products">
+          <ion-ripple-effect></ion-ripple-effect>
+          <span class="fi fi-rr-search"></span>
+          <span class="outfit-tab-text">Prodotti</span>
+        </ion-tab-button>
+      </div>
 
-<ion-content class="app-layout-tabs" id="main-content">
-  <ion-tabs (ionTabsDidChange)="onTabChange($event)">
-    <ion-tab-bar
-      style="padding-bottom: 0px !important"
-      slot="bottom"
-      class="outfit-bottom-bar"
-      [translucent]="true"
-    >
-      <div class="toolbar-container">
-        <div class="button-block">
-          <ion-tab-button class="outfit-bar-button" tab="myoutfit">
+      <div class="button-block">
+        <div class="outfit-center-button">
+          <ion-tab-button class="outfit-bar-button" tab="add-outfit">
             <ion-ripple-effect></ion-ripple-effect>
-            <span class="fi fi-rr-house-chimney"></span>
-            <span class="outfit-tab-text">Home</span>
-          </ion-tab-button>
-        </div>
-        <div class="button-block">
-          <ion-tab-button class="outfit-bar-button" tab="outfit-products">
-            <ion-ripple-effect></ion-ripple-effect>
-            <span class="fi fi-rr-search"></span>
-            <span class="outfit-tab-text">Prodotti</span>
-          </ion-tab-button>
-        </div>
-
-        <div class="button-block">
-          <div class="outfit-center-button">
-            <ion-tab-button class="outfit-bar-button" tab="add-outfit">
-              <ion-ripple-effect></ion-ripple-effect>
-              <span class="fi fi-rr-plus"></span>
-            </ion-tab-button>
-          </div>
-        </div>
-        <div class="button-block">
-          <ion-tab-button class="outfit-bar-button" tab="my-wardrobes">
-            <ion-ripple-effect></ion-ripple-effect>
-            <span class="fi fi-rr-clothes-hanger"></span>
-            <span class="outfit-tab-text">Armadio</span>
-          </ion-tab-button>
-        </div>
-        <div class="button-block">
-          <ion-tab-button class="outfit-bar-button" tab="my-profile">
-            <ion-ripple-effect></ion-ripple-effect>
-            <span class="fi fi-rr-user"></span>
-            <span class="outfit-tab-text">Profilo</span>
+            <span class="fi fi-rr-plus"></span>
           </ion-tab-button>
         </div>
       </div>
-    </ion-tab-bar>
-  </ion-tabs>
-</ion-content>
+      <div class="button-block">
+        <ion-tab-button class="outfit-bar-button" tab="my-wardrobes">
+          <ion-ripple-effect></ion-ripple-effect>
+          <span class="fi fi-rr-clothes-hanger"></span>
+          <span class="outfit-tab-text">Armadio</span>
+        </ion-tab-button>
+      </div>
+      <div class="button-block">
+        <ion-tab-button class="outfit-bar-button" tab="my-profile">
+          <ion-ripple-effect></ion-ripple-effect>
+          <span class="fi fi-rr-user"></span>
+          <span class="outfit-tab-text">Profilo</span>
+        </ion-tab-button>
+      </div>
+    </div>
+  </ion-tab-bar>
+</ion-tabs>

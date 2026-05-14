@@ -23,19 +23,19 @@ export class LoginPage {
   stayConnected:boolean=true;
   emailRecup:string=''
   auth = getAuth(inject(FirebaseApp));
- 
+
   recupPasswordError:string = 'Inserisci un email valida'
   constructor(private afAuth: AngularFireAuth,private userService: UserService, private alert:AlertController,private router :Router) {}
 
   async login() {
-    
+
     const persistence = this.stayConnected  ? 'local' : 'session'
     await this.afAuth.setPersistence(persistence);
 
     const userLoginData  = {
       email: this.email,
       password: this.password
-     
+
     }
 
     //this.userService.loginUser('/user/login',userLoginData)
@@ -45,7 +45,7 @@ export class LoginPage {
           alert('Qualcosa è andato storto');
           return;
         }
-        
+
         const uid = userCredential.user.uid; // Recupera correttamente l'UID
         this.userService.getUserProfile(uid).subscribe(userData => {
           this.userService.setUserInfo(userData);
@@ -56,7 +56,7 @@ export class LoginPage {
       .catch(error => {
         console.error(error)
         this.alert.create(
-         { 
+         {
           header:'Attenzione!',
           message:'Credenziali non valide!',
           buttons: ['Ok'],
@@ -70,7 +70,7 @@ export class LoginPage {
     this.stayConnected = value
   }
   submitFormEvent(event:any){
-      
+
 
       if(event.email && event.password) {
         this.email = event.email;

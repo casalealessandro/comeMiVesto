@@ -1,58 +1,488 @@
-Ecco una lista dei principali comandi Git per eseguire un commit:
+# Comandi Git principali
 
-1. **Configurare Git (una sola volta)**
-   Prima di iniziare a fare commit, devi configurare Git con il tuo nome e la tua email:
-   ```bash
-   git config --global user.name "Il Tuo Nome"
-   git config --global user.email "la_tua_email@example.com"
-   ```
+Ecco una lista dei principali comandi Git per iniziare a lavorare con un repository, fare commit, push e pull.
 
-2. **Inizializzare un repository Git**
-   Se non hai ancora un repository Git, puoi inizializzarne uno:
-   ```bash
-   git init
-   ```
+---
 
-3. **Aggiungere file al repository**
-   Aggiungi i file che vuoi includere nel commit:
-   ```bash
-   git add nomefile      # Aggiunge un singolo file
-   git add .             # Aggiunge tutti i file nella directory corrente
-   ```
+## 1. Configurare Git (una sola volta)
 
-4. **Creare un commit**
-   Dopo aver aggiunto i file, puoi creare un commit:
-   ```bash
-   git commit -m "Messaggio del commit"
-   ```
+Prima di iniziare a fare commit, devi configurare Git con il tuo nome e la tua email:
 
-5. **Verificare lo stato del repository**
-   Puoi controllare lo stato del repository per vedere quali file sono stati modificati o aggiunti:
-   ```bash
-   git status
-   ```
+```bash
+git config --global user.name "Il Tuo Nome"
+git config --global user.email "la_tua_email@example.com"
+```
 
-6. **Aggiungere tutti i file modificati e committare in un unico passaggio**
-   Se vuoi aggiungere tutti i file modificati e committare in un unico comando:
-   ```bash
-   git commit -am "Messaggio del commit"
-   ```
+Per verificare la configurazione attuale:
 
-7. **Visualizzare la cronologia dei commit**
-   Per vedere la cronologia dei commit:
-   ```bash
-   git log
-   ```
+```bash
+git config --global --list
+```
 
-8. **Inviare i commit al repository remoto**
-   Dopo aver fatto un commit, puoi inviare le modifiche a un repository remoto (ad esempio su GitHub):
-   ```bash
-   git push origin nome-branch
-   ```
+---
 
-   Se non hai ancora collegato un repository remoto, puoi aggiungerlo con:
-   ```bash
-   git remote add origin https://github.com/user/repo.git
-   ```
+## 2. Inizializzare un repository Git
 
-Questi sono i comandi di base per lavorare con Git e committare i tuoi cambiamenti.
+Se non hai ancora un repository Git nella cartella del progetto, puoi inizializzarlo con:
+
+```bash
+git init
+```
+
+---
+
+## 3. Verificare lo stato del repository
+
+Puoi controllare lo stato del repository per vedere quali file sono stati modificati, aggiunti o non ancora tracciati:
+
+```bash
+git status
+```
+
+---
+
+## 4. Aggiungere file al repository
+
+Aggiungere un singolo file:
+
+```bash
+git add nomefile
+```
+
+Esempio:
+
+```bash
+git add index.html
+```
+
+Aggiungere tutti i file modificati nella cartella corrente:
+
+```bash
+git add .
+```
+
+---
+
+## 5. Creare un commit
+
+Dopo aver aggiunto i file con `git add`, puoi creare un commit:
+
+```bash
+git commit -m "Messaggio del commit"
+```
+
+Esempio:
+
+```bash
+git commit -m "Aggiunta login utente"
+```
+
+---
+
+## 6. Aggiungere tutti i file modificati e committare in un unico passaggio
+
+Se vuoi aggiungere tutti i file modificati già tracciati da Git e fare commit in un unico comando:
+
+```bash
+git commit -am "Messaggio del commit"
+```
+
+Attenzione: questo comando non aggiunge file nuovi mai tracciati prima.
+Per i nuovi file devi usare prima:
+
+```bash
+git add .
+```
+
+---
+
+## 7. Visualizzare la cronologia dei commit
+
+Per vedere la cronologia completa dei commit:
+
+```bash
+git log
+```
+
+Per vedere una cronologia più compatta:
+
+```bash
+git log --oneline
+```
+
+---
+
+## 8. Collegare un repository remoto
+
+Se non hai ancora collegato il progetto a GitHub o a un altro repository remoto, puoi aggiungerlo con:
+
+```bash
+git remote add origin https://github.com/user/repo.git
+```
+
+Per vedere i repository remoti configurati:
+
+```bash
+git remote -v
+```
+
+---
+
+## 9. Vedere il branch corrente
+
+Per vedere su quale branch ti trovi:
+
+```bash
+git branch
+```
+
+Il branch corrente è quello evidenziato con `*`.
+
+Per vedere anche i branch remoti:
+
+```bash
+git branch -r
+```
+
+---
+
+## 10. Creare un nuovo branch
+
+Per creare un nuovo branch:
+
+```bash
+git branch nome-branch
+```
+
+Per creare un nuovo branch e spostarti subito su quel branch:
+
+```bash
+git checkout -b nome-branch
+```
+
+Esempio:
+
+```bash
+git checkout -b feature/login
+```
+
+---
+
+## 11. Cambiare branch
+
+Per spostarti su un branch esistente:
+
+```bash
+git checkout nome-branch
+```
+
+Esempio:
+
+```bash
+git checkout main
+```
+
+Oppure:
+
+```bash
+git checkout codex/analyze-project-for-concrete-bugs
+```
+
+---
+
+## 12. Inviare i commit al repository remoto
+
+Dopo aver fatto un commit, puoi inviare le modifiche al repository remoto:
+
+```bash
+git push origin nome-branch
+```
+
+Esempio su `main`:
+
+```bash
+git push origin main
+```
+
+Esempio sul branch `codex/analyze-project-for-concrete-bugs`:
+
+```bash
+git push origin codex/analyze-project-for-concrete-bugs
+```
+
+---
+
+## 13. Fare pull dal repository remoto
+
+Se il branch locale è già collegato a un branch remoto, basta usare:
+
+```bash
+git pull
+```
+
+Se invece vuoi specificare manualmente da quale branch remoto prendere le modifiche:
+
+```bash
+git pull origin nome-branch
+```
+
+Esempio su `main`:
+
+```bash
+git pull origin main
+```
+
+Esempio sul branch `codex/analyze-project-for-concrete-bugs`:
+
+```bash
+git pull origin codex/analyze-project-for-concrete-bugs
+```
+
+---
+
+## 14. Errore: "There is no tracking information for the current branch"
+
+Se facendo:
+
+```bash
+git pull
+```
+
+compare questo errore:
+
+```bash
+There is no tracking information for the current branch.
+Please specify which branch you want to merge with.
+```
+
+significa che il branch locale non è collegato automaticamente a un branch remoto.
+
+In pratica Git non sa da quale branch remoto deve fare il pull.
+
+---
+
+## 15. Impostare il tracking branch
+
+Se il branch remoto esiste già e vuoi collegare il branch locale al branch remoto con lo stesso nome, usa:
+
+```bash
+git branch --set-upstream-to=origin/nome-branch nome-branch
+```
+
+Esempio con il branch visto prima:
+
+```bash
+git branch --set-upstream-to=origin/codex/analyze-project-for-concrete-bugs codex/analyze-project-for-concrete-bugs
+```
+
+Dopo questo comando potrai usare semplicemente:
+
+```bash
+git pull
+```
+
+e anche:
+
+```bash
+git push
+```
+
+senza specificare ogni volta `origin nome-branch`.
+
+---
+
+## 16. Fare pull da `main` mentre sei su un altro branch
+
+Se sei su un branch diverso, per esempio:
+
+```bash
+codex/analyze-project-for-concrete-bugs
+```
+
+e vuoi aggiornare quel branch prendendo le modifiche da `main`, puoi usare:
+
+```bash
+git pull origin main
+```
+
+Attenzione: questo comando prende le modifiche da `main` e le unisce nel branch corrente.
+
+---
+
+## 17. Flusso base consigliato
+
+Quando lavori normalmente su un progetto, puoi seguire questi comandi:
+
+```bash
+git status
+git add .
+git commit -m "Messaggio del commit"
+git pull origin nome-branch
+git push origin nome-branch
+```
+
+Esempio su `main`:
+
+```bash
+git status
+git add .
+git commit -m "Aggiornamento progetto"
+git pull origin main
+git push origin main
+```
+
+Esempio sul branch `codex/analyze-project-for-concrete-bugs`:
+
+```bash
+git status
+git add .
+git commit -m "Analisi bug progetto"
+git pull origin codex/analyze-project-for-concrete-bugs
+git push origin codex/analyze-project-for-concrete-bugs
+```
+
+---
+
+## 18. Flusso rapido dopo aver impostato il tracking branch
+
+Se hai già impostato il tracking branch con:
+
+```bash
+git branch --set-upstream-to=origin/nome-branch nome-branch
+```
+
+puoi lavorare così:
+
+```bash
+git status
+git add .
+git commit -m "Messaggio del commit"
+git pull
+git push
+```
+
+---
+
+## 19. Riassunto rapido dei comandi più usati
+
+Controllare lo stato:
+
+```bash
+git status
+```
+
+Aggiungere modifiche:
+
+```bash
+git add .
+```
+
+Creare commit:
+
+```bash
+git commit -m "Messaggio del commit"
+```
+
+Scaricare modifiche dal remoto:
+
+```bash
+git pull origin nome-branch
+```
+
+Inviare modifiche al remoto:
+
+```bash
+git push origin nome-branch
+```
+
+Vedere il branch corrente:
+
+```bash
+git branch
+```
+
+Vedere i branch remoti:
+
+```bash
+git branch -r
+```
+
+Vedere i repository remoti configurati:
+
+```bash
+git remote -v
+```
+
+Vedere la cronologia compatta:
+
+```bash
+git log --oneline
+```
+
+---
+
+## 20. Comandi utili per il caso visto
+
+Nel caso specifico del branch:
+
+```bash
+codex/analyze-project-for-concrete-bugs
+```
+
+puoi usare questi comandi.
+
+Controllare il branch corrente:
+
+```bash
+git branch
+```
+
+Controllare se esiste il branch remoto:
+
+```bash
+git branch -r
+```
+
+Fare pull specificando il branch:
+
+```bash
+git pull origin codex/analyze-project-for-concrete-bugs
+```
+
+Impostare il tracking branch:
+
+```bash
+git branch --set-upstream-to=origin/codex/analyze-project-for-concrete-bugs codex/analyze-project-for-concrete-bugs
+```
+
+Dopo aver impostato il tracking, puoi usare:
+
+```bash
+git pull
+```
+
+e:
+
+```bash
+git push
+```
+
+---
+
+## Conclusione
+
+Questi sono i comandi principali per lavorare con Git:
+
+```bash
+git status
+git add .
+git commit -m "Messaggio del commit"
+git pull origin nome-branch
+git push origin nome-branch
+```
+
+Se compare l'errore sul tracking branch:
+
+```bash
+git branch --set-upstream-to=origin/nome-branch nome-branch
+```

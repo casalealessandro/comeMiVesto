@@ -5,7 +5,9 @@
     /* Assicura che il contenuto occupi tutta l'altezza */
 
 }
-
+.tabs-inner{
+  min-height: 100vh;
+}
 
 .outfit-center-button {
     background-color: var(--outfit-btn-text-color);
@@ -21,7 +23,7 @@
     --background: transparent;
     height: 121px;
     align-items: flex-end;
-    /*  
+    /*
     height: 121px;
     position: absolute;
     bottom: 0;
@@ -49,7 +51,7 @@
             border-radius: 0 50px 0 0;
         }
         &.center{
-           
+
         }
         &.right{
              background-color: #F1F1F1;

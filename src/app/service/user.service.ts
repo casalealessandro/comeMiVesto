@@ -53,9 +53,9 @@ export class UserService {
   
   // Metodo per caricare le informazioni dell'utente
   async loadUser(): Promise<boolean> {
-    const user = await this.angularFireAuth.currentUser;
+    const user = await this.angularFireAuth.currentUser ?? await firstValueFrom(this.angularFireAuth.authState);
   if (user) {
-    const token = await user.getIdToken();
+    await user.getIdToken();
     
     // Rendi questa operazione asincrona con una Promise
     return new Promise<boolean>((resolve, reject) => {

@@ -8,7 +8,7 @@ import { AppService } from 'src/app/service/app-service';
 import { buttons, FireBaseConditions, FireBaseOrderBy, outfit, seasons, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
@@ -81,43 +81,48 @@ export class MyOutFitPage  {
   }
 
   async ionViewWillEnter() {
+    this.isLoading = true;
+    this.filteredOutfits = [];
 
-   
-    
-    this.cUserInfo = this.userProfileService.gUserProfile();
-    
-    let cUserInfo = this.cUserInfo()
-    if (!cUserInfo?.uid || !cUserInfo?.gender) {
-      const isUserLoaded = await this.userProfileService.loadUser();
-      cUserInfo = this.cUserInfo();
-      if (!isUserLoaded || !cUserInfo?.uid || !cUserInfo?.gender) {
-        this.isLoading = false;
+    try {
+      const cUserInfo = await this.getReadyUserProfile();
+
+      if (!cUserInfo?.uid || !cUserInfo?.gender) {
+        console.warn('Profilo utente non pronto: impossibile caricare gli outfit.');
         return;
       }
+      this.categoryService.fetchCategories(null, cUserInfo.gender)
+      this.cUserID = cUserInfo.uid
+      const queryString = `gender=${cUserInfo.gender}`
+      const outfits = await firstValueFrom(this.appService.getAll<outfit>('outfitsList', queryString));
+      this.outfits = outfits ?? [];
+      await this.loadOutfits();
+    } catch (err) {
+      console.error('Errore durante il caricamento degli outfit:', err);
+      this.filteredOutfits = [];
+    } finally {
+      this.isLoading = false;
+      requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
     }
-   
-    
-    this.categoryService.fetchCategories(null, cUserInfo.gender)
-    this.cUserID = cUserInfo.uid
 
-    this.isLoading = true;
-    let queryString = `gender=${cUserInfo.gender}`
-    this.appService.getAll('outfitsList', queryString).subscribe(
-      {
-        next: (data) => {
-          this.outfits = data; // Il segnale verrà aggiornato qui
+  }
 
-          this.loadOutfits();  // Carica gli outfit solo se l'utente è loggato
-        },
-        error: (err) => {
-          //this.error = err.message;
-          // this.loading = false;
-        },
-      }
-    )
+  private async getReadyUserProfile(): Promise<UserProfile | null> {
+    this.cUserInfo = this.userProfileService.gUserProfile();
 
-    // this.loadOutfits();
+    let cUserInfo = this.cUserInfo();
+    if (cUserInfo?.uid && cUserInfo?.gender) {
+      return cUserInfo;
+    }
 
+    const isUserLoaded = await this.userProfileService.loadUser();
+    cUserInfo = this.cUserInfo();
+
+    if (!isUserLoaded || !cUserInfo?.uid || !cUserInfo?.gender) {
+      return null;
+    }
+
+    return cUserInfo;
   }
 
   async filterOutfits() {
@@ -157,7 +162,7 @@ export class MyOutFitPage  {
     this.filteredOutfits = JSON.parse(JSON.stringify(filteredData));
     await this.heartIcon();
     filteredData.forEach(async rr => {
-      
+
 
       this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
       this.outfitUserProfile$.pipe(take(1)).subscribe((outfitUserProfile: UserProfile) => {
@@ -277,12 +282,12 @@ export class MyOutFitPage  {
   }
   /*  matchColorPreference(outfit: outfit) {
      return this.filtersColor.some(color => {
- 
+
        const colors = color
- 
- 
+
+
        const matchesColor = outfit.tags.some((tag: any) => colors.includes(tag.color));
- 
+
        // Restituisce true se almeno una delle preferenze corrisponde all'outfit
        return matchesColor
      });
@@ -402,7 +407,7 @@ export class MyOutFitPage  {
     this.filteredOutfits = JSON.parse(JSON.stringify(filteredData));
     await this.heartIcon();
     filteredData.forEach(async rr => {
-      
+
 
       this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
       this.outfitUserProfile$.pipe(take(1)).subscribe((outfitUserProfile: UserProfile) => {
@@ -710,7 +715,7 @@ export class MyOutFitPage  {
     const matchesStyle = !this.cUserPreference.style || this.cUserPreference.style.length === 0 || this.cUserPreference.style.includes(outfit.style);
     const matchesbrend = !this.cUserPreference.brend || this.cUserPreference.brend.length === 0 || outfit.tags.some((tag: any) => brend.includes(tag.brend));
 
-    
+
     return matchesColor || matchesStyle || matchesbrend;
   */
   }
@@ -730,9 +735,9 @@ export class MyOutFitPage  {
         }
         this.appService.updateInCollection('outfits', outfit.id, data)
       })
-   
+
       return;
-      
+
     }
 
     let data = {
@@ -744,22 +749,22 @@ export class MyOutFitPage  {
       if (res) {
 
         this.favorites.add(outfit.id);
-  
+
         if (this.cUserID == outfit.userId) {
           return;
         }
-  
+
         likes = likes + 1;
-  
+
         let data = {
           likes: likes
         }
-  
+
         this.appService.updateInCollection('outfits', outfit.id, data)
       }
     })
 
-    
+
   }
 
   async heartIcon() {
@@ -767,7 +772,7 @@ export class MyOutFitPage  {
 
     this.userProfileService.loadFaveUserOutfits(this.cUserID)
       .subscribe(async faveUserOutfits => {
-        
+
         this.favorites.clear();
         faveUserOutfits.forEach(fUserOutfits => {
           this.favorites.add(fUserOutfits.id);
