@@ -54,6 +54,9 @@ yarn-error.log
 
 
 # Miscellaneous
+*.jks
+*.keystore
+key.properties
 /.angular
 /.angular/cache
 .sass-cache/
