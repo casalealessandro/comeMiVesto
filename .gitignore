@@ -63,6 +63,11 @@ yarn-error.log
 testem.log
 /typings
 
+# Android signing files
+*.jks
+*.keystore
+key.properties
+
 # System files
 .DS_Store
 Thumbs.db
