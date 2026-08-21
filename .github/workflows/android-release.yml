@@ -1,0 +1,254 @@
+name: Come Mi Vesto Android Pipeline
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+  push:
+    branches:
+      - develop
+      - comemivesto-pipeline
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comemivesto-android-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+
+  # ============================================================
+  # BUILD
+  # Compila l'applicazione Angular/Ionic e produce la cartella www
+  # ============================================================
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web application
+        run: npm run build
+
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: www
+          if-no-files-found: error
+          retention-days: 1
+    # ============================================================
+  # ANDROID BUILD
+  # Riceve la build web, sincronizza Capacitor e genera l'AAB firmato
+  # ============================================================
+  android-build:
+    name: Android Build
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      version_name: ${{ steps.android_version.outputs.version_name }}
+      version_code: ${{ steps.android_version.outputs.version_code }}
+      release_tag: ${{ steps.android_version.outputs.release_tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Android version
+        id: android_version
+        shell: bash
+        run: |
+          LATEST_TAG=""
+          LATEST_CODE=-1
+
+          while IFS= read -r tag; do
+            code="${tag##*-code}"
+
+            if [[ "$code" =~ ^[0-9]+$ ]] && (( code > LATEST_CODE )); then
+              LATEST_CODE=$code
+              LATEST_TAG=$tag
+            fi
+          done < <(git tag --list 'android-v*-code*')
+
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No Android release tag found"
+            exit 1
+          fi
+
+          CURRENT_VERSION="${LATEST_TAG#android-v}"
+          CURRENT_VERSION="${CURRENT_VERSION%-code*}"
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+          NEXT_VERSION_NAME="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          NEXT_VERSION_CODE=$((LATEST_CODE + 1))
+          RELEASE_TAG="android-v${NEXT_VERSION_NAME}-code${NEXT_VERSION_CODE}"
+
+          echo "ANDROID_VERSION_NAME=$NEXT_VERSION_NAME" >> "$GITHUB_ENV"
+          echo "ANDROID_VERSION_CODE=$NEXT_VERSION_CODE" >> "$GITHUB_ENV"
+
+          echo "version_name=$NEXT_VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$NEXT_VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+
+          echo "Current release: $LATEST_TAG"
+          echo "Next release: $RELEASE_TAG"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: www
+
+      - name: Synchronize Capacitor Android project
+        run: npx cap sync android
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Restore Android keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/comemivesto-release.jks
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$ANDROID_KEYSTORE_PASSWORD"
+          test -n "$ANDROID_KEY_ALIAS"
+
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+
+          keytool -list \
+            -keystore "$ANDROID_KEYSTORE_PATH" \
+            -storepass:env ANDROID_KEYSTORE_PASSWORD \
+            -alias "$ANDROID_KEY_ALIAS" > /dev/null
+
+      - name: Build signed Android App Bundle
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/comemivesto-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        working-directory: android
+        run: |
+          test -n "$ANDROID_KEY_PASSWORD"
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon
+
+      - name: Verify AAB signature
+        run: jarsigner -verify android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload Android build
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Remove temporary keystore
+        if: always()
+        run: rm -f "${{ runner.temp }}/comemivesto-release.jks"
+  # ============================================================
+  # RELEASE
+  # Pubblica l'AAB finale tra gli artifact della pipeline
+  # ============================================================
+  release:
+    name: Release
+    needs: android-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Download Android build
+        uses: actions/download-artifact@v4
+        with:
+          name: android-aab
+          path: release
+
+      - name: Verify release artifact
+        run: test -f release/app-release.aab
+
+      - name: Publish release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: comemivesto-android-${{ needs.android-build.outputs.version_name }}-code${{ needs.android-build.outputs.version_code }}
+          path: release/app-release.aab
+          if-no-files-found: error
+          retention-days: 14
+    # ============================================================
+  # DEPLOY
+  # Pubblica l'AAB sul canale Internal Testing di Google Play
+  # ============================================================
+  deploy:
+    name: Deploy to Google Play
+    needs:
+      - release
+      - android-build
+    permissions:
+      contents: write
+    if: github.event_name == 'push'
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: comemivesto-android-${{ needs.android-build.outputs.version_name }}-code${{ needs.android-build.outputs.version_code }}
+          path: release
+      - name: Deploy to Google Play Internal Testing
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.acasale.comemivesto
+          releaseFiles: release/app-release.aab
+          track: internal
+          status: completed
+      - name: Create release tag
+        env:
+          RELEASE_TAG: ${{ needs.android-build.outputs.release_tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git tag "$RELEASE_TAG" "$GITHUB_SHA"
+          git push origin "$RELEASE_TAG"
+
+          echo "Created release tag: $RELEASE_TAG"
+
