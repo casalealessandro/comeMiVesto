@@ -1,0 +1,193 @@
+name: Come Mi Vesto Android Pipeline
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+  push:
+    branches:
+      - develop
+      - comemivesto-pipeline
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comemivesto-android-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+
+  # ============================================================
+  # BUILD
+  # Compila l'applicazione Angular/Ionic e produce la cartella www
+  # ============================================================
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web application
+        run: npm run build
+
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: www
+          if-no-files-found: error
+          retention-days: 1
+    # ============================================================
+  # ANDROID BUILD
+  # Riceve la build web, sincronizza Capacitor e genera l'AAB firmato
+  # ============================================================
+  android-build:
+    name: Android Build
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: www
+
+      - name: Synchronize Capacitor Android project
+        run: npx cap sync android
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Restore Android keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/comemivesto-release.jks
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$ANDROID_KEYSTORE_PASSWORD"
+          test -n "$ANDROID_KEY_ALIAS"
+
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+
+          keytool -list \
+            -keystore "$ANDROID_KEYSTORE_PATH" \
+            -storepass:env ANDROID_KEYSTORE_PASSWORD \
+            -alias "$ANDROID_KEY_ALIAS" > /dev/null
+
+      - name: Build signed Android App Bundle
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/comemivesto-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        working-directory: android
+        run: |
+          test -n "$ANDROID_KEY_PASSWORD"
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon
+
+      - name: Verify AAB signature
+        run: jarsigner -verify android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload Android build
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Remove temporary keystore
+        if: always()
+        run: rm -f "${{ runner.temp }}/comemivesto-release.jks"
+  # ============================================================
+  # RELEASE
+  # Pubblica l'AAB finale tra gli artifact della pipeline
+  # ============================================================
+  release:
+    name: Release
+    needs: android-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Download Android build
+        uses: actions/download-artifact@v4
+        with:
+          name: android-aab
+          path: release
+
+      - name: Verify release artifact
+        run: test -f release/app-release.aab
+
+      - name: Publish release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: comemivesto-android-release-${{ github.run_number }}
+          path: release/app-release.aab
+          if-no-files-found: error
+          retention-days: 14
+    # ============================================================
+  # DEPLOY
+  # Pubblica l'AAB sul canale Internal Testing di Google Play
+  # ============================================================
+  deploy:
+    name: Deploy to Google Play
+    needs: release
+
+    if: github.event_name == 'push'
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Download release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: comemivesto-android-release-${{ github.run_number }}
+          path: release
+
+      - name: Deploy to Google Play Internal Testing
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.acasale.comemivesto
+          releaseFiles: release/app-release.aab
+          track: internal
+          status: completed

@@ -1,4 +1,19 @@
 apply plugin: 'com.android.application'
+def releaseSigningEnvironment = [
+    storeFile: System.getenv('ANDROID_KEYSTORE_PATH'),
+    storePassword: System.getenv('ANDROID_KEYSTORE_PASSWORD'),
+    keyAlias: System.getenv('ANDROID_KEY_ALIAS'),
+    keyPassword: System.getenv('ANDROID_KEY_PASSWORD')
+]
+def configuredReleaseSigningValues = releaseSigningEnvironment.values().findAll { it }
+
+if (configuredReleaseSigningValues && configuredReleaseSigningValues.size() != releaseSigningEnvironment.size()) {
+    throw new GradleException(
+        'Android release signing is only partially configured. Set all ANDROID_KEYSTORE_* environment variables.'
+    )
+}
+
+def hasReleaseSigning = configuredReleaseSigningValues.size() == releaseSigningEnvironment.size()
 
 android {
     namespace "com.acasale.comemivesto"
@@ -16,10 +31,25 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(releaseSigningEnvironment.storeFile)
+                storePassword releaseSigningEnvironment.storePassword
+                keyAlias releaseSigningEnvironment.keyAlias
+                keyPassword releaseSigningEnvironment.keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasReleaseSigning) {
+              signingConfig signingConfigs.release
+            }
         }
     }
 }
