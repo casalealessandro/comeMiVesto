@@ -15,7 +15,11 @@ export class FirebaseAuthInterceptor implements HttpInterceptor {
   constructor(private angularFireAuth: AngularFireAuth) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    if (!request.url.startsWith(API_URL)) {
+    const isBackendRequest =
+      request.url === API_URL ||
+      request.url.startsWith(`${API_URL}/`);
+
+    if (!isBackendRequest) {
       return next.handle(request);
     }
 
