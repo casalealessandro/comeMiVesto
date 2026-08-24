@@ -8,6 +8,7 @@ import { AlertController } from '@ionic/angular';
 import { UserProfile } from './interface/user-interface';
 import { FireBaseConditions, outfit } from './interface/outfit-all-interface';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 export interface ApiResponse<T> {
   message: string;
   data: T[];
@@ -22,7 +23,7 @@ export interface ApiResponse<T> {
 export class AppService {
   private batchSize = 20;
   private lastDocument: any | null = null;
-  private apiFire = "https://us-central1-comemivesto-5e5f9.cloudfunctions.net/api/gen/"
+  private apiFire = `${environment.BASE_API_URL}/gen/`
   //private apiFire = "http://localhost:5001/comemivesto-5e5f9/us-central1/api/gen/"
   //private apiFire = "http://localhost:5001/comemivesto-5e5f9/us-central1/api/"
    // Crea un Signal per il wardrobe
@@ -360,4 +361,3 @@ export class AppService {
     }
   }
 }
-

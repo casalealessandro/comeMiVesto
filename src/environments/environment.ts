@@ -1,6 +1,7 @@
 export const environment = {
     production:false,
-    BASE_API_URL: '',
+    BASE_API_URL: 'https://us-central1-comemivesto-5e5f9.cloudfunctions.net/api',
+    useEmulators: false,
     firebase: {
         apiKey: "AIzaSyBNWYDp0fPgLU0npKMC0RoS6C14fHp2mpk",
         authDomain: "comemivesto-5e5f9.firebaseapp.com",

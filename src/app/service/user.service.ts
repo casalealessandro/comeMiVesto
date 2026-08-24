@@ -8,13 +8,14 @@ import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { ApiResponse, AppService } from './app-service';
 import { deleteUser } from 'firebase/auth';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
 
-  apiFire = "https://us-central1-comemivesto-5e5f9.cloudfunctions.net/api";
+  apiFire = environment.BASE_API_URL;
   // Crea un Signal per il wardrobe
   faveUserOutfitsSignal =  signal<any[]>([]); // Stato reattivo
   numberFaveUserOutfitsSignal =  signal<number>(0); // Stato reattivo
