@@ -7,7 +7,9 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AngularFireModule, FIREBASE_OPTIONS, } from '@angular/fire/compat'
-import { AngularFireAuthModule } from '@angular/fire/compat/auth';
+import { AngularFireAuthModule, USE_EMULATOR as AUTH_USE_EMULATOR } from '@angular/fire/compat/auth';
+import { USE_EMULATOR as FIRESTORE_USE_EMULATOR } from '@angular/fire/compat/firestore';
+import { USE_EMULATOR as STORAGE_USE_EMULATOR } from '@angular/fire/compat/storage';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { environment } from 'src/environments/environment';
 import { ScrollingModule } from '@angular/cdk/scrolling';
@@ -41,10 +43,14 @@ import { FirebaseAuthInterceptor } from './interceptors/firebase-auth.intercepto
     provideHttpClient(withInterceptorsFromDi()),
     { provide: HTTP_INTERCEPTORS, useClass: FirebaseAuthInterceptor, multi: true },
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    { provide: FIREBASE_OPTIONS, useValue: environment.firebase}
+    { provide: FIREBASE_OPTIONS, useValue: environment.firebase},
+    ...(environment.useEmulators ? [
+      { provide: AUTH_USE_EMULATOR, useValue: ['http://127.0.0.1:9099'] },
+      { provide: FIRESTORE_USE_EMULATOR, useValue: ['127.0.0.1', 8080] },
+      { provide: STORAGE_USE_EMULATOR, useValue: ['127.0.0.1', 9199] },
+    ] : [])
   ],
   bootstrap: [AppComponent],
  
 })
 export class AppModule { }
-
