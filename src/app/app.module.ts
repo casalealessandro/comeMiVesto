@@ -17,7 +17,8 @@ import { CommonModule } from '@angular/common';
 
 import { FotoOutfitPage } from './views/foto-outfit/foto-outfit.page';
 import { CurrencyFormatPipe } from './utility/currency-format.pipe';
-import { HttpClientModule, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { FirebaseAuthInterceptor } from './interceptors/firebase-auth.interceptor';
 
 
 
@@ -38,6 +39,7 @@ import { HttpClientModule, provideHttpClient, withInterceptorsFromDi } from '@an
   ],
   providers: [
     provideHttpClient(withInterceptorsFromDi()),
+    { provide: HTTP_INTERCEPTORS, useClass: FirebaseAuthInterceptor, multi: true },
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     { provide: FIREBASE_OPTIONS, useValue: environment.firebase}
   ],
@@ -45,5 +47,4 @@ import { HttpClientModule, provideHttpClient, withInterceptorsFromDi } from '@an
  
 })
 export class AppModule { }
-
 
