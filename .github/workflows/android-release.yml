@@ -240,6 +240,7 @@ jobs:
           releaseFiles: release/app-release.aab
           track: internal
           status: completed
+          changesNotSentForReview: true
       - name: Create release tag
         env:
           RELEASE_TAG: ${{ needs.android-build.outputs.release_tag }}
