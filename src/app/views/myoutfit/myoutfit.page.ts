@@ -5,7 +5,7 @@ import { AlertController, ModalController, NavController, RefresherEventDetail }
 
 
 import { AppService } from 'src/app/service/app-service';
-import { buttons, FireBaseConditions, FireBaseOrderBy, outfit, seasons, Tag } from 'src/app/service/interface/outfit-all-interface';
+import { buttons, outfit, seasons, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom, lastValueFrom, Observable } from 'rxjs';
@@ -131,9 +131,9 @@ export class MyOutFitPage  {
     const subCategories = prod.outfitSubCategory
     const color = prod.color;
 
-    let filteredOutfits = await lastValueFrom(this.appService.getFilteredOutfits('', {
-      outfitSubCategory: subCategories,
-      color: [color]
+    const queryString = `gender=${encodeURIComponent(this.cUserInfo().gender)}`;
+    let filteredOutfits = await lastValueFrom(this.appService.getFilteredOutfits(queryString, {
+      categories: [{ outfitSubCategory: subCategories, color }]
     }));
 
     const filteredData = filteredOutfits.filter(item => {
@@ -322,37 +322,14 @@ export class MyOutFitPage  {
       case
         "saveInCloset":
         let data = {
-          id: item.id,
-          userId: this.cUserID,
           name: item.name,
           outfitCategory: category,
           outfitSubCategory: subCategory,
           brend: '',
-          immages: []
+          images: []
 
         }
-        let coditions = [
-
-          {
-            field: 'userId', operator: '==', value: this.cUserID
-          },
-          {
-            field: 'id', operator: '==', value: item.id
-          }
-        ]
-
-        let check = await this.appService.getFilteredCollection('wardrobes', coditions);
-        if (check) {
-          const alert = await this.alertController.create({
-            header: 'Oggetto già salvato',
-            message: `${item.name} è già presente nel tuo guardaroba`,
-            buttons: ['Ok'],
-          });
-
-          await alert.present();
-          return
-        }
-        let res = await this.appService.saveInCollection('wardrobes', undefined, data)
+        let res = await this.appService.createWardrobe(data)
 
         if (res) {
           const alert = await this.alertController.create({
@@ -425,33 +402,6 @@ export class MyOutFitPage  {
     // Ottieni il timestamp della data di una settimana fa
     const timestampOneWeekAgo = oneWeekAgo.getTime();
 
-    const conditions: FireBaseConditions[] = [];
-
-
-    conditions.push(
-      {
-        field: 'createdAt',
-        operator: '>=',
-        value: timestampOneWeekAgo
-      },
-
-
-    )
-    conditions.push(
-      {
-        field: 'status',
-        operator: '==',
-        value: 'approved'
-      }
-
-    )
-    const orderBy: FireBaseOrderBy[] = [
-      { field: 'visits', by: 'desc' },
-      { field: 'likes', by: 'asc' }
-    ];
-
-
-
     const response: any = await this.appService.getData('outfitsList', 'page=1&limit=100')
     const outfits = Array.isArray(response) ? response : response.outfits ?? [];
     const trendingOutfits = outfits
@@ -474,42 +424,6 @@ export class MyOutFitPage  {
 
 
   }
-
-  createFirestoreConditions(filters: any): FireBaseConditions[] {
-    const conditions: FireBaseConditions[] = [];
-
-    for (const key in filters) {
-      if (filters.hasOwnProperty(key)) {
-        const value = filters[key];
-
-        // Controlla se il valore è un array vuoto e salta questa iterazione
-        if (Array.isArray(value) && value.length === 0) {
-          continue;  // Salta questa iterazione se l'array è vuoto
-        }
-        // Se il valore è un array con più di un elemento, usa "array-contains-any"
-        if (Array.isArray(value) && value.length > 0) {
-
-          // usa l'operatore "array-contains-any"
-          conditions.push({
-            field: key,
-            operator: 'array-contains-any',
-            value: filters[key]
-          });
-
-        } else if (value !== null && value !== undefined && value !== '') {
-          // Se non è un array e ha un valore valido, usa "=="
-          conditions.push({
-            field: key,
-            operator: '==',
-            value: value
-          });
-        }
-      }
-    }
-
-    return conditions;
-  }
-
 
   async outfitMenu(outfit: outfit) {
 
@@ -620,45 +534,11 @@ export class MyOutFitPage  {
 
     let dataS = {
       outFitId: outfit.id,
-      userIdSegnalation: this.cUserID,
       outfitUserId: outfit.userId,
-      typeSegnaletion: id,
-      status: 'pedding'
-
-
+      typeSegnaletion: id
     }
-    const cond = [
-      {
-        field: 'userIdSegnalation',
-        operator: '==',
-        value: this.cUserID
-      },
-      {
-        field: 'outFitId',
-        operator: '==',
-        value: outfit.id
-      },
-      {
-        field: 'typeSegnaletion',
-        operator: '==',
-        value: id
-      },
-      {
-        field: 'status',
-        operator: '==',
-        value: 'pedding'
-      }
-    ]
-    let checkSe = await this.appService.getFilteredCollection('reports', cond);
-
-    if (checkSe.length > 0) {
-      this.isOutfitCompositionOpen = false;
-      return
-    }
-
-    let res = await this.appService.saveInCollection('reports', undefined, dataS)
-
-    if (res) {
+    try {
+      await this.appService.createReport(dataS)
       this.isOutfitCompositionOpen = false;
       const alert = await this.alertController.create({
         header: 'Segnalazione completata',
@@ -667,6 +547,8 @@ export class MyOutFitPage  {
       });
 
       await alert.present();
+    } catch {
+      this.isOutfitCompositionOpen = false;
     }
 
   }
@@ -715,8 +597,7 @@ export class MyOutFitPage  {
     let likes = outfit.likes
     if (this.favorites.has(outfit.id)) {
       const outfitId = outfit.id;
-      const cUserID = this.cUserID
-      this.userProfileService.delFaveUserOutfits(cUserID, outfitId).subscribe(faveUserOutfits => {
+      this.userProfileService.delFaveUserOutfits(outfitId).subscribe(faveUserOutfits => {
         this.favorites.delete(outfit.id);
       })
 
@@ -724,12 +605,7 @@ export class MyOutFitPage  {
 
     }
 
-    let data = {
-      outfitId: outfit.id,
-      userId: this.cUserID
-    }
-
-    this.userProfileService.saveFaveUserOutfits(data).subscribe(res=>{
+    this.userProfileService.saveFaveUserOutfits(outfit.id).subscribe(res=>{
       if (res) {
 
         this.favorites.add(outfit.id);
@@ -747,12 +623,12 @@ export class MyOutFitPage  {
   async heartIcon() {
 
 
-    this.userProfileService.loadFaveUserOutfits(this.cUserID)
+    this.userProfileService.loadFaveUserOutfits()
       .subscribe(async faveUserOutfits => {
 
         this.favorites.clear();
         faveUserOutfits.forEach(fUserOutfits => {
-          this.favorites.add(fUserOutfits.id);
+          this.favorites.add(fUserOutfits.outfitId);
         })
       })
 

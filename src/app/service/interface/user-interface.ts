@@ -15,6 +15,9 @@ export interface UserProfile {
 
 }
 
+export type EditableUserProfile = Partial<Pick<UserProfile,
+  'displayName' | 'nome' | 'cognome' | 'bio' | 'photoURL' | 'gender'>>;
+
 export interface UserPreference {
   uid: string;
   color?: string[];
@@ -22,4 +25,3 @@ export interface UserPreference {
   style?: string[];
   uIdBlocked?:string[];
 }
-
