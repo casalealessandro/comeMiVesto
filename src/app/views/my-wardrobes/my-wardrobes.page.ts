@@ -42,11 +42,7 @@ export class MyWardrobesPage implements OnInit {
         console.log('user', user)
         this.userID = user.uid;
 
-        this.categoryCloth = await this.appService.getFilteredCollection('outfitsCategories', [{
-          field: 'parentCategory',
-          operator: '==',
-          value: ""
-        }])
+        this.categoryCloth = await this.appService.getData('outfitCategories', '')
         this.userWardrobes$ = this.userProfileService.getUserWardrobes();
         // this.subCategoryCloth  = await this.appService.getFilteredCollection('outfitsSubCategories',[])
 

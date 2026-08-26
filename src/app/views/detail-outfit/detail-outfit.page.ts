@@ -37,13 +37,9 @@ export class DetailOutfitPage implements OnInit {
       if (this.outfitId) {
 
 
-        let outfits: outfit[] = await this.appService.getFilteredCollection('outfits', [{
-          field: 'id',
-          operator: '==',
-          value: this.outfitId
-        }]);
-        this.image = outfits[0].imageUrl
-        this.tags = outfits[0].tags;
+        const selectedOutfit = await this.appService.getOutfit(this.outfitId);
+        this.image = selectedOutfit.imageUrl
+        this.tags = selectedOutfit.tags;
 
         if (this.tags.length > 0) {
           this.isOpen = true;
@@ -55,14 +51,16 @@ export class DetailOutfitPage implements OnInit {
         conditions.push({
               field: 'outfitSubCategory',
               operator: "array-contains-any",
-              value: outfits[0].outfitSubCategory
+              value: selectedOutfit.outfitSubCategory
             })
         conditions.push({
           field: 'gender',
           operator: '==',
-          value: outfits[0].gender
+          value: selectedOutfit.gender
         })
-        let products: any[] = await this.appService.getMultiFiltered('outfitsProducts',conditions); 
+        let products: any[] = await this.appService.filterOutfitProducts({
+          outfitSubCategory: selectedOutfit.outfitSubCategory,
+        });
        
         if (this.tags.length > 0 && this.isOpen) {
           const tags =this.tags

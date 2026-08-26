@@ -78,17 +78,16 @@ export class UserService {
     return this._userInfo;
   }
 
-  registerUser<T>(api: string, payloadData: T): Observable<T[]> {
+  registerUser<T>(api: string, payloadData: T): Observable<T> {
     const completeApi = `${this.apiFire}${api}`;
     return this.httpClient.post<ApiResponse<T>>(completeApi, payloadData).pipe(
       map((response) => response.data),
       catchError(this.handleError)
     );
   }
-  loginUser<T>(api: string, payloadData: T): Observable<T[]> {
+  loginUser<T>(api: string, payloadData: T): Observable<T> {
     const completeApi = `${this.apiFire}${api}`;
     return this.httpClient.post<ApiResponse<T>>(completeApi, payloadData).pipe(
-      retry(2), // Riprova in caso di errore temporaneo
       map((response) => response.data),
       catchError(this.handleError)
     );
@@ -98,10 +97,10 @@ export class UserService {
 
   const apiSubject = `${this.apiFire}/user/user-profile/${userId}`;
 
-    return this.httpClient.get<UserProfile>(apiSubject).pipe(
+    return this.httpClient.get<ApiResponse<UserProfile>>(apiSubject).pipe(
       retry(3),
-      tap((res) => this._userInfo.set(res)),
-      map((response: any) => response),
+      map(response => response.data),
+      tap((profile) => this._userInfo.set(profile)),
 
       catchError(this.handleError)
     );
@@ -114,7 +113,6 @@ export class UserService {
     const completeApi = `${this.apiFire}/user/update-user-profile/${uid}`;
 
     return this.httpClient.put<ApiResponse<any>>(completeApi, profileData).pipe(
-      retry(2), // Riprova in caso di errore temporaneo
       map((response) => response.data),
       catchError(this.handleError),
       tap((resp:any) => this.setUserInfo(resp)) // Aggiorna la l'utente dopo la modifica
@@ -137,13 +135,14 @@ export class UserService {
   /**FINE GESTIONE DATI UTENTE**/
   async setUserPreference(profilePreferData: Partial<UserPreference>): Promise<boolean> {
     try {
-      const user = await this.afAuth.currentUser;
-      if (user) {
-        this.firestore.collection('usersPreference').doc(user.uid).set(profilePreferData);
-        this.getUserPreference()
-        return true
-      }
-      return false
+      const payload = {
+        color: profilePreferData.color ?? [],
+        brend: profilePreferData.brend ?? [],
+        style: profilePreferData.style ?? [],
+        uIdBlocked: profilePreferData.uIdBlocked ?? []
+      };
+      await lastValueFrom(this.httpClient.put<ApiResponse<UserPreference>>(`${this.apiFire}/gen/user-preferences`, payload));
+      return true;
     } catch (error) {
 
       return false
@@ -169,16 +168,7 @@ export class UserService {
   
 
   getUserOutfits(): Observable<any[]> {
-
-    return this.afAuth.authState.pipe(
-      switchMap(user => {
-        if (user) {
-          return this.firestore.collection('outfits', ref => ref.where('userId', '==', user.uid)).valueChanges();
-        } else {
-          return of([]);
-        }
-      })
-    );
+    return this.appService.getUserOutfits();
   }
 
   getUserWardrobes(): Observable<any[]> {
@@ -223,7 +213,6 @@ export class UserService {
     const completeApi = `${this.apiFire}/gen/del-fave-user-outfits?uid=${uid}&outfitId=${outfitId}`;
 
     return this.httpClient.delete<ApiResponse<any>>(completeApi).pipe(
-      retry(2),
       map((response) => response.data),
       tap((data) => this.setFaveUserOutfits(data)), // Aggiorna la lista dopo la cancellazione
       catchError(this.handleError),
@@ -235,7 +224,6 @@ export class UserService {
     const completeApi = `${this.apiFire}/gen/save-fave-user-outfits`;
 
     return this.httpClient.post<ApiResponse<any>>(completeApi, payloadData).pipe(
-      retry(2), // Riprova in caso di errore temporaneo
       map((response) => response.data),
       catchError(this.handleError),
       tap((data) => this.setFaveUserOutfits(data)) // Aggiorna la lista dopo il salvataggio
@@ -296,14 +284,11 @@ export class UserService {
   }
 
   async disabledUsersFirebase(uid: string): Promise<boolean> {
-    const api = `${this.apiFire}/users/disable/${uid}`
-    let data = {
-      uid: uid
-    }
+    const api = `${this.apiFire}/user/disable/${uid}`
 
 
     try {
-      let call = this.httpClient.post(api, data)
+      let call = this.httpClient.post(api, {})
       const result = await lastValueFrom(call);
       console.log(result);
       return true;
@@ -327,8 +312,20 @@ export class UserService {
         `Errore server-side: codice ${error.status}, messaggio: ${error.message}`
       );
       switch (error.status) {
+        case 400:
+          userFriendlyMessage = 'I dati inviati non sono validi.';
+          break;
+        case 401:
+          userFriendlyMessage = 'La sessione è scaduta. Accedi nuovamente.';
+          break;
+        case 403:
+          userFriendlyMessage = 'Non sei autorizzato a eseguire questa operazione.';
+          break;
         case 404:
           userFriendlyMessage = 'Risorsa non trovata.';
+          break;
+        case 409:
+          userFriendlyMessage = 'La risorsa è già presente.';
           break;
         case 500:
           userFriendlyMessage = 'Errore interno del server. Riprova più tardi.';

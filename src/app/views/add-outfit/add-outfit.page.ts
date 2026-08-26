@@ -229,13 +229,13 @@ console.log(event);
 
   async editOutfit(data: Partial<any>): Promise<boolean> {
     let id = this.outfitData.id
-    let isOk = await this.appService.updateInCollection('outfits', id, data)
-
-    if (isOk) {
-
+    const payload = this.editableOutfitPayload(data);
+    try {
+      await this.appService.updateOutfit(id, payload)
       return true
+    } catch {
+      return false
     }
-    return false
   }
   async confirmOutfit() {
 
@@ -254,7 +254,6 @@ console.log(event);
     }
 
     const user = await this.afAuth.currentUser;
-    const id = this.generateGUID()
     if (user) {
       let mappedTag:any[] = [...this.tags];
 
@@ -276,7 +275,7 @@ console.log(event);
     );
     let dateCreate = new Date();
       this.outfit = {
-        id: id,
+        id: '',
         title: this.title,
         description: this.description,
         imageUrl: imageUrl,
@@ -285,9 +284,8 @@ console.log(event);
         style: this.style,
         season: this.season,
         color: this.color,
-        userId: user.uid,
-        createdAt:dateCreate.getTime(),
-        status:'pending',
+        userId: '',
+        status: 'pending',
 
         ...mappedTag
       };
@@ -296,9 +294,8 @@ console.log(event);
     let nRND = Math.floor(Math.random() * (5 - 1 + 1)) + 1;
 
 
-    let res = await this.appService.saveInCollection('outfits', id, this.outfit)
-
-    if (res) {
+    try {
+      await this.appService.createOutfit(this.editableOutfitPayload(this.outfit))
       alert("L'autfit inserito è in attesa di approvazione.")
      
       setTimeout(() => {
@@ -306,7 +303,7 @@ console.log(event);
         this.handleBackButton()
         
       }, 800);
-    }
+    } catch { return; }
 
 
   }
@@ -434,6 +431,11 @@ console.log(event);
         .substring(1);
     }
     return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
+  }
+
+  private editableOutfitPayload(data: Partial<outfit>): Partial<outfit> {
+    const { gender, season, style, color, tags } = data;
+    return { gender, season, style, color, tags };
   }
 
   async handleBackButton() {
