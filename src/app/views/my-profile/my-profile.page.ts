@@ -259,16 +259,7 @@ export class MyProfilePage implements OnInit {
     event.stopPropagation();
     event.preventDefault();
 
-    let coditions = [
-
-      {
-        field: 'userId', operator: '==', value: outfitData.userId
-      },
-      {
-        field: 'id', operator: '==', value: outfitData.id
-      }
-    ]
-    let res = await this.appService.deleteDocuments('outfits', coditions)
+    let res = await this.appService.deleteOutfit(String(outfitData.id))
 
     if (res) {
       this.userOutfits$ = this.userProfileService.getUserOutfits();

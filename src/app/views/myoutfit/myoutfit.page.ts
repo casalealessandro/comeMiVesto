@@ -8,7 +8,7 @@ import { AppService } from 'src/app/service/app-service';
 import { buttons, FireBaseConditions, FireBaseOrderBy, outfit, seasons, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom, lastValueFrom, Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
@@ -131,25 +131,10 @@ export class MyOutFitPage  {
     const subCategories = prod.outfitSubCategory
     const color = prod.color;
 
-    let condition: FireBaseConditions[] = [
-      {
-        field: 'outfitSubCategory',
-        operator: 'array-contains-any',
-        value: subCategories
-      },
-      {
-        field: 'color',
-        operator: 'array-contains-any',
-        value: [color]
-      },
-      {
-        field: 'status',
-        operator: '==',
-        value: 'approved'
-      }
-    ]
-
-    let filteredOutfits = await this.appService.getMultiFiltered('outfits', condition);
+    let filteredOutfits = await lastValueFrom(this.appService.getFilteredOutfits('', {
+      outfitSubCategory: subCategories,
+      color: [color]
+    }));
 
     const filteredData = filteredOutfits.filter(item => {
       // Verifica se blockedUIDs è definito e contiene effettivamente un array
@@ -467,7 +452,11 @@ export class MyOutFitPage  {
 
 
 
-    const trendingOutfits = await this.appService.getFilteredCollection('outfits', conditions)
+    const response: any = await this.appService.getData('outfitsList', 'page=1&limit=100')
+    const outfits = Array.isArray(response) ? response : response.outfits ?? [];
+    const trendingOutfits = outfits
+      .filter((outfit: outfit) => !outfit.createdAt || outfit.createdAt >= timestampOneWeekAgo)
+      .sort((a: outfit, b: outfit) => (b.visits ?? 0) - (a.visits ?? 0) || (a.likes ?? 0) - (b.likes ?? 0));
     if (trendingOutfits)
       this.trendingOutfits = trendingOutfits
   }
@@ -729,11 +718,6 @@ export class MyOutFitPage  {
       const cUserID = this.cUserID
       this.userProfileService.delFaveUserOutfits(cUserID, outfitId).subscribe(faveUserOutfits => {
         this.favorites.delete(outfit.id);
-        likes = likes - 1
-        let data = {
-          likes: likes
-        }
-        this.appService.updateInCollection('outfits', outfit.id, data)
       })
 
       return;
@@ -754,13 +738,6 @@ export class MyOutFitPage  {
           return;
         }
 
-        likes = likes + 1;
-
-        let data = {
-          likes: likes
-        }
-
-        this.appService.updateInCollection('outfits', outfit.id, data)
       }
     })
 
@@ -801,12 +778,7 @@ export class MyOutFitPage  {
       if (outfit.userId == this.cUserID) {
         return
       }
-      let visit = !outfit.visits ? 1 : outfit.visits + 1;// nVisit++
-      let data = { visits: visit }
-      let update = await this.appService.updateInCollection('outfits', outfit.id, data)
-      if (update) {
-
-      }
+      await this.appService.recordOutfitVisit(String(outfit.id));
     })
   }
 

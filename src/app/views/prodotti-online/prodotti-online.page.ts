@@ -73,35 +73,14 @@ export class ProdottiOnlinePage implements OnInit {
   }
 
   async loadProducts(outfitCategory?: any, outfitSubCategory?: any) {
-    let conditions = []
-    if (outfitCategory) {
-      conditions.push(
-        {
-          field: 'outfitCategory',
-          operator: '==',
-          value: outfitCategory
-        }
-      )
-    }
-    if (outfitSubCategory) {
-      conditions.push(
-        {
-          field: 'outfitSubCategory',
-          operator: '==',
-          value: outfitSubCategory
-        }
-      )
-    }
-
-    conditions.push({
-      field: 'gender',
-      operator: '==',
-      value: this.gender
-    })
-
-
-    let products = await this.appService.getFilteredCollection('outfitsProducts', conditions);
-    this.products = products
+    const filters = {
+      ...(outfitCategory ? { outfitCategory: [String(outfitCategory)] } : {}),
+      ...(outfitSubCategory ? { outfitSubCategory: [String(outfitSubCategory)] } : {})
+    };
+    const products = outfitCategory || outfitSubCategory
+      ? await this.appService.filterOutfitProducts(filters)
+      : await this.appService.getData('outfit-products', '');
+    this.products = products.filter((product: any) => !this.gender || product.gender === this.gender)
 
 
 

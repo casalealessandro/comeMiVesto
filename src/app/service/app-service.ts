@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { AngularFirestore, CollectionReference, Query } from '@angular/fire/compat/firestore';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { DynamicFormField } from './interface/dynamic-form-field';
 import { lastValueFrom, Observable, throwError } from 'rxjs';
 import { catchError, map, retry, tap } from 'rxjs/operators';
@@ -11,7 +11,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 export interface ApiResponse<T> {
   message: string;
-  data: T[];
+  data: T;
 }
 
 
@@ -42,23 +42,30 @@ export class AppService {
   }
 
   getFormFields(nomeAnagrafica: string): Observable<DynamicFormField[]> {
-    return this.firestore.collection('forms').doc(nomeAnagrafica).valueChanges()
-      .pipe(
-        map((formData: any) => {
-          const jsonFields = JSON.parse(formData.json);
-          return jsonFields as DynamicFormField[];
-        })
-      );
+    return this.http.get<ApiResponse<DynamicFormField[]>>(`${this.apiFire}forms/${encodeURIComponent(nomeAnagrafica)}`).pipe(
+      map(response => {
+        if (!Array.isArray(response?.data)) {
+          throw new Error('Il form ricevuto non è valido.');
+        }
+        return response.data;
+      }),
+      catchError(this.handleError)
+    );
   }
 
   async getData(api:string,queryString:string):Promise<any>{
     const normalizedQuery = this.normalizeQueryString(queryString);
-    let Query = !normalizedQuery ? '' : `${normalizedQuery}`
+    const querySuffix = !queryString
+      ? ''
+      : queryString.startsWith('/')
+        ? queryString
+        : `?${normalizedQuery}`;
 
-    const completeApi = `${this.apiFire}${api}${Query}`
+    const completeApi = `${this.apiFire}${api}${querySuffix}`
     const call = this.http.get(completeApi)
 
-    return await lastValueFrom(call)
+    const response: any = await lastValueFrom(call)
+    return response?.data ?? response
   }
   getAllData(api: string, queryString: string = ''): Observable<any> {
     const normalizedQuery = this.normalizeQueryString(queryString);
@@ -66,7 +73,7 @@ export class AppService {
     const completeApi = `${this.apiFire}${api}${normalizedQuery ? '?' + normalizedQuery : ''}`;
     
     // Chiamata HTTP
-    return this.http.get(completeApi);
+    return this.http.get<any>(completeApi).pipe(map(response => response?.data ?? response));
   }
 
    /**
@@ -76,7 +83,7 @@ export class AppService {
    getAll<T>(api: string, queryString: string = ''): Observable<T[]> {
      const normalizedQuery = this.normalizeQueryString(queryString);
      const completeApi = `${this.apiFire}${api}${normalizedQuery ? '?' + normalizedQuery : ''}`;
-     return this.http.get<ApiResponse<T>>(completeApi).pipe(
+     return this.http.get<ApiResponse<T[]>>(completeApi).pipe(
        retry(3),
        tap(() => console.info('Richiesta all’API effettuata con successo')),
        map((response: any) => response.data),
@@ -90,20 +97,30 @@ export class AppService {
    * @param payload - I dati da inviare.
    * @returns Observable<T> - L'oggetto generico restituito dalla risposta.
    */
-  create<T>(api: string, payloadData: T): Observable<T[]> {
+  create<TPayload, TResult = TPayload>(api: string, payloadData: TPayload): Observable<TResult> {
     const completeApi = `${this.apiFire}${api}`;
-    return this.http.post<ApiResponse<T>>(completeApi, payloadData).pipe(
-      retry(2), // Riprova in caso di errore temporaneo
+    return this.http.post<ApiResponse<TResult>>(completeApi, payloadData).pipe(
       map((response) => response.data),
       catchError(this.handleError),
       tap(() => console.info('Richiesta all’API effettuata con successo'))
     );
   }
 
+  getOutfit(id: string): Promise<outfit> {
+    return lastValueFrom(this.http.get<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`).pipe(map(r => r.data), catchError(this.handleError)));
+  }
+
+  getUserOutfits(): Observable<outfit[]> { return this.getAll<outfit>('user-outfits'); }
+  createOutfit(payload: Partial<outfit>): Promise<outfit> { return lastValueFrom(this.http.post<ApiResponse<outfit>>(`${this.apiFire}outfits`, payload).pipe(map(r => r.data), catchError(this.handleError))); }
+  updateOutfit(id: string, payload: Partial<outfit>): Promise<outfit> { return lastValueFrom(this.http.put<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`, payload).pipe(map(r => r.data), catchError(this.handleError))); }
+  deleteOutfit(id: string): Promise<boolean> { return lastValueFrom(this.http.delete<ApiResponse<unknown>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`).pipe(map(() => true), catchError(this.handleError))); }
+  recordOutfitVisit(id: string): Promise<outfit> { return lastValueFrom(this.http.post<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}/visit`, {}).pipe(map(r => r.data), catchError(this.handleError))); }
+  filterOutfitProducts(filters: { ids?: string[]; outfitCategory?: string[]; outfitSubCategory?: string[] }): Promise<any[]> { return lastValueFrom(this.http.post<ApiResponse<any[]>>(`${this.apiFire}filter-outfit-products`, filters).pipe(map(r => r.data), catchError(this.handleError))); }
+  getPublicUserProfile(uid: string): Observable<UserProfile> { return this.http.get<ApiResponse<UserProfile>>(`${this.apiFire}public-user-profile/${encodeURIComponent(uid)}`).pipe(map(r => r.data), catchError(this.handleError)); }
+
    getFilteredOutfits(queryString:string,conditions: any): Observable<outfit[]> {
     const completeApi = `${this.apiFire}filter-outfits?${queryString}`;
     return this.http.post<ApiResponse<any>>(completeApi,conditions).pipe(
-      retry(3),
       tap(() => console.info('Richiesta all’API effettuata con successo')),
       map((response: any) => response.data),
       catchError(this.handleError)
@@ -112,7 +129,6 @@ export class AppService {
    getSuggestOutfits(queryString:string,conditions: any): Observable<outfit[]> {
     const completeApi = `${this.apiFire}preference-outfits?${queryString}`;
     return this.http.post<ApiResponse<any>>(completeApi,conditions).pipe(
-      retry(3),
       tap(() => console.info('Richiesta all’API effettuata con successo')),
       map((response: any) => response.data),
       catchError(this.handleError)
@@ -138,8 +154,20 @@ export class AppService {
         `Errore server-side: codice ${error.status}, messaggio: ${error.message}`
       );
       switch (error.status) {
+        case 400:
+          userFriendlyMessage = 'I dati inviati non sono validi.';
+          break;
+        case 401:
+          userFriendlyMessage = 'La sessione è scaduta. Accedi nuovamente.';
+          break;
+        case 403:
+          userFriendlyMessage = 'Non sei autorizzato a eseguire questa operazione.';
+          break;
         case 404:
           userFriendlyMessage = 'Risorsa non trovata.';
+          break;
+        case 409:
+          userFriendlyMessage = 'La risorsa è già presente.';
           break;
         case 500:
           userFriendlyMessage = 'Errore interno del server. Riprova più tardi.';
@@ -152,28 +180,8 @@ export class AppService {
     return throwError(() => new Error(userFriendlyMessage));
   }
 
-  getOutfits(userOutFit?: string) {
-      let c= this.firestore.collection('outfits').ref
-        c.where('tags', 'array-contains', [{
-          
-          outfitSubCategory: 'SNK'
-      }]).get().then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-            console.log(doc, " => ", doc.data());
-        });
-    });
-
-  }
-
   getUserProfilebyId(userUid: any): Observable<UserProfile> {
-    let usersC = this.firestore.collection('users').doc(userUid).valueChanges()
-    return usersC.pipe(
-
-      map((user: any) => {
-        return user
-      
-      })
-    );
+    return this.getPublicUserProfile(userUid);
   }
 
   async getFilteredCollection(collection: string, conditions?:FireBaseConditions[],orderBy?:any[]): Promise<any> {
