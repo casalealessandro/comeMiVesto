@@ -1,12 +1,10 @@
 import { Injectable, signal } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { DynamicFormField } from './interface/dynamic-form-field';
 import { lastValueFrom, Observable, throwError } from 'rxjs';
 import { catchError, map, retry, tap } from 'rxjs/operators';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
-import { AlertController } from '@ionic/angular';
 import { UserProfile } from './interface/user-interface';
-import { FireBaseConditions, outfit } from './interface/outfit-all-interface';
+import { EditableOutfit, OutfitFilterPayload, ReportPayload, WardrobePayload, outfit, wardrobesItem } from './interface/outfit-all-interface';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 export interface ApiResponse<T> {
@@ -32,7 +30,7 @@ export class AppService {
   selectedProduct = signal<string | null>(null);
   
 
-  constructor(private firestore: AngularFirestore, private storage: AngularFireStorage, private alertController: AlertController, private http:HttpClient) { }
+  constructor(private storage: AngularFireStorage, private http:HttpClient) { }
 
   private normalizeQueryString(queryString: string = ''): string {
     if (!queryString) {
@@ -111,16 +109,33 @@ export class AppService {
   }
 
   getUserOutfits(): Observable<outfit[]> { return this.getAll<outfit>('user-outfits'); }
-  createOutfit(payload: Partial<outfit>): Promise<outfit> { return lastValueFrom(this.http.post<ApiResponse<outfit>>(`${this.apiFire}outfits`, payload).pipe(map(r => r.data), catchError(this.handleError))); }
-  updateOutfit(id: string, payload: Partial<outfit>): Promise<outfit> { return lastValueFrom(this.http.put<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`, payload).pipe(map(r => r.data), catchError(this.handleError))); }
+  createOutfit(payload: EditableOutfit): Promise<outfit> { return lastValueFrom(this.http.post<ApiResponse<outfit>>(`${this.apiFire}outfits`, this.editableOutfitPayload(payload)).pipe(map(r => r.data), catchError(this.handleError))); }
+  updateOutfit(id: string, payload: EditableOutfit): Promise<outfit> { return lastValueFrom(this.http.put<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`, this.editableOutfitPayload(payload)).pipe(map(r => r.data), catchError(this.handleError))); }
   deleteOutfit(id: string): Promise<boolean> { return lastValueFrom(this.http.delete<ApiResponse<unknown>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`).pipe(map(() => true), catchError(this.handleError))); }
   recordOutfitVisit(id: string): Promise<outfit> { return lastValueFrom(this.http.post<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}/visit`, {}).pipe(map(r => r.data), catchError(this.handleError))); }
   filterOutfitProducts(filters: { ids?: string[]; outfitCategory?: string[]; outfitSubCategory?: string[] }): Promise<any[]> { return lastValueFrom(this.http.post<ApiResponse<any[]>>(`${this.apiFire}filter-outfit-products`, filters).pipe(map(r => r.data), catchError(this.handleError))); }
+  getWardrobes(): Observable<wardrobesItem[]> { return this.getAll<wardrobesItem>('wardrobes'); }
+  getWardrobe(id: string): Promise<wardrobesItem> { return lastValueFrom(this.http.get<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes/${encodeURIComponent(id)}`).pipe(map(r => r.data), catchError(this.handleError))); }
+  createWardrobe(data: WardrobePayload): Promise<wardrobesItem> { return lastValueFrom(this.http.post<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes`, this.wardrobePayload(data)).pipe(map(r => r.data), catchError(this.handleError))); }
+  updateWardrobe(id: string, data: Partial<WardrobePayload>): Promise<wardrobesItem> { return lastValueFrom(this.http.put<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes/${encodeURIComponent(id)}`, this.wardrobePayload(data)).pipe(map(r => r.data), catchError(this.handleError))); }
+  deleteWardrobe(id: string): Promise<boolean> { return lastValueFrom(this.http.delete(`${this.apiFire}wardrobes/${encodeURIComponent(id)}`).pipe(map(() => true), catchError(this.handleError))); }
+  createReport(data: ReportPayload): Promise<unknown> { const payload = { outFitId: data.outFitId, outfitUserId: data.outfitUserId, typeSegnaletion: data.typeSegnaletion }; return lastValueFrom(this.http.post<ApiResponse<unknown>>(`${this.apiFire}reports`, payload).pipe(map(r => r.data), catchError(this.handleError))); }
   getPublicUserProfile(uid: string): Observable<UserProfile> { return this.http.get<ApiResponse<UserProfile>>(`${this.apiFire}public-user-profile/${encodeURIComponent(uid)}`).pipe(map(r => r.data), catchError(this.handleError)); }
 
-   getFilteredOutfits(queryString:string,conditions: any): Observable<outfit[]> {
+   getFilteredOutfits(queryString:string,conditions: OutfitFilterPayload): Observable<outfit[]> {
     const completeApi = `${this.apiFire}filter-outfits?${queryString}`;
-    return this.http.post<ApiResponse<any>>(completeApi,conditions).pipe(
+    const payload: OutfitFilterPayload = {
+      categories: (conditions.categories ?? []).map(({ outfitCategory, outfitSubCategory, color }) => {
+        const category: { outfitCategory?: string; outfitSubCategory?: string; color?: string } = {};
+        if (outfitCategory) category.outfitCategory = outfitCategory;
+        if (outfitSubCategory) category.outfitSubCategory = outfitSubCategory;
+        if (color) category.color = color;
+        return category;
+      }),
+      ...(conditions.season ? { season: conditions.season } : {}),
+      ...(conditions.style ? { style: conditions.style } : {})
+    };
+    return this.http.post<ApiResponse<any>>(completeApi,payload).pipe(
       tap(() => console.info('Richiesta all’API effettuata con successo')),
       map((response: any) => response.data),
       catchError(this.handleError)
@@ -183,172 +198,26 @@ export class AppService {
   getUserProfilebyId(userUid: any): Observable<UserProfile> {
     return this.getPublicUserProfile(userUid);
   }
-
-  async getFilteredCollection(collection: string, conditions?:FireBaseConditions[],orderBy?:any[]): Promise<any> {
-    
-    let query: any = this.firestore.collection(collection).ref;
-    
-    if(conditions){
-      // Applica tutte le condizioni alla query 
-      conditions.forEach(condition => {
-        
-        query = query.where(condition.field, condition.operator, condition.value);
-        //console.log('conditions-->',query)
-      });
-    }
-
-    if(orderBy){
-      // Applica l'ordinamento alla query
-      orderBy.forEach(order => {
-        query = query.orderBy(order.field, order.by);
-      });
-    }
-     
-    
-    try {
-      
-      const querySnapshot = await query.get();
-
-      const results = querySnapshot.docs.map((doc: any) => doc.data());
-      //this.resultsSignal.set(results);
-      this.resultsSignal.set(results)
-      return results;
-    } catch (error) {
-      console.error('Error getting filtered collection:', error);
-      this.resultsSignal.set([]);
-
-      return [];
-    }
-
-
-
-  }
-
-  async getMultiFiltered(collection: string,conditions: FireBaseConditions[]): Promise<any[]> {
-    
-    const db: any = this.firestore.collection(collection).ref;
-    
-   
-    
-    const queryPromises: Promise<any>[] = [];
-
-    // Raggruppa le condizioni in base all'operatore
-    const simpleConditions = conditions.filter(c => c.operator === '==');
-    const arrayConditions = conditions.filter(c => c.operator === 'array-contains-any');
-
-    // Esegui query per condizioni semplici (==)
-    let baseQuery 
-    if (simpleConditions.length > 0) {
-      simpleConditions.forEach((condition:any) => {
-       // query =  query.where(condition.field, condition.operator, condition.value);
-        const query = db.where(condition.field, condition.operator, condition.value);
-        queryPromises.push(query.get());
-      });
-    }
-    
-    
-
-    // Esegui query separate per ciascuna condizione con 'array-contains-any'
-    arrayConditions.forEach((condition:any) => {
-      const query = db.where(condition.field, condition.operator, condition.value);
-      queryPromises.push(query.get());
-    });
-
-    try {
-      // Attendi tutte le query
-      const querySnapshots = await Promise.all(queryPromises);
-
-      // Estrai i dati da ogni querySnapshot
-      let combinedResults: any[] = [];
-      querySnapshots.forEach(snapshot => {
-        snapshot.docs.forEach((doc:any) => {
-          combinedResults.push(doc.data());
-        });
-      });
-
-      // Rimuovi i duplicati basandoti sull'id del documento
-      const uniqueResults = Array.from(new Set(combinedResults.map(item => item.id)))
-        .map(id => combinedResults.find(item => item.id === id));
-        //this.resultsSignal.set(uniqueResults);
-      return uniqueResults;
-    } catch (error) {
-      console.error("Error getting filtered collection: ", error);
-      return [];
-    }
-  }
-
-  
-
-  //Salvataggio in FireStone
-
-  async saveInCollection(collection: string, nameDoc: string | undefined, data: any): Promise<boolean> {
-    
-    try {
-      const Collection = await this.firestore.collection(collection)
-      if (!nameDoc) {
-        Collection.add(data);
-        this.getFilteredCollection(collection,[])
-        return true
-      } else {
-        this.getFilteredCollection(collection,[])
-        Collection.doc(nameDoc).set(data);
-        return true
+  private editableOutfitPayload(data: EditableOutfit): EditableOutfit {
+    const allowed: Array<keyof EditableOutfit> = ['title', 'description', 'imageUrl', 'tags', 'gender', 'style', 'season'];
+    return allowed.reduce((payload, field) => {
+      if (Object.prototype.hasOwnProperty.call(data, field) && data[field] !== undefined) {
+        (payload as any)[field] = data[field];
       }
-      
-    } catch (error) {
-
-      const alert = await this.alertController.create({
-        header: 'Attenzione',
-        subHeader: '',
-        message: `Errore durante il salvataggio del documento:, ${error}`,
-        buttons: ['OK']
-      });
-
-      await alert.present();
-
-      //alert(');
-      return false
-    }
+      return payload;
+    }, {} as EditableOutfit);
   }
 
-  //Modifica in FireStone
-
-  async updateInCollection(collection: string, nameDoc: any, data: Partial<any>): Promise<boolean> {
-    try {
-
-      this.firestore.collection(collection).doc(nameDoc).update(data);
-      this.getFilteredCollection(collection)
-      return true
-
-
-    } catch (error) {
-
-      return false
-    }
-
-  }
-
-  // Eliminare documenti in FireStone
-  async deleteDocuments(collection: string, conditions: Array<{ field: string, operator: string, value: any }>): Promise<boolean> {
-    let query: any = this.firestore.collection(collection).ref;
-
-    // Applica tutte le condizioni alla query
-    conditions.forEach(condition => {
-      query = query.where(condition.field, condition.operator, condition.value);
+  private wardrobePayload(data: Partial<WardrobePayload>): Partial<WardrobePayload> {
+    const allowed = ['name', 'outfitCategory', 'outfitSubCategory', 'brend', 'color', 'images', 'imageUrl', 'ImageUrl', 'prezzo', 'link'] as const;
+    const payload: any = {};
+    allowed.forEach(field => {
+      if (Object.prototype.hasOwnProperty.call(data, field) && data[field] !== undefined) payload[field] = data[field];
     });
-
-    try {
-      const querySnapshot = await query.get();
-      // Elimina tutti i documenti che corrispondono alla query
-      const deletePromises = querySnapshot.docs.map((doc: any) => doc.ref.delete());
-      await Promise.all(deletePromises);
-      this.getFilteredCollection(collection)
-      return true
-    } catch (error) {
-      console.error('Error deleting documents:', error);
-      return false
-    }
+    payload.images = Array.isArray(data.images) ? data.images : data.imageUrl ? [data.imageUrl] : [];
+    return payload;
   }
+
   // Caricamento dell'immagine in Firebase Storage
 
   async uploadImage(filePath: Blob, fileName: string, contentType: string): Promise<string> {

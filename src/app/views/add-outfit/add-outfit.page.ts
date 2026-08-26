@@ -128,29 +128,10 @@ export class AddOutfitPage {
     this.tags = event.tags as Tag[];
 
     if (this.isEditMode) {
-      let mappedTag:any[] = [...this.tags];
-
-      mappedTag = mappedTag.reduce(
-        (acc, tag) => {
-          // Se l'elemento non è già presente nell'array, aggiungilo
-          if (!acc.outfitCategory.includes(tag.outfitCategory)) {
-            acc.outfitCategory.push(tag.outfitCategory);
-          }
-          if (!acc.outfitSubCategory.includes(tag.outfitSubCategory)) {
-            acc.outfitSubCategory.push(tag.outfitSubCategory);
-          }
-          if (!acc.color.includes(tag.color)) {
-            acc.color.push(tag.color);
-          }
-          return acc;
-        },
-        { outfitCategory: [], outfitSubCategory: [], color: [] }
-      );
       let dateEdit = new Date();
       let data = {
         tags: this.tags,
-        editedAt:dateEdit.getTime(),
-        ...mappedTag
+        editedAt:dateEdit.getTime()
       }
       let responseSave = await this.editOutfit(data)
       if (responseSave) {
@@ -159,8 +140,7 @@ export class AddOutfitPage {
 
         this.outfit = {
           ...this.outfit,
-          ...mappedTag
-        }
+          }
       }
     }
   }
@@ -173,28 +153,6 @@ console.log(event);
     this.gender = event.gender;
     this.season = event.season;
     this.style = event.style;
-
-    let mappedTag:any[] = [...this.tags];
-
-    mappedTag = mappedTag.reduce(
-      (acc, tag) => {
-        // Se l'elemento non è già presente nell'array, aggiungilo
-        if (!acc.outfitCategory.includes(tag.outfitCategory)) {
-          acc.outfitCategory.push(tag.outfitCategory);
-        }
-        if (!acc.outfitSubCategory.includes(tag.outfitSubCategory)) {
-          acc.outfitSubCategory.push(tag.outfitSubCategory);
-        }
-        if (!acc.color.includes(tag.color)) {
-          if(typeof tag.color != 'undefined'){
-            acc.color.push(tag.color);
-          }
-          
-        }
-        return acc;
-      },
-      { outfitCategory: [], outfitSubCategory: [], color: [] }
-    );
 
     if (!this.isEditMode) {
 
@@ -210,8 +168,7 @@ console.log(event);
         style: this.style,
         season: this.season,
         color: this.color,
-        editedAt:dateEdit.getTime(),
-        ...mappedTag
+        editedAt:dateEdit.getTime()
       };
       let outfitSaveed =  await this.editOutfit(partialOutfit);
       const user = await this.afAuth.currentUser;
@@ -255,24 +212,6 @@ console.log(event);
 
     const user = await this.afAuth.currentUser;
     if (user) {
-      let mappedTag:any[] = [...this.tags];
-
-    mappedTag = mappedTag.reduce(
-      (acc, tag) => {
-        // Se l'elemento non è già presente nell'array, aggiungilo
-        if (!acc.outfitCategory.includes(tag.outfitCategory)) {
-          acc.outfitCategory.push(tag.outfitCategory);
-        }
-        if (!acc.outfitSubCategory.includes(tag.outfitSubCategory)) {
-          acc.outfitSubCategory.push(tag.outfitSubCategory);
-        }
-        if (!acc.color.includes(tag.color)) {
-          acc.color.push(tag.color);
-        }
-        return acc;
-      },
-      { outfitCategory: [], outfitSubCategory: [], color: [] }
-    );
     let dateCreate = new Date();
       this.outfit = {
         id: '',
@@ -287,7 +226,6 @@ console.log(event);
         userId: '',
         status: 'pending',
 
-        ...mappedTag
       };
     }
 
@@ -434,8 +372,13 @@ console.log(event);
   }
 
   private editableOutfitPayload(data: Partial<outfit>): Partial<outfit> {
-    const { gender, season, style, color, tags } = data;
-    return { gender, season, style, color, tags };
+    const fields: Array<keyof outfit> = ['title', 'description', 'imageUrl', 'tags', 'gender', 'style', 'season'];
+    return fields.reduce((payload, field) => {
+      if (Object.prototype.hasOwnProperty.call(data, field) && data[field] !== undefined) {
+        (payload as any)[field] = data[field];
+      }
+      return payload;
+    }, {} as Partial<outfit>);
   }
 
   async handleBackButton() {
