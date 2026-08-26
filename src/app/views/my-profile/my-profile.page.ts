@@ -104,6 +104,7 @@ export class MyProfilePage implements OnInit {
     });
 
     this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits();
+    this.userProfileService.loadFaveUserOutfits().subscribe();
 
 
 
@@ -170,21 +171,16 @@ export class MyProfilePage implements OnInit {
 
     let displayName = !data.displayName ? `${data.name} ${data.cognome}` : data.displayName
     let bio = !data.bio ? '' : data.bio;
-    let nome = !data.nome ? data.name : '';
+    let nome = data.nome || data.name || '';
 
     let profileData: Partial<UserProfile> = {
-      uid: this.uid,
       displayName: displayName,
       cognome: data.cognome,
-      name: data.name,
       nome: nome,
-      email: this.userProfile$()?.email,
       bio: bio,
       gender: data.gender,
-      editedAt: new Date().getTime()
-
     }
-    this.userProfileService.updateUserProfile(profileData).subscribe(data => {
+    this.userProfileService.updateUserProfile(this.uid || '', profileData).subscribe(data => {
       const isOk = data ? true : false;
       if (isOk) {
         this.alert.create({
@@ -273,16 +269,7 @@ export class MyProfilePage implements OnInit {
     event.stopPropagation();
     event.preventDefault();
 
-    let coditions = [
-
-      {
-        field: 'userId', operator: '==', value: wardrobesItem.userId
-      },
-      {
-        field: 'id', operator: '==', value: wardrobesItem.id
-      }
-    ]
-    let res = await this.appService.deleteDocuments('wardrobes', coditions)
+    let res = await this.appService.deleteWardrobe(String(wardrobesItem.id))
 
     if (res) {
       this.userWardrobes$ = this.userProfileService.getUserWardrobes();
@@ -295,16 +282,7 @@ export class MyProfilePage implements OnInit {
     event.stopPropagation();
     event.preventDefault();
 
-    let coditions = [
-
-      {
-        field: 'userId', operator: '==', value: this.uid
-      },
-      {
-        field: 'outfitId', operator: '==', value: faveItem.id
-      }
-    ]
-    this.userProfileService.delFaveUserOutfits(this.uid, faveItem.id).subscribe(res => {
+    this.userProfileService.delFaveUserOutfits(faveItem.outfitId).subscribe(res => {
       if (res) {
         this.alert.create({
           header: 'Attenzione!',

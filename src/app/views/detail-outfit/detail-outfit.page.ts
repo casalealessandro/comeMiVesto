@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
 import { IonModal, ModalController, NavController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
-import { FireBaseConditions, outfit, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
+import { Tag, toProductGender } from 'src/app/service/interface/outfit-all-interface';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 
 @Component({
@@ -46,21 +46,11 @@ export class DetailOutfitPage implements OnInit {
           console.log(this.tags)
         }
         
-        let conditions:FireBaseConditions[] = []
-        
-        conditions.push({
-              field: 'outfitSubCategory',
-              operator: "array-contains-any",
-              value: selectedOutfit.outfitSubCategory
-            })
-        conditions.push({
-          field: 'gender',
-          operator: '==',
-          value: selectedOutfit.gender
-        })
         let products: any[] = await this.appService.filterOutfitProducts({
           outfitSubCategory: selectedOutfit.outfitSubCategory,
         });
+        const productGender = toProductGender(selectedOutfit.gender);
+        products = products.filter(product => !productGender || toProductGender(product.gender) === productGender);
        
         if (this.tags.length > 0 && this.isOpen) {
           const tags =this.tags
@@ -126,41 +116,20 @@ export class DetailOutfitPage implements OnInit {
     const subCategoryID = data.outfitSubCategory;
     const link = !data.link ? '#' : data.link
    
-    const id = data.id;
-
-
-    let coditions = [
-
-      {
-        field: 'userId', operator: '==', value: this.userID
-      },
-      {
-        field: 'id', operator: '==', value: id
-      }
-    ]
-
-    let check = await this.appService.getFilteredCollection('wardrobes', coditions);
-    if (check.length > 0) {
-    
-      return
-    }
-
-    let saveData:wardrobesItem = {
-      
+    const saveData = {
       brend: data.brend,
-      id: id,
-      images: data.imageUrl || data.images,
+      images: Array.isArray(data.images) ? data.images : data.imageUrl ? [data.imageUrl] : [],
+      imageUrl: data.imageUrl,
       name: data.name,
       outfitCategory: categoryID,
       outfitSubCategory: subCategoryID,
       color:data.color,
-      userId: this.userID,
       prezzo:parseInt(data.price, 10),
       link:link
     }
 
-    let resSave = await this.appService.saveInCollection('wardrobes',undefined,saveData)
-    if(resSave)
+    const saved = await this.appService.createWardrobe(saveData)
+    if(saved)
       alert('Elemento aggiunto alla tua wardrobe con successo!')
   }
 

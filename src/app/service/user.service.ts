@@ -1,14 +1,14 @@
 import { effect, inject, Injectable, signal } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { firstValueFrom, lastValueFrom, Observable, of, throwError } from 'rxjs';
+import { firstValueFrom, forkJoin, lastValueFrom, Observable, of, throwError } from 'rxjs';
 import { catchError, map, retry, switchMap, tap } from 'rxjs/operators';
-import { UserPreference, UserProfile } from './interface/user-interface';
+import { EditableUserProfile, UserPreference, UserProfile } from './interface/user-interface';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { ApiResponse, AppService } from './app-service';
 import { deleteUser } from 'firebase/auth';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
+import { FavoriteOutfit, FavoriteRelation } from './interface/outfit-all-interface';
 
 @Injectable({
   providedIn: 'root'
@@ -35,7 +35,7 @@ export class UserService {
     createAt: 0
   }); // Signal che tiene traccia del profilo utente
 
-  constructor(private firestore: AngularFirestore, private afAuth: AngularFireAuth, private storage: AngularFireStorage, private appService: AppService, private httpClient: HttpClient) { 
+  constructor(private afAuth: AngularFireAuth, private storage: AngularFireStorage, private appService: AppService, private httpClient: HttpClient) {
 
     // Effetto per ascoltare i cambiamenti
     effect(() => {
@@ -106,13 +106,14 @@ export class UserService {
     );
   }
 
-  updateUserProfile(profileData: Partial<UserProfile>): Observable<any> {
-    
-    const uid = profileData.uid 
-
+  updateUserProfile(uid: string, profileData: EditableUserProfile): Observable<UserProfile> {
     const completeApi = `${this.apiFire}/user/update-user-profile/${uid}`;
-
-    return this.httpClient.put<ApiResponse<any>>(completeApi, profileData).pipe(
+    const allowed: Array<keyof EditableUserProfile> = ['displayName', 'nome', 'cognome', 'bio', 'photoURL', 'gender'];
+    const payload = allowed.reduce((result, field) => {
+      if (Object.prototype.hasOwnProperty.call(profileData, field) && profileData[field] !== undefined) (result as any)[field] = profileData[field];
+      return result;
+    }, {} as EditableUserProfile);
+    return this.httpClient.put<ApiResponse<UserProfile>>(completeApi, payload).pipe(
       map((response) => response.data),
       catchError(this.handleError),
       tap((resp:any) => this.setUserInfo(resp)) // Aggiorna la l'utente dopo la modifica
@@ -129,7 +130,7 @@ export class UserService {
 
       let photoURL = await lastValueFrom(ref.getDownloadURL())
 
-      this.updateUserProfile({ photoURL });
+      await lastValueFrom(this.updateUserProfile(user.uid, { photoURL }));
     }
   }
   /**FINE GESTIONE DATI UTENTE**/
@@ -172,15 +173,7 @@ export class UserService {
   }
 
   getUserWardrobes(): Observable<any[]> {
-    return this.afAuth.authState.pipe(
-      switchMap(user => {
-        if (user) {
-          return this.firestore.collection('wardrobes', ref => ref.where('userId', '==', user.uid)).valueChanges();
-        } else {
-          return of([]);
-        }
-      })
-    );
+    return this.appService.getWardrobes();
   }
 
   /**GESTIONE OUTFIT PREFERITI**/
@@ -196,37 +189,31 @@ export class UserService {
   getNumberFaveUserOutfitsNumber() {
     return this.numberFaveUserOutfitsSignal;
   }
-  loadFaveUserOutfits(uid: any): Observable<any[]> {
-
-    const apiSubject = `${this.apiFire}/gen/fave-user-outfits/${uid}`;
-
-    return this.httpClient.get<ApiResponse<any[]>>(apiSubject).pipe(
+  loadFaveUserOutfits(): Observable<FavoriteOutfit[]> {
+    const apiSubject = `${this.apiFire}/gen/faveUserOutfits`;
+    return this.httpClient.get<ApiResponse<FavoriteRelation[]>>(apiSubject).pipe(
       retry(3),
-      
-      map((response: any) => response.data),
+      map(response => response.data),
+      switchMap(relations => relations.length
+        ? forkJoin(relations.map(favorite => this.appService.getOutfit(favorite.outfitId).then(outfit => ({ ...outfit, outfitId: favorite.outfitId, favoriteId: favorite.id }))))
+        : of([] as FavoriteOutfit[])),
       tap((data) => this.setFaveUserOutfits(data)), // Aggiorna la lista dopo la cancellazione),
       catchError(this.handleError)
     );
   }
 
-  delFaveUserOutfits(uid: any, outfitId: any): Observable<any[]> {
-    const completeApi = `${this.apiFire}/gen/del-fave-user-outfits?uid=${uid}&outfitId=${outfitId}`;
-
-    return this.httpClient.delete<ApiResponse<any>>(completeApi).pipe(
-      map((response) => response.data),
-      tap((data) => this.setFaveUserOutfits(data)), // Aggiorna la lista dopo la cancellazione
-      catchError(this.handleError),
-      
+  delFaveUserOutfits(outfitId: string): Observable<FavoriteOutfit[]> {
+    const completeApi = `${this.apiFire}/gen/faveUserOutfits/${encodeURIComponent(outfitId)}`;
+    return this.httpClient.delete(completeApi).pipe(
+      switchMap(() => this.loadFaveUserOutfits()),
+      catchError(this.handleError)
     );
   }
-  saveFaveUserOutfits(payloadData: any): Observable<any[]> {
-    
-    const completeApi = `${this.apiFire}/gen/save-fave-user-outfits`;
-
-    return this.httpClient.post<ApiResponse<any>>(completeApi, payloadData).pipe(
-      map((response) => response.data),
+  saveFaveUserOutfits(outfitId: string): Observable<FavoriteOutfit[]> {
+    const completeApi = `${this.apiFire}/gen/faveUserOutfits`;
+    return this.httpClient.post<ApiResponse<FavoriteRelation>>(completeApi, { outfitId }).pipe(
+      switchMap(() => this.loadFaveUserOutfits()),
       catchError(this.handleError),
-      tap((data) => this.setFaveUserOutfits(data)) // Aggiorna la lista dopo il salvataggio
     );
   }
 
@@ -235,13 +222,8 @@ export class UserService {
     try {
       const user = await this.afAuth.currentUser;
       if (user) {
-        const queryString = `uid=${user.uid}`;
-        const result$ = this.appService.getAll<UserPreference>('user-preferences', queryString);
-
-        // Utilizza firstValueFrom per convertire l'Observable in una Promise
-        const result = await firstValueFrom(result$);
-        // Ritorna il primo elemento, se presente
-        return result.length ? result[0] : null;
+        const response = await firstValueFrom(this.httpClient.get<ApiResponse<UserPreference>>(`${this.apiFire}/gen/user-preferences`));
+        return response.data;
       }
     } catch (error) {
       console.error('Errore durante il recupero delle preferenze utente:', error);

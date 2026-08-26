@@ -44,7 +44,6 @@ export class MyWardrobesPage implements OnInit {
 
         this.categoryCloth = await this.appService.getData('outfitCategories', '')
         this.userWardrobes$ = this.userProfileService.getUserWardrobes();
-        // this.subCategoryCloth  = await this.appService.getFilteredCollection('outfitsSubCategories',[])
 
         this.groupItemsByCategory();
 
@@ -108,17 +107,7 @@ export class MyWardrobesPage implements OnInit {
   }
 
   async deleteItemWadro(item: any) {
-
-    let coditions = [
-
-      {
-        field: 'userId', operator: '==', value: this.userID
-      },
-      {
-        field: 'id', operator: '==', value: item.id
-      }
-    ]
-    let res = await this.appService.deleteDocuments('wardrobes', coditions)
+    let res = await this.appService.deleteWardrobe(String(item.id))
 
     if (res) {
       this.groupItemsByCategory();
@@ -151,20 +140,18 @@ export class MyWardrobesPage implements OnInit {
    
 
     const id = this.generateGUID();
-    let saveData: wardrobesItem = {
+    let saveData = {
       brend: data.brend,
-      id: id,
-      images: images,
+      images: Array.isArray(images) ? images : images ? [images] : [],
       name: data.name,
       outfitCategory: categoryID,
       outfitSubCategory: subCategoryID,
       color: data.color,
-      userId: this.userID,
       prezzo: prezzo ? parseInt(prezzo,20) : prezzo,
       link: link,
     }
 
-    let resSave = await this.appService.saveInCollection('wardrobes', undefined, saveData)
+    let resSave = await this.appService.createWardrobe(saveData)
     if (resSave) {
 
       this.groupItemsByCategory();
@@ -205,20 +192,19 @@ export class MyWardrobesPage implements OnInit {
 
     const id = this.generateGUID();
 
-    let saveData: wardrobesItem = {
+    let saveData = {
       brend: dataP.brend,
-      id: id,
-      images: dataP.imageUrl,
+      images: Array.isArray(dataP.images) ? dataP.images : dataP.imageUrl ? [dataP.imageUrl] : [],
+      imageUrl: dataP.imageUrl,
       name: dataP.name,
       outfitCategory: categoryID,
       outfitSubCategory: subCategoryID,
       color: dataP.color,
-      userId: this.userID,
       prezzo: parseInt(dataP.price, 10),
       link: link
     }
 
-    let resSave = await this.appService.saveInCollection('wardrobes', undefined, saveData)
+    let resSave = await this.appService.createWardrobe(saveData)
     if (resSave) {
 
       this.groupItemsByCategory();

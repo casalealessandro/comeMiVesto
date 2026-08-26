@@ -39,17 +39,33 @@ export interface outfit {
 }
 
 export interface wardrobesItem {
-  id: number;
-  userId: string;
+  id: string | number;
+  userId?: string;
   name: string;
   outfitCategory: string;
   outfitSubCategory: string;
   brend: string;
   color: string;
   images: string[];
+  imageUrl?: string;
   ImageUrl?: string;
   prezzo?: number;
   link: string
+}
+
+export type EditableOutfit = Partial<Pick<outfit,
+  'title' | 'description' | 'imageUrl' | 'tags' | 'gender' | 'style' | 'season'>>;
+
+export type WardrobePayload = Omit<Partial<wardrobesItem>, 'id' | 'userId'> & Pick<wardrobesItem, 'name'>;
+
+export interface FavoriteRelation { id: string; userId: string; outfitId: string; }
+export type FavoriteOutfit = outfit & { outfitId: string; favoriteId: string };
+export interface ReportPayload { outFitId: string; outfitUserId: string; typeSegnaletion: string; }
+export type ProductGender = 'U' | 'D' | '';
+export function toProductGender(gender: string | null | undefined): ProductGender {
+  if (gender === 'man' || gender === 'U') return 'U';
+  if (gender === 'woman' || gender === 'D') return 'D';
+  return '';
 }
 
 export interface categoryCloth {
@@ -73,22 +89,18 @@ export interface filterItmClothing {
   
 
 }
+
+export interface OutfitFilterPayload {
+  categories?: Array<Pick<filterItmClothing['categories'][number], 'outfitCategory' | 'outfitSubCategory' | 'color'>>;
+  season?: string;
+  style?: string;
+}
 export interface buttons {
   icon: string;
   text: string;
   actionName: string;
 }[]
 
-export interface FireBaseConditions {
-  field: string;
-  operator: string;
-  value: any
-}[]
-
-export interface FireBaseOrderBy {
-  field: string;
-  by: 'asc' | 'desc'
-}[]
 export interface outfitCategories {
   [x: string]: any;
 
