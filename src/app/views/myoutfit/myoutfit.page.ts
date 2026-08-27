@@ -1,22 +1,21 @@
-import { Component, effect, HostListener, inject, OnInit } from '@angular/core';
+import { Component, effect, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { AlertController, ModalController, NavController, RefresherEventDetail } from '@ionic/angular';
 
 
 import { AppService } from 'src/app/service/app-service';
-import { buttons, outfit, seasons, Tag } from 'src/app/service/interface/outfit-all-interface';
+import { buttons, filterItmClothing, outfit, OutfitFilterPayload, seasons, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom, lastValueFrom, Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
-import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
+import { OutfitPreferencePayload, UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
 import { IonRefresherCustomEvent } from '@ionic/core';
 import { DetailOutfitPage } from '../detail-outfit/detail-outfit.page';
 import { Router } from '@angular/router';
 import { SocialSharing } from 'src/app/service/social-sharing.service';
-import { SharedDataService } from 'src/app/service/shared-data.service';
 import { CategoryService } from 'src/app/service/category.service';
 
 @Component({
@@ -24,7 +23,7 @@ import { CategoryService } from 'src/app/service/category.service';
   templateUrl: './myoutfit.page.html',
   styleUrls: ['./myoutfit.page.scss'],
 })
-export class MyOutFitPage  {
+export class MyOutFitPage implements OnDestroy {
 
 
   outfits = this.appService.resultsSignal();
@@ -39,12 +38,13 @@ export class MyOutFitPage  {
   outfitUserProfile!: UserProfile[];
   cUserPreference: UserPreference | null = null;
   isOutfitCompositionOpen: boolean = false;
-  currentFilterSel: any;
-  filtersData: any;
+  filtersData: OutfitFilterPayload = { categories: [], season: '', style: '' };
+  searchText = '';
+  private searchDebounce?: ReturnType<typeof setTimeout>;
 
   isFiltersSel: boolean = false
   backgroundImage: any = "url(assets/fallback-image.jpg);";
-  blockedUIDs: any = [];
+  blockedUIDs: string[] = [];
 
   segmentButtons = [
     {
@@ -73,8 +73,7 @@ export class MyOutFitPage  {
     private modalController: ModalController,
     private alertController: AlertController,
     private sharingSocial: SocialSharing,
-    private categoryService: CategoryService,
-    private sharedDataService: SharedDataService
+    private categoryService: CategoryService
 
   ) {
 
@@ -174,34 +173,66 @@ export class MyOutFitPage  {
       }
     });
     await modal.present();
+    const { data, role } = await modal.onDidDismiss<Partial<filterItmClothing>>();
+    if (role === 'clear') {
+      this.filtersData = { categories: [], season: '', style: '' };
+      this.searchText = '';
+      await this.applyOutfitFilters();
+      return;
+    }
+    if (role !== 'apply' || !data) return;
+    this.filtersData = {
+      categories: this.normalizeCategories(data.categories),
+      season: data.season ?? '',
+      style: data.style ?? ''
+    };
+    await this.applyOutfitFilters();
 
+  }
 
-    this.sharedDataService.staredData$.pipe(take(1)).subscribe(res => {
+  onSearchInput(event: CustomEvent<{ value?: string | null }>): void {
+    this.searchText = (event.detail.value ?? '').trim();
+    if (this.searchDebounce) clearTimeout(this.searchDebounce);
+    this.searchDebounce = setTimeout(() => void this.applyOutfitFilters(), 350);
+  }
 
-      const fData = this.sharedDataService.data().filter(data => data.componentName === "FilterOutfitsPage");
-      if (!fData.length || !fData[0]?.data) {
-        return;
-      }
+  buildOutfitFilterPayload(): OutfitFilterPayload {
+    return {
+      categories: this.normalizeCategories(this.filtersData.categories),
+      season: this.filtersData.season ?? '',
+      style: this.filtersData.style ?? '',
+      ...(this.searchText.trim() ? { search: this.searchText.trim() } : {})
+    };
+  }
 
-      this.filtersData = []
-      const data = fData[0].data;
-      this.filtersData = data;
-      this.filtersData.categories = this.filtersData.categories.filter((category: any) =>
-        category.outfitCategory || category.outfitSubCategory || category.color
-      );
+  async applyOutfitFilters(): Promise<void> {
+    const profile = await this.getReadyUserProfile();
+    if (!profile?.gender) {
+      this.filteredOutfits = [];
+      return;
+    }
+    this.isLoading = true;
+    try {
+      const queryString = `gender=${encodeURIComponent(profile.gender)}`;
+      this.filteredOutfits = await firstValueFrom(
+        this.appService.getFilteredOutfits(queryString, this.buildOutfitFilterPayload())
+      ) ?? [];
+    } catch (error) {
+      console.error('Impossibile applicare i filtri outfit:', error);
+      this.filteredOutfits = [];
+    } finally {
+      this.isLoading = false;
+    }
+  }
 
+  private normalizeCategories(categories: OutfitFilterPayload['categories'] = []): NonNullable<OutfitFilterPayload['categories']> {
+    return (categories ?? [])
+      .map(({ outfitCategory, outfitSubCategory, color }) => ({ outfitCategory, outfitSubCategory, color }))
+      .filter(category => Boolean(category.outfitCategory || category.outfitSubCategory || category.color));
+  }
 
-      let queryString = `gender=${encodeURIComponent(this.cUserInfo().gender)}`;
-
-      this.appService.getFilteredOutfits(queryString, this.filtersData).subscribe((outfits) => {
-        console.log('getFilteredOutfits--->', outfits);
-        this.filteredOutfits = outfits;
-
-
-      });
-
-    })
-
+  ngOnDestroy(): void {
+    if (this.searchDebounce) clearTimeout(this.searchDebounce);
   }
 
 
@@ -414,15 +445,22 @@ export class MyOutFitPage  {
   }
 
   async filterUserOutFit() {
-
-    let copy = this.cUserPreference
-
-
-    let queryString = `gender=${encodeURIComponent(this.cUserInfo().gender)}`;
-    this.appService.getSuggestOutfits(queryString, copy).subscribe(respoA => {
-
-      this.filteredOutfits = respoA
-    })
+    const profile = await this.getReadyUserProfile();
+    if (!profile?.gender) {
+      this.filteredOutfits = [];
+      return;
+    }
+    const payload: OutfitPreferencePayload = this.userProfileService.toOutfitPreferencePayload(this.cUserPreference);
+    this.isLoading = true;
+    try {
+      const queryString = `gender=${encodeURIComponent(profile.gender)}`;
+      this.filteredOutfits = await firstValueFrom(this.appService.getSuggestOutfits(queryString, payload)) ?? [];
+    } catch (error) {
+      console.error('Impossibile caricare gli outfit suggeriti:', error);
+      this.filteredOutfits = [];
+    } finally {
+      this.isLoading = false;
+    }
 
 
   }
