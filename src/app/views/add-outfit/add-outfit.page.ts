@@ -28,7 +28,7 @@ export class AddOutfitPage {
   title: string = '';
   description: string = '';
   showTag: boolean = false
-  gender!: "" | "man" | "woman";
+  gender!: '' | 'U' | 'D';
   style!: "" | "casual" | "elegant" | "sporty" | "formal";
   season!: "" | "winter" | "spring" | "summer" | "autumn";
 

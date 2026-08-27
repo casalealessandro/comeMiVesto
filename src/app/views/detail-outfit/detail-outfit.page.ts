@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
 import { IonModal, ModalController, NavController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
-import { Tag, toProductGender } from 'src/app/service/interface/outfit-all-interface';
+import { Tag } from 'src/app/service/interface/outfit-all-interface';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 
 @Component({
@@ -49,8 +49,7 @@ export class DetailOutfitPage implements OnInit {
         let products: any[] = await this.appService.filterOutfitProducts({
           outfitSubCategory: selectedOutfit.outfitSubCategory,
         });
-        const productGender = toProductGender(selectedOutfit.gender);
-        products = products.filter(product => !productGender || toProductGender(product.gender) === productGender);
+        products = products.filter(product => !selectedOutfit.gender || product.gender === selectedOutfit.gender);
        
         if (this.tags.length > 0 && this.isOpen) {
           const tags =this.tags
