@@ -5,7 +5,7 @@ import { Browser } from '@capacitor/browser';
 import { ModalController, NavController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
 import { CategoryService } from 'src/app/service/category.service';
-import { outfitCategories, toProductGender } from 'src/app/service/interface/outfit-all-interface';
+import { outfitCategories } from 'src/app/service/interface/outfit-all-interface';
 import { UserProfile } from 'src/app/service/interface/user-interface';
 import { ProdottiOnlineService } from 'src/app/service/prodotti-online.service';
 import { UserService } from 'src/app/service/user.service';
@@ -80,8 +80,7 @@ export class ProdottiOnlinePage implements OnInit {
     const products = outfitCategory || outfitSubCategory
       ? await this.appService.filterOutfitProducts(filters)
       : await this.appService.getData('outfit-products', '');
-    const productGender = toProductGender(this.gender);
-    this.products = products.filter((product: any) => !productGender || toProductGender(product.gender) === productGender)
+    this.products = products.filter((product: any) => !this.gender || product.gender === this.gender)
 
 
 

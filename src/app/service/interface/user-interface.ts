@@ -9,7 +9,7 @@ export interface UserProfile {
   photoURL: string;
   bio?: string;
   userType?: any;
-  gender: string;
+  gender: '' | 'U' | 'D';
   createAt: number;
   editedAt?: number;
 
