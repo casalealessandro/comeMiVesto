@@ -191,7 +191,7 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   onSearchInput(event: CustomEvent<{ value?: string | null }>): void {
-    this.searchText = (event.detail.value ?? '').trim();
+    this.searchText = event.detail.value ?? '';
     if (this.searchDebounce) clearTimeout(this.searchDebounce);
     this.searchDebounce = setTimeout(() => void this.applyOutfitFilters(), 350);
   }
@@ -206,6 +206,7 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async applyOutfitFilters(): Promise<void> {
+    this.selectedSegment = 'outfit';
     const profile = await this.getReadyUserProfile();
     if (!profile?.gender) {
       this.filteredOutfits = [];

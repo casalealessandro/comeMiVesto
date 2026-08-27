@@ -14,12 +14,26 @@ describe('FilterOutfitsPage modal result', () => {
     return { component, modalController };
   }
 
-  it('selects season and style', () => {
+  it('selects and deselects the same style', () => {
+    const { component } = page();
+    component.selStyle(1, { id: 'C' });
+    expect(component.filterItmClothing.style).toBe('C');
+    expect(component.selectedFilterStyleIndex()).toBe(1);
+
+    component.selStyle(1, { id: 'C' });
+    expect(component.filterItmClothing.style).toBe('');
+    expect(component.selectedFilterStyleIndex()).toBeNull();
+  });
+
+  it('selects and deselects the same season', () => {
     const { component } = page();
     component.selSeason(0, { id: 'E' });
-    component.selStyle(1, { id: 'C' });
     expect(component.filterItmClothing.season).toBe('E');
-    expect(component.filterItmClothing.style).toBe('C');
+    expect(component.selectedFilterSeasonIndex()).toBe(0);
+
+    component.selSeason(0, { id: 'E' });
+    expect(component.filterItmClothing.season).toBe('');
+    expect(component.selectedFilterSeasonIndex()).toBeNull();
   });
 
   it('dismisses selected filters as modal data', async () => {
