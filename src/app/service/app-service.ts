@@ -3,7 +3,7 @@ import { DynamicFormField } from './interface/dynamic-form-field';
 import { lastValueFrom, Observable, throwError } from 'rxjs';
 import { catchError, map, retry, tap } from 'rxjs/operators';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
-import { UserProfile } from './interface/user-interface';
+import { OutfitPreferencePayload, UserProfile } from './interface/user-interface';
 import { EditableOutfit, OutfitFilterPayload, ReportPayload, WardrobePayload, outfit, wardrobesItem } from './interface/outfit-all-interface';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
@@ -139,20 +139,21 @@ export class AppService {
         if (color) category.color = color;
         return category;
       }).filter(category => Object.keys(category).length > 0),
-      ...(conditions.season ? { season: conditions.season } : {}),
-      ...(conditions.style ? { style: conditions.style } : {})
+      season: conditions.season ?? '',
+      style: conditions.style ?? '',
+      ...(conditions.search?.trim() ? { search: conditions.search.trim() } : {})
     };
-    return this.http.post<ApiResponse<any>>(completeApi,payload).pipe(
+    return this.http.post<ApiResponse<outfit[]>>(completeApi,payload).pipe(
       tap(() => console.info('Richiesta all’API effettuata con successo')),
-      map((response: any) => response.data),
+      map(response => response.data),
       catchError(this.handleError)
     );
   }
-   getSuggestOutfits(queryString:string,conditions: any): Observable<outfit[]> {
+  getSuggestOutfits(queryString:string, conditions: OutfitPreferencePayload): Observable<outfit[]> {
     const completeApi = `${this.apiFire}preference-outfits?${queryString}`;
-    return this.http.post<ApiResponse<any>>(completeApi,conditions).pipe(
+    return this.http.post<ApiResponse<outfit[]>>(completeApi, conditions).pipe(
       tap(() => console.info('Richiesta all’API effettuata con successo')),
-      map((response: any) => response.data),
+      map(response => response.data),
       catchError(this.handleError)
     );
   }

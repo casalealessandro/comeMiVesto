@@ -20,8 +20,10 @@ export type EditableUserProfile = Partial<Pick<UserProfile,
 
 export interface UserPreference {
   uid: string;
-  color?: string[];
-  brend?: string[];
-  style?: string[];
-  uIdBlocked?:string[];
+  color: string[];
+  brend: string[];
+  style: string[];
+  uIdBlocked: string[];
 }
+
+export type OutfitPreferencePayload = Omit<UserPreference, 'uid'>;
