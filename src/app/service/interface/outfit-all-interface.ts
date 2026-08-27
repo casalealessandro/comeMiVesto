@@ -16,6 +16,8 @@ export interface Tag {
   imageUrl?: string
 }[]
 
+export type Gender = '' | 'U' | 'D';
+
 // Interfaccia principale per l'oggetto
 export interface outfit {
   id: any;
@@ -23,7 +25,7 @@ export interface outfit {
   description?: string;
   imageUrl: string;
   tags: Tag[];
-  gender: '' | 'man' | 'woman'; // Assumendo che i valori possibili siano solo "man" o "woman"
+  gender: Gender;
   style: '' | 'casual' | 'elegant' | 'sporty' | 'formal'; // Assumendo alcuni stili possibili
   season: '' | 'winter' | 'spring' | 'summer' | 'autumn'; // Assumendo alcune stagioni possibili
   color?: string;
@@ -61,13 +63,6 @@ export type WardrobePayload = Omit<Partial<wardrobesItem>, 'id' | 'userId'> & Pi
 export interface FavoriteRelation { id: string; userId: string; outfitId: string; }
 export type FavoriteOutfit = outfit & { outfitId: string; favoriteId: string };
 export interface ReportPayload { outFitId: string; outfitUserId: string; typeSegnaletion: string; }
-export type ProductGender = 'U' | 'D' | '';
-export function toProductGender(gender: string | null | undefined): ProductGender {
-  if (gender === 'man' || gender === 'U') return 'U';
-  if (gender === 'woman' || gender === 'D') return 'D';
-  return '';
-}
-
 export interface categoryCloth {
   id: any,
   value: any,
@@ -110,7 +105,7 @@ export interface outfitCategories {
   parentCategory: any;
   status: any;
   order: number;
-  gender: any;
+  gender: Array<Exclude<Gender, ''>>;
   createdAt: number;
   editedAt?: number
   subcategories?: any

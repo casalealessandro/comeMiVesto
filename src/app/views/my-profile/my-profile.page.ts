@@ -1,5 +1,5 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, effect, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { UserService } from 'src/app/service/user.service';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -72,17 +72,15 @@ export class MyProfilePage implements OnInit {
        // Effetto per ascoltare i cambiamenti
           effect(() => {
             console.log('Outfit preferiti aggiornati:', this.faveUserOutfits$());
-            
-            console.log('N.Outfit preferiti aggiornati:', this.faveUserOutfitsNumber$());
+            const favoritesNumber = this.faveUserOutfitsNumber$();
+            this.segmentButtons[2].number = favoritesNumber;
+            console.log('N.Outfit preferiti aggiornati:', favoritesNumber);
           });
     }
 
   async ngOnInit() {
 
     //this.userProfile$ = this.userProfileService.getUserProfile();
-    this.userOutfits$ = this.userProfileService.getUserOutfits();
-    this.userWardrobes$ = this.userProfileService.getUserWardrobes();
-
     this.userPreference = await this.userProfileService.getUserPreference();
 
 
@@ -90,32 +88,27 @@ export class MyProfilePage implements OnInit {
     this.uid = this.userProfile$()?.uid;
 
 
-    this.userOutfits$.subscribe(outfits => {
-      this.outfitNumber = outfits.length;
-      this.segmentButtons[0].number = this.outfitNumber
-      this.userOutfits = outfits
-    });
-
-    this.userWardrobes$.subscribe(wardrobes => {
-      this.wardrobesNumber = wardrobes.length;
-
-      this.segmentButtons[1].number = this.wardrobesNumber
-      this.userWardrobes = wardrobes
-    });
-
+    await Promise.all([this.loadUserOutfits(), this.loadUserWardrobes(), this.loadFavoriteOutfits()]);
     this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits();
-    this.userProfileService.loadFaveUserOutfits().subscribe();
+  }
 
+  async loadUserOutfits(): Promise<void> {
+    this.userOutfits$ = this.userProfileService.getUserOutfits();
+    this.userOutfits = await firstValueFrom(this.userOutfits$);
+    this.outfitNumber = this.userOutfits.length;
+    this.segmentButtons[0].number = this.outfitNumber;
+  }
 
+  async loadUserWardrobes(): Promise<void> {
+    this.userWardrobes$ = this.userProfileService.getUserWardrobes();
+    this.userWardrobes = await firstValueFrom(this.userWardrobes$);
+    this.wardrobesNumber = this.userWardrobes.length;
+    this.segmentButtons[1].number = this.wardrobesNumber;
+  }
 
-
-    this.segmentButtons[2].number = this.faveUserOutfitsNumber$()
-    //this.faveUserOutfits = faveUserOutfits;
-    //console.log(this.faveUserOutfits)
-
-
-
-
+  async loadFavoriteOutfits(): Promise<void> {
+    const favorites = await firstValueFrom(this.userProfileService.loadFaveUserOutfits());
+    this.segmentButtons[2].number = favorites.length;
   }
 
   openMenu() {
@@ -258,7 +251,7 @@ export class MyProfilePage implements OnInit {
     let res = await this.appService.deleteOutfit(String(outfitData.id))
 
     if (res) {
-      this.userOutfits$ = this.userProfileService.getUserOutfits();
+      await this.loadUserOutfits();
     }
 
 
@@ -272,7 +265,7 @@ export class MyProfilePage implements OnInit {
     let res = await this.appService.deleteWardrobe(String(wardrobesItem.id))
 
     if (res) {
-      this.userWardrobes$ = this.userProfileService.getUserWardrobes();
+      await this.loadUserWardrobes();
     }
 
 
@@ -284,6 +277,7 @@ export class MyProfilePage implements OnInit {
 
     this.userProfileService.delFaveUserOutfits(faveItem.outfitId).subscribe(res => {
       if (res) {
+        this.segmentButtons[2].number = res.length;
         this.alert.create({
           header: 'Attenzione!',
           message: `Outfiti preferiti aggiornati`,

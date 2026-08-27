@@ -93,7 +93,7 @@ export class MyOutFitPage  {
       }
       this.categoryService.fetchCategories(null, cUserInfo.gender)
       this.cUserID = cUserInfo.uid
-      const queryString = `gender=${cUserInfo.gender}`
+      const queryString = `gender=${encodeURIComponent(cUserInfo.gender)}`
       const outfits = await firstValueFrom(this.appService.getAll<outfit>('outfitsList', queryString));
       this.outfits = outfits ?? [];
       await this.loadOutfits();
@@ -191,7 +191,7 @@ export class MyOutFitPage  {
       );
 
 
-      let queryString = `gender=${this.cUserInfo().gender}`;
+      let queryString = `gender=${encodeURIComponent(this.cUserInfo().gender)}`;
 
       this.appService.getFilteredOutfits(queryString, this.filtersData).subscribe((outfits) => {
         console.log('getFilteredOutfits--->', outfits);
@@ -418,7 +418,7 @@ export class MyOutFitPage  {
     let copy = this.cUserPreference
 
 
-    let queryString = `gender=${this.cUserInfo().gender}`;
+    let queryString = `gender=${encodeURIComponent(this.cUserInfo().gender)}`;
     this.appService.getSuggestOutfits(queryString, copy).subscribe(respoA => {
 
       this.filteredOutfits = respoA
