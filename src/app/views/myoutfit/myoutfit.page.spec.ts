@@ -1,4 +1,5 @@
 import { MyOutFitPage } from './myoutfit.page';
+import { of } from 'rxjs';
 
 describe('MyOutFitPage filters and search', () => {
   function page(): MyOutFitPage {
@@ -12,6 +13,18 @@ describe('MyOutFitPage filters and search', () => {
     const component = page();
     component.searchText = '  giacca elegante  ';
     expect(component.buildOutfitFilterPayload()).toEqual({ categories: [], season: '', style: '', search: 'giacca elegante' });
+  });
+
+  it('preserves whitespace while typing and trims only the payload', () => {
+    jasmine.clock().install();
+    const component = page();
+    spyOn(component, 'applyOutfitFilters').and.resolveTo();
+
+    component.onSearchInput(new CustomEvent('ionInput', { detail: { value: 'giacca ' } }));
+
+    expect(component.searchText).toBe('giacca ');
+    expect(component.buildOutfitFilterPayload().search).toBe('giacca');
+    jasmine.clock().uninstall();
   });
 
   it('combines search with season, style and categories', () => {
@@ -57,5 +70,18 @@ describe('MyOutFitPage filters and search', () => {
     jasmine.clock().tick(1);
     expect(component.applyOutfitFilters).toHaveBeenCalledTimes(1);
     jasmine.clock().uninstall();
+  });
+
+  it('switches suggestions back to outfits when applying manual filters', async () => {
+    const component = page();
+    component.selectedSegment = 'suggeriti';
+    Object.assign(component, {
+      appService: { getFilteredOutfits: jasmine.createSpy('getFilteredOutfits').and.returnValue(of([])) }
+    });
+    spyOn<any>(component, 'getReadyUserProfile').and.resolveTo({ gender: 'U' });
+
+    await component.applyOutfitFilters();
+
+    expect(component.selectedSegment).toBe('outfit');
   });
 });

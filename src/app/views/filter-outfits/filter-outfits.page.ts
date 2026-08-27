@@ -196,7 +196,7 @@ export class FilterOutfitsPage implements OnInit {
   }
 
   selStyle(indexStyle: any, selStyle: any) {
-    if (this.selectedFilterStyleIndex == indexStyle) {
+    if (this.selectedFilterStyleIndex() == indexStyle) {
       this.filterItmStyle = null;
       this.selectedFilterStyleIndex.set(null);
       this.filterItmClothing.style = ''
@@ -209,7 +209,7 @@ export class FilterOutfitsPage implements OnInit {
 
   selSeason(indexSeason: any, selSeason: any) {
 
-    if (this.selectedFilterSeasonIndex == indexSeason) {
+    if (this.selectedFilterSeasonIndex() == indexSeason) {
       this.filterItmSeason = null;
       this.selectedFilterSeasonIndex.set(null);
       this.filterItmClothing.season = ''
