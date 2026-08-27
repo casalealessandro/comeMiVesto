@@ -1,9 +1,10 @@
-import { Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 
 import { AppService } from 'src/app/service/app-service';
-import { outfit, OutfitSeason, OutfitStyle, Tag } from 'src/app/service/interface/outfit-all-interface';
+import { EditableOutfit, Gender, outfit, OutfitSeason, OutfitStyle, Tag } from 'src/app/service/interface/outfit-all-interface';
+import { UserService } from 'src/app/service/user.service';
 
 import { AlertController, LoadingController, ModalController, NavController } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -15,7 +16,7 @@ import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.com
   templateUrl: './add-outfit.page.html',
   styleUrls: ['./add-outfit.page.scss'],
 })
-export class AddOutfitPage {
+export class AddOutfitPage implements OnInit {
 
   @ViewChild('imageContainer', { static: false }) imageContainer: ElementRef | undefined;
 
@@ -48,6 +49,7 @@ export class AddOutfitPage {
     private modalController: ModalController,
     private alert: AlertController,
     private navController: NavController,
+    private userService: UserService,
     
   ) {
 
@@ -62,6 +64,8 @@ export class AddOutfitPage {
       this.outfit = this.outfitData;
       this.imgUrl = this.outfit.imageUrl
       this.tags = this.outfit.tags
+    } else {
+      await this.prefillProfileGender();
     }
 
     this.openModal = await this.modalController.getTop();
@@ -145,20 +149,26 @@ export class AddOutfitPage {
     }
   }
 
-  async saveOutfit(event: any) {
-console.log(event);
-    this.title = event.title;
+  async saveOutfit(event: Partial<EditableOutfit> & { color?: string }) {
+    this.title = event.title ?? '';
     this.color = event.color;
     this.description = !event.description ? "" : event.description;
-    this.gender = event.gender;
-    this.season = event.season;
-    this.style = event.style;
+    const selectedGender = event.gender?.trim() as Gender | undefined;
+    this.gender = this.isEditMode
+      ? (selectedGender || this.outfitData.gender || this.gender)
+      : await this.resolveCreationGender(selectedGender);
+    this.season = event.season ?? '';
+    this.style = event.style ?? '';
+
+    if (!this.gender) {
+      await this.presentMissingGenderAlert();
+      return;
+    }
 
     if (!this.isEditMode) {
 
       this.confirmOutfit()
     } else {
-      let dateEdit = new Date();
       let partialOutfit = {
 
         title: this.title,
@@ -167,8 +177,7 @@ console.log(event);
         gender: this.gender,
         style: this.style,
         season: this.season,
-        color: this.color,
-        editedAt:dateEdit.getTime()
+        color: this.color
       };
       let outfitSaveed =  await this.editOutfit(partialOutfit);
       const user = await this.afAuth.currentUser;
@@ -212,7 +221,6 @@ console.log(event);
 
     const user = await this.afAuth.currentUser;
     if (user) {
-    let dateCreate = new Date();
       this.outfit = {
         id: '',
         title: this.title,
@@ -379,6 +387,33 @@ console.log(event);
       }
       return payload;
     }, {} as Partial<outfit>);
+  }
+
+  async resolveCreationGender(selectedGender?: Gender): Promise<Gender> {
+    if (selectedGender) return selectedGender;
+    let profile = this.userService.gUserProfile()();
+    if (!profile?.gender) {
+      await this.userService.loadUser();
+      profile = this.userService.gUserProfile()();
+    }
+    return profile?.gender || '';
+  }
+
+  private async prefillProfileGender(): Promise<void> {
+    const gender = await this.resolveCreationGender();
+    if (gender) {
+      this.gender = gender;
+      this.outfitData = { ...this.outfitData, gender };
+    }
+  }
+
+  private async presentMissingGenderAlert(): Promise<void> {
+    const alert = await this.alert.create({
+      header: 'Gender mancante',
+      message: 'Seleziona un gender oppure aggiornalo nel tuo profilo prima di salvare.',
+      buttons: ['Ok']
+    });
+    await alert.present();
   }
 
   async handleBackButton() {

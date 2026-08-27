@@ -2,7 +2,7 @@ import { effect, inject, Injectable, signal } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { firstValueFrom, forkJoin, lastValueFrom, Observable, of, throwError } from 'rxjs';
 import { catchError, map, retry, switchMap, tap } from 'rxjs/operators';
-import { EditableUserProfile, UserPreference, UserProfile } from './interface/user-interface';
+import { EditableUserProfile, OutfitPreferencePayload, UserPreference, UserProfile } from './interface/user-interface';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { ApiRequestError, ApiResponse, AppService } from './app-service';
 import { deleteUser } from 'firebase/auth';
@@ -225,14 +225,27 @@ export class UserService {
     try {
       const user = await this.afAuth.currentUser;
       if (user) {
-        const response = await firstValueFrom(this.httpClient.get<ApiResponse<UserPreference[]>>(`${this.apiFire}/gen/user-preferences`));
-        return response.data.length ? response.data[0] : null;
+        const response = await firstValueFrom(this.httpClient.get<ApiResponse<UserPreference | UserPreference[] | null>>(`${this.apiFire}/gen/user-preferences`));
+        const preference = Array.isArray(response.data) ? response.data[0] : response.data;
+        return preference ? {
+          uid: preference.uid ?? '',
+          ...this.toOutfitPreferencePayload(preference)
+        } : null;
       }
     } catch (error) {
       console.error('Errore durante il recupero delle preferenze utente:', error);
     }
     return null; // Ritorna null se non c'è un utente o si verifica un errore
 
+  }
+
+  toOutfitPreferencePayload(preference?: Partial<UserPreference> | null): OutfitPreferencePayload {
+    return {
+      color: Array.isArray(preference?.color) ? preference.color : [],
+      brend: Array.isArray(preference?.brend) ? preference.brend : [],
+      style: Array.isArray(preference?.style) ? preference.style : [],
+      uIdBlocked: Array.isArray(preference?.uIdBlocked) ? preference.uIdBlocked : []
+    };
   }
 
   async logOut(): Promise<boolean> {

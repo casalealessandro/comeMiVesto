@@ -92,6 +92,7 @@ export interface OutfitFilterPayload {
   categories?: Array<Pick<filterItmClothing['categories'][number], 'outfitCategory' | 'outfitSubCategory' | 'color'>>;
   season?: string;
   style?: string;
+  search?: string;
 }
 export interface buttons {
   icon: string;
