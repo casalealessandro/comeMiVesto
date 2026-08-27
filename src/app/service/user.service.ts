@@ -4,7 +4,7 @@ import { firstValueFrom, forkJoin, lastValueFrom, Observable, of, throwError } f
 import { catchError, map, retry, switchMap, tap } from 'rxjs/operators';
 import { EditableUserProfile, UserPreference, UserProfile } from './interface/user-interface';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
-import { ApiResponse, AppService } from './app-service';
+import { ApiRequestError, ApiResponse, AppService } from './app-service';
 import { deleteUser } from 'firebase/auth';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
@@ -195,8 +195,11 @@ export class UserService {
       retry(3),
       map(response => response.data),
       switchMap(relations => relations.length
-        ? forkJoin(relations.map(favorite => this.appService.getOutfit(favorite.outfitId).then(outfit => ({ ...outfit, outfitId: favorite.outfitId, favoriteId: favorite.id }))))
+        ? forkJoin(relations.map(favorite => this.appService.getOutfit(favorite.outfitId)
+          .then(outfit => ({ ...outfit, outfitId: favorite.outfitId, favoriteId: favorite.id }))
+          .catch(error => error instanceof ApiRequestError && error.status === 404 ? null : Promise.reject(error))))
         : of([] as FavoriteOutfit[])),
+      map(favorites => favorites.filter((favorite): favorite is FavoriteOutfit => favorite !== null)),
       tap((data) => this.setFaveUserOutfits(data)), // Aggiorna la lista dopo la cancellazione),
       catchError(this.handleError)
     );
@@ -222,8 +225,8 @@ export class UserService {
     try {
       const user = await this.afAuth.currentUser;
       if (user) {
-        const response = await firstValueFrom(this.httpClient.get<ApiResponse<UserPreference>>(`${this.apiFire}/gen/user-preferences`));
-        return response.data;
+        const response = await firstValueFrom(this.httpClient.get<ApiResponse<UserPreference[]>>(`${this.apiFire}/gen/user-preferences`));
+        return response.data.length ? response.data[0] : null;
       }
     } catch (error) {
       console.error('Errore durante il recupero delle preferenze utente:', error);

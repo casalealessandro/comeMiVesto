@@ -37,7 +37,7 @@ export class MyOutFitPage  {
   currentUserProfile$!: Observable<UserProfile | null>;
   outfitUserProfile$!: Observable<UserProfile>;
   outfitUserProfile!: UserProfile[];
-  cUserPreference: Partial<UserPreference> | null = null;
+  cUserPreference: UserPreference | null = null;
   isOutfitCompositionOpen: boolean = false;
   currentFilterSel: any;
   filtersData: any;
@@ -186,7 +186,9 @@ export class MyOutFitPage  {
       this.filtersData = []
       const data = fData[0].data;
       this.filtersData = data;
-      this.filtersData.categories = this.filtersData.categories.filter((reee: any) => reee.outfitSubCategory != "" && reee.color != "");
+      this.filtersData.categories = this.filtersData.categories.filter((category: any) =>
+        category.outfitCategory || category.outfitSubCategory || category.color
+      );
 
 
       let queryString = `gender=${this.cUserInfo().gender}`;
@@ -547,8 +549,23 @@ export class MyOutFitPage  {
       });
 
       await alert.present();
-    } catch {
+    } catch (error: any) {
       this.isOutfitCompositionOpen = false;
+      if (error?.status === 409) {
+        const alert = await this.alertController.create({
+          header: 'Segnalazione già inviata',
+          message: 'Hai già inviato questa segnalazione.',
+          buttons: ['Ok'],
+        });
+        await alert.present();
+      } else {
+        const alert = await this.alertController.create({
+          header: 'Errore',
+          message: error?.message || 'Si è verificato un errore imprevisto.',
+          buttons: ['Ok'],
+        });
+        await alert.present();
+      }
     }
 
   }
