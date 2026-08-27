@@ -17,6 +17,9 @@ export interface Tag {
 }[]
 
 export type Gender = '' | 'U' | 'D';
+export type OutfitStyle = '' | 'C' | 'B' | 'SP' | 'SC' | 'E' | 'AT' | 'FES' | 'CL' | 'TR' | 'SE';
+export type OutfitSeason = '' | 'E' | 'P' | 'A' | 'I';
+export type OutfitStatus = 'pending' | 'approved' | 'rifiutato';
 
 // Interfaccia principale per l'oggetto
 export interface outfit {
@@ -26,8 +29,8 @@ export interface outfit {
   imageUrl: string;
   tags: Tag[];
   gender: Gender;
-  style: '' | 'casual' | 'elegant' | 'sporty' | 'formal'; // Assumendo alcuni stili possibili
-  season: '' | 'winter' | 'spring' | 'summer' | 'autumn'; // Assumendo alcune stagioni possibili
+  style: OutfitStyle;
+  season: OutfitSeason;
   color?: string;
   userId: any;
   visits?: number;
@@ -36,7 +39,7 @@ export interface outfit {
   editedAt?: any;
   outfitCategory?: any;
   outfitSubCategory?: any;
-  status: 'approvato' | 'rifiutato' | 'pending'
+  status: OutfitStatus;
 
 }
 

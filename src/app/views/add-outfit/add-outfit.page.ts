@@ -3,7 +3,7 @@ import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 
 import { AppService } from 'src/app/service/app-service';
-import { outfit, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
+import { outfit, OutfitSeason, OutfitStyle, Tag } from 'src/app/service/interface/outfit-all-interface';
 
 import { AlertController, LoadingController, ModalController, NavController } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -29,8 +29,8 @@ export class AddOutfitPage {
   description: string = '';
   showTag: boolean = false
   gender!: '' | 'U' | 'D';
-  style!: "" | "casual" | "elegant" | "sporty" | "formal";
-  season!: "" | "winter" | "spring" | "summer" | "autumn";
+  style!: OutfitStyle;
+  season!: OutfitSeason;
 
   color: any;
   imgCapt: string = '';
