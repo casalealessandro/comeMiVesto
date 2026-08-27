@@ -12,6 +12,13 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export class ApiRequestError extends Error {
+  constructor(message: string, public readonly status: number) {
+    super(message);
+    this.name = 'ApiRequestError';
+  }
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -116,8 +123,8 @@ export class AppService {
   filterOutfitProducts(filters: { ids?: string[]; outfitCategory?: string[]; outfitSubCategory?: string[] }): Promise<any[]> { return lastValueFrom(this.http.post<ApiResponse<any[]>>(`${this.apiFire}filter-outfit-products`, filters).pipe(map(r => r.data), catchError(this.handleError))); }
   getWardrobes(): Observable<wardrobesItem[]> { return this.getAll<wardrobesItem>('wardrobes'); }
   getWardrobe(id: string): Promise<wardrobesItem> { return lastValueFrom(this.http.get<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes/${encodeURIComponent(id)}`).pipe(map(r => r.data), catchError(this.handleError))); }
-  createWardrobe(data: WardrobePayload): Promise<wardrobesItem> { return lastValueFrom(this.http.post<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes`, this.wardrobePayload(data)).pipe(map(r => r.data), catchError(this.handleError))); }
-  updateWardrobe(id: string, data: Partial<WardrobePayload>): Promise<wardrobesItem> { return lastValueFrom(this.http.put<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes/${encodeURIComponent(id)}`, this.wardrobePayload(data)).pipe(map(r => r.data), catchError(this.handleError))); }
+  createWardrobe(data: WardrobePayload): Promise<wardrobesItem> { return lastValueFrom(this.http.post<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes`, this.wardrobePayload(data, true)).pipe(map(r => r.data), catchError(this.handleError))); }
+  updateWardrobe(id: string, data: Partial<WardrobePayload>): Promise<wardrobesItem> { return lastValueFrom(this.http.put<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes/${encodeURIComponent(id)}`, this.wardrobePayload(data, false)).pipe(map(r => r.data), catchError(this.handleError))); }
   deleteWardrobe(id: string): Promise<boolean> { return lastValueFrom(this.http.delete(`${this.apiFire}wardrobes/${encodeURIComponent(id)}`).pipe(map(() => true), catchError(this.handleError))); }
   createReport(data: ReportPayload): Promise<unknown> { const payload = { outFitId: data.outFitId, outfitUserId: data.outfitUserId, typeSegnaletion: data.typeSegnaletion }; return lastValueFrom(this.http.post<ApiResponse<unknown>>(`${this.apiFire}reports`, payload).pipe(map(r => r.data), catchError(this.handleError))); }
   getPublicUserProfile(uid: string): Observable<UserProfile> { return this.http.get<ApiResponse<UserProfile>>(`${this.apiFire}public-user-profile/${encodeURIComponent(uid)}`).pipe(map(r => r.data), catchError(this.handleError)); }
@@ -131,7 +138,7 @@ export class AppService {
         if (outfitSubCategory) category.outfitSubCategory = outfitSubCategory;
         if (color) category.color = color;
         return category;
-      }),
+      }).filter(category => Object.keys(category).length > 0),
       ...(conditions.season ? { season: conditions.season } : {}),
       ...(conditions.style ? { style: conditions.style } : {})
     };
@@ -192,7 +199,7 @@ export class AppService {
       }
     }
 
-    return throwError(() => new Error(userFriendlyMessage));
+    return throwError(() => new ApiRequestError(userFriendlyMessage, error.status));
   }
 
   getUserProfilebyId(userUid: any): Observable<UserProfile> {
@@ -208,13 +215,19 @@ export class AppService {
     }, {} as EditableOutfit);
   }
 
-  private wardrobePayload(data: Partial<WardrobePayload>): Partial<WardrobePayload> {
+  private wardrobePayload(data: Partial<WardrobePayload>, normalizeMissingImages: boolean): Partial<WardrobePayload> {
     const allowed = ['name', 'outfitCategory', 'outfitSubCategory', 'brend', 'color', 'images', 'imageUrl', 'ImageUrl', 'prezzo', 'link'] as const;
     const payload: any = {};
     allowed.forEach(field => {
       if (Object.prototype.hasOwnProperty.call(data, field) && data[field] !== undefined) payload[field] = data[field];
     });
-    payload.images = Array.isArray(data.images) ? data.images : data.imageUrl ? [data.imageUrl] : [];
+    const hasImageInput = Object.prototype.hasOwnProperty.call(data, 'images')
+      || Object.prototype.hasOwnProperty.call(data, 'imageUrl')
+      || Object.prototype.hasOwnProperty.call(data, 'ImageUrl');
+    if (normalizeMissingImages || hasImageInput) {
+      const fallbackImage = data.imageUrl || data.ImageUrl;
+      payload.images = Array.isArray(data.images) ? data.images : fallbackImage ? [fallbackImage] : [];
+    }
     return payload;
   }
 
