@@ -3,7 +3,6 @@ import { ModalController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
 import { CategoryService } from 'src/app/service/category.service';
 import { categoryCloth, filterItmClothing, outfitCategories, seasons, style, subCategoryCloth } from 'src/app/service/interface/outfit-all-interface';
-import { sharedData, SharedDataService } from 'src/app/service/shared-data.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs/operators';
 
@@ -19,9 +18,9 @@ export class FilterOutfitsPage implements OnInit {
   private destroyRef = inject(DestroyRef);
 
 
-  constructor(private sharedDataService: SharedDataService, private appService: AppService, private categoryService: CategoryService, private modalController: ModalController) { }
+  constructor(private appService: AppService, private categoryService: CategoryService, private modalController: ModalController) { }
 
-  @Input() currentFilterSel: any
+  @Input() currentFilterSel?: Partial<filterItmClothing>;
 
   oufitCategories = signal<outfitCategories[]>([]);
   oufitCompleteCategories = signal<outfitCategories[]>([]);
@@ -102,15 +101,16 @@ export class FilterOutfitsPage implements OnInit {
         }
       }
     }
-    if (this.currentFilterSel.season) {
-      this.selectedFilterSeasonIndex.set(this.itmSeasons.findIndex((r: any) => r.id == this.currentFilterSel.season))
+    if (this.currentFilterSel?.season) {
+      const season = this.currentFilterSel.season;
+      this.selectedFilterSeasonIndex.set(this.itmSeasons.findIndex((r: any) => r.id == season))
 
-      this.filterItmClothing.season = this.currentFilterSel.season
+      this.filterItmClothing.season = season
     }
-    if (this.currentFilterSel.style) {
-
-      this.selectedFilterStyleIndex.set(this.itmStyles.findIndex((r: any) => r.id == this.currentFilterSel.style))
-      this.filterItmClothing.style = this.currentFilterSel.style
+    if (this.currentFilterSel?.style) {
+      const selectedStyle = this.currentFilterSel.style;
+      this.selectedFilterStyleIndex.set(this.itmStyles.findIndex((r: any) => r.id == selectedStyle))
+      this.filterItmClothing.style = selectedStyle
     }
 
   }
@@ -284,26 +284,12 @@ export class FilterOutfitsPage implements OnInit {
 
     }
 
-    this.sharedDataService.clearData('FilterOutfitsPage');
-    const modal = await this.modalController.getTop();
-    if (modal) {
-      // Se c'è un modale aperto, chiudi il modale
-      modal.dismiss();
-    }
+    await this.modalController.dismiss(null, 'clear');
   }
 
   async saveSelecedFilter() {
 
-    let data: sharedData = {
-      componentName: 'FilterOutfitsPage',
-      data: this.filterItmClothing
-    }
-    this.sharedDataService.setData(data);
-    const modal = await this.modalController.getTop();
-    if (modal) {
-      // Se c'è un modale aperto, chiudi il modale
-      modal.dismiss();
-    }
+    await this.modalController.dismiss(this.filterItmClothing, 'apply');
   }
 
 }
