@@ -5,7 +5,7 @@ import { AlertController, ModalController, NavController, RefresherEventDetail }
 
 
 import { AppService } from 'src/app/service/app-service';
-import { buttons, filterItmClothing, outfit, OutfitFilterPayload, seasons, Tag } from 'src/app/service/interface/outfit-all-interface';
+import { buttons, filterItmClothing, outfit, OutfitFilterPayload, ReportReason, ReportType, seasons, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom, lastValueFrom, Observable } from 'rxjs';
@@ -44,7 +44,6 @@ export class MyOutFitPage implements OnDestroy {
 
   isFiltersSel: boolean = false
   backgroundImage: any = "url(assets/fallback-image.jpg);";
-  blockedUIDs: string[] = [];
 
   segmentButtons = [
     {
@@ -135,17 +134,9 @@ export class MyOutFitPage implements OnDestroy {
       categories: [{ outfitSubCategory: subCategories, color }]
     }));
 
-    const filteredData = filteredOutfits.filter(item => {
-      // Verifica se blockedUIDs è definito e contiene effettivamente un array
-      if (!Array.isArray(this.blockedUIDs)) {
-        this.blockedUIDs = []; // Inizializza come array vuoto se è undefined
-      }
-      // Verifica che l'oggetto non contenga nessun UID in `uIdBlocked` o che non ci sia `uid` specificato
-      return !item.userId || !this.blockedUIDs.includes(item.userId);
-    });
-    this.filteredOutfits = JSON.parse(JSON.stringify(filteredData));
+    this.filteredOutfits = JSON.parse(JSON.stringify(filteredOutfits));
     await this.heartIcon();
-    filteredData.forEach(async rr => {
+    filteredOutfits.forEach(async rr => {
 
 
       this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
@@ -383,45 +374,18 @@ export class MyOutFitPage implements OnDestroy {
 
 
   async loadOutfits(): Promise<void> {
-
     this.cUserPreference = await this.userProfileService.getUserPreference();
-    if (this.cUserPreference)
-      this.blockedUIDs = this.cUserPreference?.uIdBlocked
-
-    this.filteredOutfits = []
-
+    this.filteredOutfits = JSON.parse(JSON.stringify(this.outfits));
     this.outfitUserProfile = [];
-
-    const filteredData = this.outfits.filter(item => {
-      // Verifica se blockedUIDs è definito e contiene effettivamente un array
-      if (!Array.isArray(this.blockedUIDs)) {
-        this.blockedUIDs = []; // Inizializza come array vuoto se è undefined
-      }
-      // Verifica che l'oggetto non contenga nessun UID in `uIdBlocked` o che non ci sia `uid` specificato
-      return !item.userId || !this.blockedUIDs.includes(item.userId);
-    });
-    this.filteredOutfits = JSON.parse(JSON.stringify(filteredData));
     await this.heartIcon();
-    filteredData.forEach(async rr => {
-
-
+    this.outfits.forEach(rr => {
       this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
-      this.outfitUserProfile$.pipe(take(1)).subscribe((outfitUserProfile: UserProfile) => {
-
-        this.outfitUserProfile[rr.userId] = outfitUserProfile
-      })
-
-      if (filteredData.length > 0) {
-
-        this.isLoading = false;
-
-      }
-
+      this.outfitUserProfile$.pipe(take(1)).subscribe((profile: UserProfile) => {
+        this.outfitUserProfile[rr.userId] = profile;
+      });
     });
-
-    this.getTrendingOutfits()
+    this.getTrendingOutfits();
   }
-
 
 
   async getTrendingOutfits() {
@@ -485,8 +449,8 @@ export class MyOutFitPage implements OnDestroy {
         icon: 'flag'
       },
       {
-        id: "bloccaContenutoutente",
-        title: "Non mi interessa",
+        id: "bloccaUtente",
+        title: "Blocca utente",
         icon: 'eye-off-outline'
       }
     ]
@@ -510,73 +474,38 @@ export class MyOutFitPage implements OnDestroy {
     const { data } = await modal.onDidDismiss();
     console.log('Modal data:', data);
 
-    let id = data.id;
+    const id = data?.id;
 
-    if (id == 'bloccaContenutoutente') {
-
-      const checkSeS = this.cUserPreference?.uid === outfit.userId;
-
-      if (checkSeS) {
+    if (id === 'bloccaUtente') {
+      if (this.cUserID === outfit.userId) {
         this.isOutfitCompositionOpen = false;
-        return
+        return;
       }
-
-
-      console.log('cUserPreference-->', this.cUserPreference)
-      if (!this.cUserPreference) {
-
-        let profilePrefData = {
-          uid: this.cUserID,
-          color: [],
-          brend: [],
-          style: [],
-          uIdBlocked: [outfit.userId]
-
-        }
-
-        let isOk = await this.userProfileService.setUserPreference(profilePrefData)
-        if (isOk) {
-          this.isOutfitCompositionOpen = false;
-          this.loadOutfits()
-          return
-        }
-      }
-      let filterUp = this.cUserPreference!.uIdBlocked
-
-
-      if (!filterUp) {
-        filterUp = [];
-      }
-
-      // Aggiungi il nuovo userId bloccato
-      filterUp.push(outfit.userId);
-
-      //this.cUserPreference[0]!.uIdBlocked = filterUp;
-      let profilePrefData = {
-        uid: this.cUserID,
-        color: this.cUserPreference?.color,
-        brend: this.cUserPreference?.brend,
-        style: this.cUserPreference?.style,
-        uIdBlocked: filterUp
-
-      }
-
-
-      let res = await this.userProfileService.setUserPreference(profilePrefData);
-
-      if (res) {
+      try {
+        await this.appService.blockUser(String(outfit.userId));
         this.isOutfitCompositionOpen = false;
-        this.loadOutfits()
-        return
+        await this.ionViewWillEnter();
+      } catch (error: any) {
+        this.isOutfitCompositionOpen = false;
+        await this.presentReportAlert('Errore', error?.message || 'Non è stato possibile bloccare l’utente.');
       }
-
+      return;
     }
 
+    if (this.cUserID === outfit.userId || (id !== 'segnalaUtente' && id !== 'segnalaContenuto')) {
+      this.isOutfitCompositionOpen = false;
+      return;
+    }
+    const reason = await this.selectReportReason();
+    if (!reason) {
+      this.isOutfitCompositionOpen = false;
+      return;
+    }
 
-    let dataS = {
-      outFitId: outfit.id,
-      outfitUserId: outfit.userId,
-      typeSegnaletion: id
+    const dataS = {
+      outFitId: String(outfit.id),
+      typeSegnaletion: id as ReportType,
+      reason
     }
     try {
       await this.appService.createReport(dataS)
@@ -607,6 +536,26 @@ export class MyOutFitPage implements OnDestroy {
       }
     }
 
+  }
+
+  private async selectReportReason(): Promise<ReportReason | null> {
+    const items: Array<{ id: ReportReason; title: string }> = [
+      { id: 'contenutoInappropriato', title: 'Contenuto inappropriato' },
+      { id: 'nuditaContenutoSessuale', title: 'Nudità o contenuto sessuale' },
+      { id: 'violenza', title: 'Violenza' },
+      { id: 'odioMolestie', title: 'Odio o molestie' },
+      { id: 'spam', title: 'Spam' },
+      { id: 'altro', title: 'Altro' }
+    ];
+    const modal = await this.modalController.create({ component: ModalListComponent, componentProps: { items, title: 'Motivo della segnalazione', displayExpr: 'title' } });
+    await modal.present();
+    const { data } = await modal.onDidDismiss<{ id: ReportReason }>();
+    return data?.id ?? null;
+  }
+
+  private async presentReportAlert(header: string, message: string): Promise<void> {
+    const alert = await this.alertController.create({ header, message, buttons: ['Ok'] });
+    await alert.present();
   }
 
   async openShareModal(outfit: outfit) {

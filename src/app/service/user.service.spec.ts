@@ -30,8 +30,24 @@ describe('UserService REST contracts', () => {
 
   afterEach(() => http.verify());
 
+  it('gets the versioned terms status', async () => {
+    const result = firstValueFrom(service.getTermsStatus());
+    const request = http.expectOne(`${environment.BASE_API_URL}/user/terms-status`);
+    expect(request.request.method).toBe('GET');
+    request.flush({ message: 'Success', data: { accepted: false, acceptedVersion: null, currentVersion: '2' } });
+    expect((await result).accepted).toBeFalse();
+  });
+
+  it('accepts terms with no extra fields', async () => {
+    const result = firstValueFrom(service.acceptTerms());
+    const request = http.expectOne(`${environment.BASE_API_URL}/user/accept-terms`);
+    expect(request.request.body).toEqual({ accepted: true });
+    request.flush({ message: 'Success', data: { accepted: true, acceptedVersion: '2', currentVersion: '2' } });
+    expect((await result).accepted).toBeTrue();
+  });
+
   it('returns the first user preference from the backend array', async () => {
-    const preference: UserPreference = { uid: 'user-id', color: ['N'], brend: [], style: ['C'], uIdBlocked: [] };
+    const preference: UserPreference = { uid: 'user-id', color: ['N'], brend: [], style: ['C'] };
     const result = service.getUserPreference();
     await Promise.resolve();
     const request = http.expectOne(`${environment.BASE_API_URL}/gen/user-preferences`);

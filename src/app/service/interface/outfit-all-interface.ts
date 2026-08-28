@@ -20,6 +20,7 @@ export type Gender = '' | 'U' | 'D';
 export type OutfitStyle = '' | 'C' | 'B' | 'SP' | 'SC' | 'E' | 'AT' | 'FES' | 'CL' | 'TR' | 'SE';
 export type OutfitSeason = '' | 'E' | 'P' | 'A' | 'I';
 export type OutfitStatus = 'pending' | 'approved' | 'rifiutato';
+export type ModerationStatus = 'safe' | 'flagged' | 'error';
 
 // Interfaccia principale per l'oggetto
 export interface outfit {
@@ -40,6 +41,11 @@ export interface outfit {
   outfitCategory?: any;
   outfitSubCategory?: any;
   status: OutfitStatus;
+  moderationStatus?: ModerationStatus;
+  moderationProvider?: string;
+  moderationModel?: string;
+  moderatedAt?: number;
+  moderationCategories?: string[];
 
 }
 
@@ -65,7 +71,9 @@ export type WardrobePayload = Omit<Partial<wardrobesItem>, 'id' | 'userId'> & Pi
 
 export interface FavoriteRelation { id: string; userId: string; outfitId: string; }
 export type FavoriteOutfit = outfit & { outfitId: string; favoriteId: string };
-export interface ReportPayload { outFitId: string; outfitUserId: string; typeSegnaletion: string; }
+export type ReportType = 'segnalaContenuto' | 'segnalaUtente';
+export type ReportReason = 'contenutoInappropriato' | 'nuditaContenutoSessuale' | 'violenza' | 'odioMolestie' | 'spam' | 'altro';
+export interface ReportPayload { outFitId: string; typeSegnaletion: ReportType; reason: ReportReason; }
 export interface categoryCloth {
   id: any,
   value: any,

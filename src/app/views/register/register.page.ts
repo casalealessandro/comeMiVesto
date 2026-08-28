@@ -2,9 +2,9 @@ import { Component, inject, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router } from '@angular/router';
 import { AlertController, ModalController, NavController } from '@ionic/angular';
-import { UserProfile } from 'src/app/service/interface/user-interface';
+import { RegisterPayload } from 'src/app/service/interface/user-interface';
 import { TermsConditionsPage } from '../terms-conditions/terms-conditions.page';
-import { AppService } from 'src/app/service/app-service';
+import { ApiRequestError } from 'src/app/service/app-service';
 import { UserService } from 'src/app/service/user.service';
 import { finalize } from 'rxjs';
 
@@ -23,9 +23,9 @@ export class RegisterPage {
   userType: string = 'creator'; // Default to creator
   modalController = inject(ModalController)
   submitting: boolean = false;
+  termsAccepted = false;
   constructor(
     private afAuth: AngularFireAuth,
-    private appService: AppService,
     private userService: UserService,
     private navController: NavController,
     private alert:AlertController) {}
@@ -43,17 +43,19 @@ export class RegisterPage {
     const password = registerData.password;
     const email = registerData.email ;
     const gender = !registerData.gender ? 'U' : registerData.gender
-    let userProfile:Partial<UserProfile> ={
+    if (!this.termsAccepted) {
+      void this.showAlert('Termini non accettati', 'Per registrarti devi accettare i Termini di Servizio.');
+      return;
+    }
+    const userProfile: RegisterPayload ={
       displayName:displayName,
       email: email,
       password:password,
-      name:name,
       nome:name,
       cognome:cognome,
       bio:bio,
-      photoURL:'https://ionicframework.com/docs/img/demos/avatar.svg',
-      gender:gender,
-      createAt: new Date().getTime()
+      gender: gender === 'D' ? 'D' : 'U',
+      termsAccepted: true
     }
     
     this.submitting = true;
@@ -64,7 +66,7 @@ export class RegisterPage {
         this.alert.create(
           {
             header:'Complimenti!',
-            message:`registrazione è avvenuta con successo,controlla la tua email per confermare l'account`,
+            message:'Registrazione completata con successo. Ora puoi accedere a ComeMiVesto.',
             buttons: ['Ok'],
             }
           ).then(
@@ -76,21 +78,23 @@ export class RegisterPage {
 
         });
       },
-      error: () => {
-        this.alert.create(
-          {
-            header:'Attenzione!',
-            message:'Registrazione non completata. Verifica la connessione e riprova.',
-            buttons: ['Ok'],
-          }
-        ).then(alert => alert.present());
+      error: (error: ApiRequestError) => {
+        const message = error.code === 'CONTENT_FLAGGED'
+          ? 'Il nome pubblico scelto non può essere utilizzato. Modificalo e riprova.'
+          : error.code === 'MODERATION_UNAVAILABLE'
+            ? 'Il controllo dei contenuti non è temporaneamente disponibile. Riprova tra poco.'
+            : 'Registrazione non completata. Verifica i dati e riprova.';
+        void this.showAlert('Attenzione!', message);
       }
     })
     
   }
 
   async functionalCheckBox(evt:any){
-
+    if (typeof evt?.checked === 'boolean') {
+      this.termsAccepted = evt.checked;
+      return;
+    }
 
     const modal = await  this.modalController.create({
       component: TermsConditionsPage,   
@@ -99,6 +103,11 @@ export class RegisterPage {
     await modal.present();
 
     const { data } = await modal.onDidDismiss();
+  }
+
+  private async showAlert(header: string, message: string): Promise<void> {
+    const alert = await this.alert.create({ header, message, buttons: ['Ok'] });
+    await alert.present();
   }
 
 

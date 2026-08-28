@@ -3,7 +3,7 @@ import { DynamicFormField } from './interface/dynamic-form-field';
 import { lastValueFrom, Observable, throwError } from 'rxjs';
 import { catchError, map, retry, tap } from 'rxjs/operators';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
-import { OutfitPreferencePayload, UserProfile } from './interface/user-interface';
+import { BlockedUser, OutfitPreferencePayload, UserProfile } from './interface/user-interface';
 import { EditableOutfit, OutfitFilterPayload, ReportPayload, WardrobePayload, outfit, wardrobesItem } from './interface/outfit-all-interface';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
@@ -13,7 +13,7 @@ export interface ApiResponse<T> {
 }
 
 export class ApiRequestError extends Error {
-  constructor(message: string, public readonly status: number) {
+  constructor(message: string, public readonly status: number, public readonly code?: string, public readonly categories?: string[]) {
     super(message);
     this.name = 'ApiRequestError';
   }
@@ -126,7 +126,9 @@ export class AppService {
   createWardrobe(data: WardrobePayload): Promise<wardrobesItem> { return lastValueFrom(this.http.post<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes`, this.wardrobePayload(data, true)).pipe(map(r => r.data), catchError(this.handleError))); }
   updateWardrobe(id: string, data: Partial<WardrobePayload>): Promise<wardrobesItem> { return lastValueFrom(this.http.put<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes/${encodeURIComponent(id)}`, this.wardrobePayload(data, false)).pipe(map(r => r.data), catchError(this.handleError))); }
   deleteWardrobe(id: string): Promise<boolean> { return lastValueFrom(this.http.delete(`${this.apiFire}wardrobes/${encodeURIComponent(id)}`).pipe(map(() => true), catchError(this.handleError))); }
-  createReport(data: ReportPayload): Promise<unknown> { const payload = { outFitId: data.outFitId, outfitUserId: data.outfitUserId, typeSegnaletion: data.typeSegnaletion }; return lastValueFrom(this.http.post<ApiResponse<unknown>>(`${this.apiFire}reports`, payload).pipe(map(r => r.data), catchError(this.handleError))); }
+  createReport(data: ReportPayload): Promise<unknown> { const payload: ReportPayload = { outFitId: data.outFitId, typeSegnaletion: data.typeSegnaletion, reason: data.reason }; return lastValueFrom(this.http.post<ApiResponse<unknown>>(`${this.apiFire}reports`, payload).pipe(map(r => r.data), catchError(this.handleError))); }
+  getBlockedUsers(): Observable<BlockedUser[]> { return this.getAll<BlockedUser>('blocked-users'); }
+  blockUser(uid: string): Promise<BlockedUser> { return lastValueFrom(this.http.post<ApiResponse<BlockedUser>>(`${this.apiFire}blocked-users/${encodeURIComponent(uid)}`, {}).pipe(map(r => r.data), catchError(this.handleError))); }
   getPublicUserProfile(uid: string): Observable<UserProfile> { return this.http.get<ApiResponse<UserProfile>>(`${this.apiFire}public-user-profile/${encodeURIComponent(uid)}`).pipe(map(r => r.data), catchError(this.handleError)); }
 
    getFilteredOutfits(queryString:string,conditions: OutfitFilterPayload): Observable<outfit[]> {
@@ -200,7 +202,7 @@ export class AppService {
       }
     }
 
-    return throwError(() => new ApiRequestError(userFriendlyMessage, error.status));
+    return throwError(() => new ApiRequestError(userFriendlyMessage, error.status, error.error?.code, error.error?.categories));
   }
 
   getUserProfilebyId(userUid: any): Observable<UserProfile> {

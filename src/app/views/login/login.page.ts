@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 import { UserService } from 'src/app/service/user.service';
+import { TermsAcceptanceService } from 'src/app/service/terms-acceptance.service';
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
@@ -25,7 +26,7 @@ export class LoginPage {
   auth = getAuth(inject(FirebaseApp));
 
   recupPasswordError:string = 'Inserisci un email valida'
-  constructor(private afAuth: AngularFireAuth,private userService: UserService, private alert:AlertController,private router :Router) {}
+  constructor(private afAuth: AngularFireAuth,private userService: UserService, private termsAcceptance: TermsAcceptanceService, private alert:AlertController,private router :Router) {}
 
   async login() {
 
@@ -47,10 +48,10 @@ export class LoginPage {
         }
 
         const uid = userCredential.user.uid; // Recupera correttamente l'UID
-        this.userService.getUserProfile(uid).subscribe(userData => {
+        this.userService.getUserProfile(uid).subscribe(async userData => {
           this.userService.setUserInfo(userData);
           sessionStorage.setItem('userProfile',JSON.stringify(userData));
-          this.router.navigateByUrl('/tabs/myoutfit');
+          if (await this.termsAcceptance.allowAppAccess()) await this.router.navigateByUrl('/tabs/myoutfit');
         })
       })
       .catch(error => {

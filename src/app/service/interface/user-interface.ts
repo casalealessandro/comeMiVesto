@@ -23,7 +23,31 @@ export interface UserPreference {
   color: string[];
   brend: string[];
   style: string[];
-  uIdBlocked: string[];
 }
 
 export type OutfitPreferencePayload = Omit<UserPreference, 'uid'>;
+
+export interface RegisterPayload {
+  email: string;
+  password: string;
+  displayName: string;
+  nome: string;
+  cognome: string;
+  bio?: string;
+  gender: 'U' | 'D';
+  termsAccepted: boolean;
+}
+
+export interface TermsStatus {
+  accepted: boolean;
+  acceptedVersion: string | null;
+  currentVersion: string;
+}
+
+export interface BlockedUser {
+  id: string;
+  blockedUserId: string;
+  createdAt: number;
+  displayName?: string;
+  photoURL?: string;
+}

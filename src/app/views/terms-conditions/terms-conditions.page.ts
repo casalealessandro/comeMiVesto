@@ -1,5 +1,7 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, Input, OnInit, ViewChild } from '@angular/core';
 import { IonContent, ModalController, NavController } from '@ionic/angular';
+import { UserService } from 'src/app/service/user.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-terms-conditions',
@@ -7,11 +9,13 @@ import { IonContent, ModalController, NavController } from '@ionic/angular';
   styleUrls: ['./terms-conditions.page.scss'],
 })
 export class TermsConditionsPage implements OnInit {
+  @Input() acceptanceMode = false;
   @ViewChild(IonContent, { static: false }) content: IonContent | undefined;
   isScrollAtBottom: boolean = false; // Flag per tenere traccia se l'utente ha raggiunto il fondo della pagina
   modalController = inject(ModalController)
   Data:any
-  constructor(private navController: NavController,) { }
+  accepting = false;
+  constructor(private navController: NavController, private users: UserService) { }
 
   ngOnInit() {  
     const da =  new Date()
@@ -36,7 +40,24 @@ export class TermsConditionsPage implements OnInit {
       alert("Devi scorrere fino in fondo per poter accettare e chiudere!");
     }
   }
+  async acceptAndContinue(): Promise<void> {
+    if (!this.acceptanceMode || !this.isScrollAtBottom || this.accepting) return;
+    this.accepting = true;
+    try {
+      await firstValueFrom(this.users.acceptTerms());
+      await this.modalController.dismiss({ accepted: true }, 'accepted');
+    } finally {
+      this.accepting = false;
+    }
+  }
+
+  async decline(): Promise<void> {
+    if (!this.acceptanceMode) return;
+    await this.users.logOut();
+    await this.modalController.dismiss({ accepted: false }, 'declined');
+  }
   async handleBackButton() {
+    if (this.acceptanceMode) return;
    
     // Altrimenti, esegui il comportamento predefinito del back button
     const modal = await this.modalController.getTop();

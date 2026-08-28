@@ -55,10 +55,27 @@ describe('AppService REST contracts', () => {
   });
 
   it('preserves the status of a report conflict', async () => {
-    const result = service.createReport({ outFitId: 'outfit-id', outfitUserId: 'author-id', typeSegnaletion: 'type' });
+    const result = service.createReport({ outFitId: 'outfit-id', typeSegnaletion: 'segnalaContenuto', reason: 'spam' });
     const request = http.expectOne(`${environment.BASE_API_URL}/gen/reports`);
     request.flush({ message: 'Duplicate report' }, { status: 409, statusText: 'Conflict' });
 
     await expectAsync(result).toBeRejectedWith(jasmine.objectContaining<ApiRequestError>({ status: 409 }));
+  });
+
+  it('sends only the supported report fields', async () => {
+    const result = service.createReport({ outFitId: 'outfit-id', typeSegnaletion: 'segnalaUtente', reason: 'odioMolestie' });
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/reports`);
+    expect(request.request.body).toEqual({ outFitId: 'outfit-id', typeSegnaletion: 'segnalaUtente', reason: 'odioMolestie' });
+    request.flush({ message: 'Success', data: {} });
+    await result;
+  });
+
+  it('blocks a user through the dedicated endpoint', async () => {
+    const result = service.blockUser('blocked/user');
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/blocked-users/blocked%2Fuser`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({});
+    request.flush({ message: 'Success', data: { id: 'block-id', blockedUserId: 'blocked/user', createdAt: 1 } });
+    await result;
   });
 });
