@@ -27,4 +27,16 @@ describe('AddOutfitPage gender', () => {
   it('returns an empty gender when the profile has none', async () => {
     expect(await page('').resolveCreationGender()).toBe('');
   });
+
+  it('maps safe moderation to the published message', () => {
+    expect(page('U').getOutfitCreationMessage({ moderationStatus: 'safe', status: 'approved' } as any)).toBe('Outfit pubblicato con successo.');
+  });
+
+  it('maps flagged moderation to the verification message', () => {
+    expect(page('U').getOutfitCreationMessage({ moderationStatus: 'flagged', status: 'pending' } as any)).toContain('verificato prima della pubblicazione');
+  });
+
+  it('maps moderation errors to the temporarily unavailable message', () => {
+    expect(page('U').getOutfitCreationMessage({ moderationStatus: 'error', status: 'pending' } as any)).toContain('temporaneamente disponibile');
+  });
 });

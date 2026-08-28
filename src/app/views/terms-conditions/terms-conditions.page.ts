@@ -1,5 +1,5 @@
 import { Component, inject, Input, OnInit, ViewChild } from '@angular/core';
-import { IonContent, ModalController, NavController } from '@ionic/angular';
+import { AlertController, IonContent, ModalController, NavController } from '@ionic/angular';
 import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom } from 'rxjs';
 
@@ -15,7 +15,7 @@ export class TermsConditionsPage implements OnInit {
   modalController = inject(ModalController)
   Data:any
   accepting = false;
-  constructor(private navController: NavController, private users: UserService) { }
+  constructor(private navController: NavController, private users: UserService, private alerts: AlertController) { }
 
   ngOnInit() {  
     const da =  new Date()
@@ -46,6 +46,13 @@ export class TermsConditionsPage implements OnInit {
     try {
       await firstValueFrom(this.users.acceptTerms());
       await this.modalController.dismiss({ accepted: true }, 'accepted');
+    } catch {
+      const alert = await this.alerts.create({
+        header: 'Accettazione non registrata',
+        message: 'Non è stato possibile registrare l’accettazione dei Termini. Riprova.',
+        buttons: ['Ok']
+      });
+      await alert.present();
     } finally {
       this.accepting = false;
     }
@@ -53,7 +60,6 @@ export class TermsConditionsPage implements OnInit {
 
   async decline(): Promise<void> {
     if (!this.acceptanceMode) return;
-    await this.users.logOut();
     await this.modalController.dismiss({ accepted: false }, 'declined');
   }
   async handleBackButton() {

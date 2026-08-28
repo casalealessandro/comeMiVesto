@@ -44,6 +44,11 @@ export interface TermsStatus {
   currentVersion: string;
 }
 
+export interface TermsAcceptanceResult {
+  termsVersion: string;
+  termsAcceptedAt: number;
+}
+
 export interface BlockedUser {
   id: string;
   blockedUserId: string;

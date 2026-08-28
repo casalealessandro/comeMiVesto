@@ -92,7 +92,7 @@ export class RegisterPage {
 
   async functionalCheckBox(evt:any){
     if (typeof evt?.checked === 'boolean') {
-      this.termsAccepted = evt.checked;
+      if (this.isTermsCheckboxEvent(evt)) this.termsAccepted = evt.checked;
       return;
     }
 
@@ -103,6 +103,14 @@ export class RegisterPage {
     await modal.present();
 
     const { data } = await modal.onDidDismiss();
+  }
+
+  isTermsCheckboxEvent(evt: any): boolean {
+    const field = evt?.field;
+    const options = field?.checkBoxOptions;
+    if (typeof evt?.checked !== 'boolean' || field?.type !== 'checkBox' || !options?.haveLink) return false;
+    const termsMetadata = `${field.label ?? ''} ${options.hrefText ?? ''} ${options.hrefLink ?? ''}`.toLocaleLowerCase('it');
+    return termsMetadata.includes('termin') || termsMetadata.includes('terms');
   }
 
   private async showAlert(header: string, message: string): Promise<void> {

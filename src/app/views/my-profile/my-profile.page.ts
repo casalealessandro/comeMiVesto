@@ -223,13 +223,16 @@ export class MyProfilePage implements OnInit {
     }
   }
   private async presentProfileError(error: ApiRequestError, picture = false): Promise<void> {
-    const message = error.code === 'CONTENT_FLAGGED'
+    const message = this.getProfileErrorMessage(error, picture);
+    const alert = await this.alert.create({ header: 'Aggiornamento non completato', message, buttons: ['Ok'] });
+    await alert.present();
+  }
+  getProfileErrorMessage(error: ApiRequestError, picture = false): string {
+    return error.code === 'CONTENT_FLAGGED'
       ? (picture ? 'La foto profilo scelta non può essere utilizzata.' : 'Il nome pubblico scelto non può essere utilizzato. Modificalo e riprova.')
       : error.code === 'MODERATION_UNAVAILABLE'
         ? 'Il controllo dei contenuti non è temporaneamente disponibile. Riprova tra poco.'
         : 'Non è stato possibile aggiornare il profilo. Riprova.';
-    const alert = await this.alert.create({ header: 'Aggiornamento non completato', message, buttons: ['Ok'] });
-    await alert.present();
   }
   async openEditOutfit(outfitData: outfit) {
     //usersPreferenceForm

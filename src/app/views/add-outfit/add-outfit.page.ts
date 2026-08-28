@@ -246,11 +246,7 @@ export class AddOutfitPage implements OnInit {
     try {
       const createdOutfit = await this.appService.createOutfit(this.editableOutfitPayload(this.outfit));
       this.outfit = createdOutfit;
-      const message = createdOutfit.moderationStatus === 'safe' && createdOutfit.status === 'approved'
-        ? 'Outfit pubblicato con successo.'
-        : createdOutfit.moderationStatus === 'error'
-          ? 'Il controllo automatico non è temporaneamente disponibile. Il tuo outfit è stato salvato e sarà verificato prima della pubblicazione.'
-          : 'Il tuo outfit è stato inviato e sarà verificato prima della pubblicazione.';
+      const message = this.getOutfitCreationMessage(createdOutfit);
       alert(message)
      
       setTimeout(() => {
@@ -261,6 +257,12 @@ export class AddOutfitPage implements OnInit {
     } catch { return; }
 
 
+  }
+
+  getOutfitCreationMessage(createdOutfit: outfit): string {
+    if (createdOutfit.moderationStatus === 'safe' && createdOutfit.status === 'approved') return 'Outfit pubblicato con successo.';
+    if (createdOutfit.moderationStatus === 'error') return 'Il controllo automatico non è temporaneamente disponibile. Il tuo outfit è stato salvato e sarà verificato prima della pubblicazione.';
+    return 'Il tuo outfit è stato inviato e sarà verificato prima della pubblicazione.';
   }
 
   async editTag(tag: Tag) {
