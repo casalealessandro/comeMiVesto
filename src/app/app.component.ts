@@ -5,6 +5,7 @@ import { UserService } from './service/user.service';
 import { App } from '@capacitor/app';
 import { Platform } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { TermsAcceptanceService } from './service/terms-acceptance.service';
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -17,11 +18,13 @@ export class AppComponent {
     private afAuth: AngularFireAuth,
     private router: Router,
     private userService: UserService,
-    private platform: Platform
+    private platform: Platform,
+    private termsAcceptance: TermsAcceptanceService
   ) {
     this.platform.ready().then(() => {
       this.setupDeepLinkListener();
       this.setStatusBar();
+      void this.initializeApp();
     });
   }
 
@@ -42,7 +45,7 @@ export class AppComponent {
 
         // Carica e memorizza i dettagli dell'utente nel servizio
         const isUserLoaded = await this.userService.loadUser();
-        if (isUserLoaded) {
+        if (isUserLoaded && await this.termsAcceptance.allowAppAccess()) {
           this.router.navigateByUrl('/tabs/myoutfit');
         }
       } else {

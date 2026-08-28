@@ -197,7 +197,10 @@ export class AddOutfitPage implements OnInit {
     let id = this.outfitData.id
     const payload = this.editableOutfitPayload(data);
     try {
-      await this.appService.updateOutfit(id, payload)
+      const updatedOutfit = await this.appService.updateOutfit(id, payload);
+      this.outfit = { ...this.outfit, ...updatedOutfit };
+      this.outfitData = { ...this.outfitData, ...updatedOutfit };
+      if (updatedOutfit.status === 'pending') alert('Le modifiche saranno verificate prima della pubblicazione.');
       return true
     } catch {
       return false
@@ -241,8 +244,14 @@ export class AddOutfitPage implements OnInit {
 
 
     try {
-      await this.appService.createOutfit(this.editableOutfitPayload(this.outfit))
-      alert("L'autfit inserito è in attesa di approvazione.")
+      const createdOutfit = await this.appService.createOutfit(this.editableOutfitPayload(this.outfit));
+      this.outfit = createdOutfit;
+      const message = createdOutfit.moderationStatus === 'safe' && createdOutfit.status === 'approved'
+        ? 'Outfit pubblicato con successo.'
+        : createdOutfit.moderationStatus === 'error'
+          ? 'Il controllo automatico non è temporaneamente disponibile. Il tuo outfit è stato salvato e sarà verificato prima della pubblicazione.'
+          : 'Il tuo outfit è stato inviato e sarà verificato prima della pubblicazione.';
+      alert(message)
      
       setTimeout(() => {
         

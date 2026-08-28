@@ -8,7 +8,7 @@ import { AlertController, ModalController, NavController } from '@ionic/angular'
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { AddOutfitPage } from '../add-outfit/add-outfit.page';
 import { Router } from '@angular/router';
-import { AppService } from 'src/app/service/app-service';
+import { ApiRequestError, AppService } from 'src/app/service/app-service';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 @Component({
   selector: 'app-my-profile',
@@ -139,7 +139,7 @@ export class MyProfilePage implements OnInit {
     if (image && image.dataUrl) {
       this.userProfileService.updateProfilePicture(image.dataUrl)
         .then(() => console.log('Profile picture updated'))
-        .catch(error => console.error('Error updating profile picture:', error));
+        .catch((error: ApiRequestError) => void this.presentProfileError(error, true));
     }
   }
 
@@ -173,7 +173,7 @@ export class MyProfilePage implements OnInit {
       bio: bio,
       gender: data.gender,
     }
-    this.userProfileService.updateUserProfile(this.uid || '', profileData).subscribe(data => {
+    this.userProfileService.updateUserProfile(this.uid || '', profileData).subscribe({ next: data => {
       const isOk = data ? true : false;
       if (isOk) {
         this.alert.create({
@@ -183,7 +183,7 @@ export class MyProfilePage implements OnInit {
         })
         //this.userProfile = profileData;
       }
-    });
+    }, error: (error: ApiRequestError) => void this.presentProfileError(error) });
 
 
   }
@@ -205,14 +205,11 @@ export class MyProfilePage implements OnInit {
     let color = !data.color ? [] : data.color
     let brend = !data.brend ? [] : data.brend
     let style = !data.style ? [] : data.style
-    let uIdBlocked = !this.userPreference ? [] : this.userPreference.uIdBlocked
-
     let profilePrefData: Partial<UserPreference> = {
       uid: this.uid,
       color: color,
       brend: brend,
-      style: style,
-      uIdBlocked: uIdBlocked
+      style: style
 
     }
     let isOk = await this.userProfileService.setUserPreference(profilePrefData)
@@ -224,6 +221,15 @@ export class MyProfilePage implements OnInit {
         buttons: ['Ok'],
       })
     }
+  }
+  private async presentProfileError(error: ApiRequestError, picture = false): Promise<void> {
+    const message = error.code === 'CONTENT_FLAGGED'
+      ? (picture ? 'La foto profilo scelta non può essere utilizzata.' : 'Il nome pubblico scelto non può essere utilizzato. Modificalo e riprova.')
+      : error.code === 'MODERATION_UNAVAILABLE'
+        ? 'Il controllo dei contenuti non è temporaneamente disponibile. Riprova tra poco.'
+        : 'Non è stato possibile aggiornare il profilo. Riprova.';
+    const alert = await this.alert.create({ header: 'Aggiornamento non completato', message, buttons: ['Ok'] });
+    await alert.present();
   }
   async openEditOutfit(outfitData: outfit) {
     //usersPreferenceForm

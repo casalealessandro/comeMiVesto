@@ -2,7 +2,7 @@ import { effect, inject, Injectable, signal } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { firstValueFrom, forkJoin, lastValueFrom, Observable, of, throwError } from 'rxjs';
 import { catchError, map, retry, switchMap, tap } from 'rxjs/operators';
-import { EditableUserProfile, OutfitPreferencePayload, UserPreference, UserProfile } from './interface/user-interface';
+import { EditableUserProfile, OutfitPreferencePayload, TermsStatus, UserPreference, UserProfile } from './interface/user-interface';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { ApiRequestError, ApiResponse, AppService } from './app-service';
 import { deleteUser } from 'firebase/auth';
@@ -85,6 +85,12 @@ export class UserService {
       catchError(this.handleError)
     );
   }
+  getTermsStatus(): Observable<TermsStatus> {
+    return this.httpClient.get<ApiResponse<TermsStatus>>(`${this.apiFire}/user/terms-status`).pipe(map(response => response.data), catchError(this.handleError));
+  }
+  acceptTerms(): Observable<TermsStatus> {
+    return this.httpClient.post<ApiResponse<TermsStatus>>(`${this.apiFire}/user/accept-terms`, { accepted: true }).pipe(map(response => response.data), catchError(this.handleError));
+  }
   loginUser<T>(api: string, payloadData: T): Observable<T> {
     const completeApi = `${this.apiFire}${api}`;
     return this.httpClient.post<ApiResponse<T>>(completeApi, payloadData).pipe(
@@ -139,8 +145,7 @@ export class UserService {
       const payload = {
         color: profilePreferData.color ?? [],
         brend: profilePreferData.brend ?? [],
-        style: profilePreferData.style ?? [],
-        uIdBlocked: profilePreferData.uIdBlocked ?? []
+        style: profilePreferData.style ?? []
       };
       await lastValueFrom(this.httpClient.put<ApiResponse<UserPreference>>(`${this.apiFire}/gen/user-preferences`, payload));
       return true;
@@ -244,7 +249,6 @@ export class UserService {
       color: Array.isArray(preference?.color) ? preference.color : [],
       brend: Array.isArray(preference?.brend) ? preference.brend : [],
       style: Array.isArray(preference?.style) ? preference.style : [],
-      uIdBlocked: Array.isArray(preference?.uIdBlocked) ? preference.uIdBlocked : []
     };
   }
 
@@ -333,6 +337,6 @@ export class UserService {
       }
     }
 
-    return throwError(() => new Error(userFriendlyMessage));
+    return throwError(() => new ApiRequestError(userFriendlyMessage, error.status, error.error?.code, error.error?.categories));
   }
 }

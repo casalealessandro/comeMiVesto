@@ -129,6 +129,10 @@ export class DynamicFormComponent implements OnInit {
       this.updateCascadeOptions(fieldName, value);
     }
   }
+  onCheckBoxChange(field: DynamicFormField, checked: boolean) {
+    this.onValueChange(field.name, checked);
+    this.functionalCheckBoxEvent.emit({ fieldName: field.name, checked, field });
+  }
   onValueChangeFile(fieldName: string, value: any) {
    
     
