@@ -2,7 +2,7 @@ import { effect, inject, Injectable, signal } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { firstValueFrom, forkJoin, lastValueFrom, Observable, of, throwError } from 'rxjs';
 import { catchError, map, retry, switchMap, tap } from 'rxjs/operators';
-import { EditableUserProfile, OutfitPreferencePayload, TermsStatus, UserPreference, UserProfile } from './interface/user-interface';
+import { EditableUserProfile, OutfitPreferencePayload, TermsAcceptanceResult, TermsStatus, UserPreference, UserProfile } from './interface/user-interface';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { ApiRequestError, ApiResponse, AppService } from './app-service';
 import { deleteUser } from 'firebase/auth';
@@ -88,8 +88,8 @@ export class UserService {
   getTermsStatus(): Observable<TermsStatus> {
     return this.httpClient.get<ApiResponse<TermsStatus>>(`${this.apiFire}/user/terms-status`).pipe(map(response => response.data), catchError(this.handleError));
   }
-  acceptTerms(): Observable<TermsStatus> {
-    return this.httpClient.post<ApiResponse<TermsStatus>>(`${this.apiFire}/user/accept-terms`, { accepted: true }).pipe(map(response => response.data), catchError(this.handleError));
+  acceptTerms(): Observable<TermsAcceptanceResult> {
+    return this.httpClient.post<ApiResponse<TermsAcceptanceResult>>(`${this.apiFire}/user/accept-terms`, { accepted: true }).pipe(map(response => response.data), catchError(this.handleError));
   }
   loginUser<T>(api: string, payloadData: T): Observable<T> {
     const completeApi = `${this.apiFire}${api}`;

@@ -76,4 +76,16 @@ describe('MyProfilePage data refresh', () => {
 
     expect(component.segmentButtons[2].number).toBe(2);
   });
+
+  it('shows the content-flagged message for display names and profile photos', () => {
+    const error = { status: 422, code: 'CONTENT_FLAGGED' } as any;
+    expect(component.getProfileErrorMessage(error)).toContain('nome pubblico');
+    expect(component.getProfileErrorMessage(error, true)).toContain('foto profilo');
+  });
+
+  it('shows the moderation-unavailable message for profile updates', () => {
+    const error = { status: 503, code: 'MODERATION_UNAVAILABLE' } as any;
+    expect(component.getProfileErrorMessage(error)).toContain('temporaneamente disponibile');
+    expect(component.getProfileErrorMessage(error, true)).toContain('temporaneamente disponibile');
+  });
 });

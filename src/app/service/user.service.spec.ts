@@ -42,8 +42,8 @@ describe('UserService REST contracts', () => {
     const result = firstValueFrom(service.acceptTerms());
     const request = http.expectOne(`${environment.BASE_API_URL}/user/accept-terms`);
     expect(request.request.body).toEqual({ accepted: true });
-    request.flush({ message: 'Success', data: { accepted: true, acceptedVersion: '2', currentVersion: '2' } });
-    expect((await result).accepted).toBeTrue();
+    request.flush({ message: 'Success', data: { termsVersion: '2', termsAcceptedAt: 123456789 } });
+    expect(await result).toEqual({ termsVersion: '2', termsAcceptedAt: 123456789 });
   });
 
   it('returns the first user preference from the backend array', async () => {
