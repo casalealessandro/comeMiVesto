@@ -8,7 +8,7 @@ export const routes: Routes = [
   {
     path: 'tabs',
     component: LayoutTabsPage,
-    canActivate: [authGuard],
+    canActivateChild: [authGuard],
     children: [
       {
         path: 'myoutfit',
