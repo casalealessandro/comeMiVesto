@@ -3,18 +3,21 @@ import { AlertController, IonContent, ModalController, NavController } from '@io
 import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom } from 'rxjs';
 
+export type TermsPageMode = 'view' | 'registration' | 'authenticated';
+
 @Component({
   selector: 'app-terms-conditions',
   templateUrl: './terms-conditions.page.html',
   styleUrls: ['./terms-conditions.page.scss'],
 })
 export class TermsConditionsPage implements OnInit {
-  @Input() acceptanceMode = false;
+  @Input() mode: TermsPageMode = 'view';
   @ViewChild(IonContent, { static: false }) content: IonContent | undefined;
   isScrollAtBottom: boolean = false; // Flag per tenere traccia se l'utente ha raggiunto il fondo della pagina
   modalController = inject(ModalController)
   Data:any
   accepting = false;
+  get requiresAcceptance(): boolean { return this.mode !== 'view'; }
   constructor(private navController: NavController, private users: UserService, private alerts: AlertController) { }
 
   ngOnInit() {  
@@ -23,7 +26,7 @@ export class TermsConditionsPage implements OnInit {
   }
   
   async ionViewDidEnter(): Promise<void> {
-    if (this.acceptanceMode) await this.updateScrollState();
+    if (this.requiresAcceptance) await this.updateScrollState();
   }
 
   async onScroll(event: CustomEvent<{ scrollTop: number }>): Promise<void> {
@@ -31,7 +34,7 @@ export class TermsConditionsPage implements OnInit {
   }
 
   async updateScrollState(scrollTop?: number): Promise<void> {
-    if (!this.acceptanceMode || !this.content) return;
+    if (!this.requiresAcceptance || !this.content) return;
     try {
       const scrollElement = await this.content.getScrollElement();
       const currentScrollTop = scrollTop ?? scrollElement.scrollTop;
@@ -43,16 +46,12 @@ export class TermsConditionsPage implements OnInit {
     }
   }
 
-  // Funzione per chiudere la pagina se l'utente ha scrollato fino alla fine
-  closePage() {
-    if (this.isScrollAtBottom) {
-      this.handleBackButton(); // Naviga indietro (chiude la pagina)
-    } else {
-      alert("Devi scorrere fino in fondo per poter accettare e chiudere!");
-    }
-  }
   async acceptAndContinue(): Promise<void> {
-    if (!this.acceptanceMode || !this.isScrollAtBottom || this.accepting) return;
+    if (!this.requiresAcceptance || !this.isScrollAtBottom || this.accepting) return;
+    if (this.mode === 'registration') {
+      await this.modalController.dismiss({ accepted: true }, 'accepted');
+      return;
+    }
     this.accepting = true;
     try {
       await firstValueFrom(this.users.acceptTerms());
@@ -70,11 +69,14 @@ export class TermsConditionsPage implements OnInit {
   }
 
   async decline(): Promise<void> {
-    if (!this.acceptanceMode) return;
+    if (!this.requiresAcceptance) return;
     await this.modalController.dismiss({ accepted: false }, 'declined');
   }
   async handleBackButton() {
-    if (this.acceptanceMode) return;
+    if (this.requiresAcceptance) {
+      await this.modalController.dismiss({ accepted: false }, 'declined');
+      return;
+    }
    
     // Altrimenti, esegui il comportamento predefinito del back button
     const modal = await this.modalController.getTop();

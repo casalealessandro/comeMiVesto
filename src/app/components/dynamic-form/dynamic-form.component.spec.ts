@@ -1,24 +1,15 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
-
+import { FormControl, FormGroup } from '@angular/forms';
 import { DynamicFormComponent } from './dynamic-form.component';
 
-describe('DynamicFormComponent', () => {
-  let component: DynamicFormComponent;
-  let fixture: ComponentFixture<DynamicFormComponent>;
+describe('DynamicFormComponent field control', () => {
+  it('updates the FormControl and UI-backed formValues generically', () => {
+    const component = Object.create(DynamicFormComponent.prototype) as DynamicFormComponent;
+    component.form = new FormGroup({ consent: new FormControl(false) });
+    component.formValues = { consent: false };
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ DynamicFormComponent ],
-      imports: [IonicModule.forRoot()]
-    }).compileComponents();
+    component.setFieldValue('consent', true);
 
-    fixture = TestBed.createComponent(DynamicFormComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  }));
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(component.form.get('consent')?.value).toBeTrue();
+    expect(component.formValues['consent']).toBeTrue();
   });
 });

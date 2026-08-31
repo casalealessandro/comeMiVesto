@@ -1,78 +1,92 @@
 import { TestBed } from '@angular/core/testing';
-import { AlertController, ModalController, NavController } from '@ionic/angular';
+import { AlertController, ModalController } from '@ionic/angular';
 import { of } from 'rxjs';
+import { DynamicFormComponent } from 'src/app/components/dynamic-form/dynamic-form.component';
 import { UserService } from 'src/app/service/user.service';
 import { RegisterPage } from './register.page';
 
-describe('RegisterPage terms consent', () => {
+describe('RegisterPage Terms consent', () => {
   let component: RegisterPage;
   let users: jasmine.SpyObj<UserService>;
-  const alert = { present: jasmine.createSpy('present').and.resolveTo() };
+  let modalController: any;
+  let modalResult: { data?: { accepted: boolean } };
+  let dynamicForm: jasmine.SpyObj<DynamicFormComponent>;
   const termsEvent = {
-    checked: true,
-    field: {
-      name: 'backend-field-name', type: 'checkBox', label: 'Accetto i Termini di Servizio', required: true,
-      checkBoxOptions: { haveLink: true, hrefLink: '/terms-conditions', hrefText: 'Termini di Servizio' }
-    }
+    checked: true, fieldName: 'backend-field-name',
+    field: { name: 'backend-field-name', type: 'checkBox', label: 'Terms', required: true,
+      checkBoxOptions: { haveLink: true, hrefLink: '/terms-conditions', hrefText: 'Terms' } }
   };
   const registration = { email: 'user@example.com', password: 'password', displayName: 'User', nome: 'Nome', cognome: 'Cognome', gender: 'U' };
 
   beforeEach(() => {
+    modalResult = { data: { accepted: false } };
+    modalController = { create: jasmine.createSpy().and.callFake(async () => ({
+      present: jasmine.createSpy().and.resolveTo(), onDidDismiss: jasmine.createSpy().and.callFake(async () => modalResult)
+    })) };
     users = jasmine.createSpyObj<UserService>('UserService', ['registerUser']);
     users.registerUser.and.returnValue(of({}));
+    dynamicForm = jasmine.createSpyObj<DynamicFormComponent>('DynamicFormComponent', ['setFieldValue']);
     TestBed.configureTestingModule({ providers: [
-      { provide: ModalController, useValue: { create: jasmine.createSpy() } },
-      { provide: AlertController, useValue: { create: jasmine.createSpy().and.resolveTo(alert) } },
+      { provide: ModalController, useValue: modalController },
+      { provide: AlertController, useValue: { create: jasmine.createSpy().and.resolveTo({ present: () => Promise.resolve() }) } }
     ] });
-    component = TestBed.runInInjectionContext(() => new RegisterPage(
-      {} as any, users, { back: jasmine.createSpy('back') } as any, TestBed.inject(AlertController)
-    ));
+    component = TestBed.runInInjectionContext(() => new RegisterPage({} as any, users, { back: () => undefined } as any, TestBed.inject(AlertController)));
+    component.registrationForm = dynamicForm;
   });
 
-  it('does not register before Terms are accepted', () => {
+  it('starts without consent and does not submit', () => {
+    expect(component.termsAccepted).toBeFalse();
     component.register(registration);
     expect(users.registerUser).not.toHaveBeenCalled();
   });
 
-  it('sends explicit consent without server-managed fields', async () => {
+  it('keeps a manual check false and opens the registration modal', async () => {
+    const interaction = component.functionalCheckBox(termsEvent);
+    expect(component.termsAccepted).toBeFalse();
+    expect(dynamicForm.setFieldValue).toHaveBeenCalledWith('backend-field-name', false);
+    await interaction;
+    expect(modalController.create).toHaveBeenCalledWith(jasmine.objectContaining({ componentProps: { mode: 'registration' } }));
+  });
+
+  it('keeps consent and checkbox false after decline or dismiss', async () => {
+    await component.functionalCheckBox(termsEvent);
+    expect(component.termsAccepted).toBeFalse();
+    expect(dynamicForm.setFieldValue).toHaveBeenCalledWith('backend-field-name', false);
+    modalResult = {};
+    await component.functionalCheckBox(termsEvent);
+    expect(component.termsAccepted).toBeFalse();
+  });
+
+  it('sets consent and checkbox only from an accepted modal result', async () => {
+    modalResult = { data: { accepted: true } };
+    await component.functionalCheckBox(termsEvent);
+    expect(component.termsAccepted).toBeTrue();
+    expect(dynamicForm.setFieldValue).toHaveBeenCalledWith('backend-field-name', true);
+  });
+
+  it('clears accepted consent when manually unchecked', async () => {
+    modalResult = { data: { accepted: true } };
+    await component.functionalCheckBox(termsEvent);
+    await component.functionalCheckBox({ ...termsEvent, checked: false });
+    expect(component.termsAccepted).toBeFalse();
+    expect(dynamicForm.setFieldValue).toHaveBeenCalledWith('backend-field-name', false);
+  });
+
+  it('submits termsAccepted without server-managed fields only after modal acceptance', async () => {
+    modalResult = { data: { accepted: true } };
     await component.functionalCheckBox(termsEvent);
     component.register(registration);
     const payload = users.registerUser.calls.mostRecent().args[1] as any;
     expect(payload.termsAccepted).toBeTrue();
-    expect(payload.uid).toBeUndefined();
-    expect(payload.createAt).toBeUndefined();
-    expect(payload.termsVersion).toBeUndefined();
-    expect(payload.termsAcceptedAt).toBeUndefined();
+    for (const field of ['uid', 'createAt', 'termsVersion', 'termsAcceptedAt']) expect(payload[field]).toBeUndefined();
   });
 
-  it('does not treat another checkbox as Terms acceptance', async () => {
-    await component.functionalCheckBox({
-      checked: true,
-      field: { name: 'marketing', type: 'checkBox', label: 'Ricevi aggiornamenti', checkBoxOptions: { haveLink: false } }
-    });
+  it('uses the same flow for the technical Terms link and ignores other checkboxes', async () => {
+    await component.functionalCheckBox({ ...termsEvent, checked: undefined, name: 'linkCheckBoxClick' });
+    expect(modalController.create).toHaveBeenCalled();
+    await component.functionalCheckBox({ checked: true, fieldName: 'marketing', field: {
+      name: 'marketing', type: 'checkBox', label: 'Terms marketing', checkBoxOptions: { haveLink: true, hrefLink: '/marketing' }
+    }});
     expect(component.termsAccepted).toBeFalse();
-    component.register(registration);
-    expect(users.registerUser).not.toHaveBeenCalled();
-  });
-
-
-  it('clears consent when the technical Terms checkbox is unchecked', async () => {
-    await component.functionalCheckBox(termsEvent);
-    await component.functionalCheckBox({ ...termsEvent, checked: false });
-    expect(component.termsAccepted).toBeFalse();
-  });
-
-  it('ignores localized labels when the technical link is not the Terms route', async () => {
-    await component.functionalCheckBox({
-      checked: true,
-      field: { name: 'other', type: 'checkBox', label: 'Terms prize draw', checkBoxOptions: { haveLink: true, hrefLink: '/marketing', hrefText: 'Terms' } }
-    });
-    expect(component.termsAccepted).toBeFalse();
-  });
-
-  it('normalizes equivalent internal Terms route links', () => {
-    for (const hrefLink of ['terms-conditions', '/terms-conditions', '/terms-conditions/']) {
-      expect(component.isTermsCheckboxEvent({ ...termsEvent, field: { ...termsEvent.field, checkBoxOptions: { ...termsEvent.field.checkBoxOptions, hrefLink } } })).toBeTrue();
-    }
   });
 });
