@@ -1,11 +1,8 @@
-import { Component, effect } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { UserService } from './service/user.service';
 import { App } from '@capacitor/app';
 import { Platform } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
-import { TermsAcceptanceService } from './service/terms-acceptance.service';
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -15,16 +12,12 @@ export class AppComponent {
   isUserLogin: boolean = false;
 
   constructor(
-    private afAuth: AngularFireAuth,
     private router: Router,
-    private userService: UserService,
-    private platform: Platform,
-    private termsAcceptance: TermsAcceptanceService
+    private platform: Platform
   ) {
     this.platform.ready().then(() => {
       this.setupDeepLinkListener();
       this.setStatusBar();
-      void this.initializeApp();
     });
   }
 
@@ -37,32 +30,6 @@ export class AppComponent {
     } catch (error) {
       console.error('Error setting status bar:', error);
     }
-  }
-  async initializeApp() {
-    this.afAuth.authState.subscribe(async (user) => {
-      if (user) {
-        // L'utente è già autenticato, reindirizzalo alla pagina principale o a un'altra pagina;
-
-        // Carica e memorizza i dettagli dell'utente nel servizio
-        const isUserLoaded = await this.userService.loadUser();
-        if (isUserLoaded && await this.termsAcceptance.allowAppAccess()) {
-          this.router.navigateByUrl('/tabs/myoutfit');
-        }
-      } else {
-        this.forceRedirect();
-      }
-    });
-  }
-
-  async forceRedirect() {
-    const isLogin = await this.userService.isUserLoggin();
-    if (isLogin) {
-      this.router.navigateByUrl('/tabs/myoutfit'); // Naviga alla home se loggato
-      return;
-    }
-    console.log('isLogin -- ', isLogin);
-    this.router.navigateByUrl('/login'); // Torna alla login se non loggato
-    //this.router.navigateByUrl('/intro'); // Torna alla login se non loggato
   }
   private setupDeepLinkListener() {
     App.addListener('appUrlOpen', (event: any) => {

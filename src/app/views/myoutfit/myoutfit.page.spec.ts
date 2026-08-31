@@ -84,4 +84,19 @@ describe('MyOutFitPage filters and search', () => {
 
     expect(component.selectedSegment).toBe('outfit');
   });
+
+
+  it('refreshes the server-authoritative feed after blocking without calling the lifecycle', async () => {
+    const component = page();
+    const appService = { blockUser: jasmine.createSpy().and.resolveTo({}) };
+    Object.assign(component, { appService, cUserID: 'me', isOutfitCompositionOpen: true });
+    spyOn(component, 'refreshOutfitsFromServer').and.resolveTo();
+    spyOn(component, 'ionViewWillEnter').and.resolveTo();
+
+    await component.blockOutfitUser({ userId: 'other' } as any);
+
+    expect(appService.blockUser).toHaveBeenCalledOnceWith('other');
+    expect(component.refreshOutfitsFromServer).toHaveBeenCalledTimes(1);
+    expect(component.ionViewWillEnter).not.toHaveBeenCalled();
+  });
 });

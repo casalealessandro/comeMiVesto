@@ -1,13 +1,16 @@
-import { EmitterVisitorContext } from '@angular/compiler';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FirebaseApp } from '@angular/fire/compat';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 import { UserService } from 'src/app/service/user.service';
-import { TermsAcceptanceService } from 'src/app/service/terms-acceptance.service';
+import { firstValueFrom } from 'rxjs';
+
+export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
+  if (!returnUrl || !returnUrl.startsWith('/tabs') || returnUrl.startsWith('//') || returnUrl.includes('://') || returnUrl.split(/[?#]/, 1)[0].split('/').includes('..')) return '/tabs/myoutfit';
+  return /^\/tabs(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?$/.test(returnUrl) ? returnUrl : '/tabs/myoutfit';
+}
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
@@ -26,7 +29,7 @@ export class LoginPage {
   auth = getAuth(inject(FirebaseApp));
 
   recupPasswordError:string = 'Inserisci un email valida'
-  constructor(private afAuth: AngularFireAuth,private userService: UserService, private termsAcceptance: TermsAcceptanceService, private alert:AlertController,private router :Router) {}
+  constructor(private afAuth: AngularFireAuth,private userService: UserService, private alert:AlertController,private router :Router, private route: ActivatedRoute) {}
 
   async login() {
 
@@ -40,21 +43,19 @@ export class LoginPage {
     }
 
     //this.userService.loginUser('/user/login',userLoginData)
-    this.afAuth.signInWithEmailAndPassword(this.email, this.password)
-      .then((userCredential:any) => {
+    try {
+      const userCredential: any = await this.afAuth.signInWithEmailAndPassword(this.email, this.password);
         if (!userCredential || !userCredential.user) {
           alert('Qualcosa è andato storto');
           return;
         }
 
         const uid = userCredential.user.uid; // Recupera correttamente l'UID
-        this.userService.getUserProfile(uid).subscribe(async userData => {
-          this.userService.setUserInfo(userData);
-          sessionStorage.setItem('userProfile',JSON.stringify(userData));
-          if (await this.termsAcceptance.allowAppAccess()) await this.router.navigateByUrl('/tabs/myoutfit');
-        })
-      })
-      .catch(error => {
+        const userData = await firstValueFrom(this.userService.getUserProfile(uid));
+        this.userService.setUserInfo(userData);
+        sessionStorage.setItem('userProfile',JSON.stringify(userData));
+        await this.router.navigateByUrl(getSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')));
+      } catch (error) {
         console.error(error)
         this.alert.create(
          {
@@ -63,7 +64,7 @@ export class LoginPage {
           buttons: ['Ok'],
           }
         ).then(alert => alert.present());
-      });
+      }
   }
 
   async setStayConnected(event:any) {

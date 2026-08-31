@@ -2,7 +2,7 @@ import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 
-import { AppService } from 'src/app/service/app-service';
+import { ApiRequestError, AppService } from 'src/app/service/app-service';
 import { EditableOutfit, Gender, outfit, OutfitSeason, OutfitStyle, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { UserService } from 'src/app/service/user.service';
 
@@ -11,6 +11,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { MyOutFitPage } from '../myoutfit/myoutfit.page';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
+import { TermsAcceptanceService } from 'src/app/service/terms-acceptance.service';
 @Component({
   selector: 'app-add-outfit',
   templateUrl: './add-outfit.page.html',
@@ -50,6 +51,7 @@ export class AddOutfitPage implements OnInit {
     private alert: AlertController,
     private navController: NavController,
     private userService: UserService,
+    private termsAcceptance: TermsAcceptanceService,
     
   ) {
 
@@ -122,9 +124,7 @@ export class AddOutfitPage implements OnInit {
       if(!imageUrl){
         return 
       }
-      this.outfit.imageUrl = imageUrl
-
-      this.editOutfit({ imageUrl: imageUrl })
+      await this.editOutfit({ imageUrl })
     }
   }
 
@@ -202,7 +202,8 @@ export class AddOutfitPage implements OnInit {
       this.outfitData = { ...this.outfitData, ...updatedOutfit };
       if (updatedOutfit.status === 'pending') alert('Le modifiche saranno verificate prima della pubblicazione.');
       return true
-    } catch {
+    } catch (error) {
+      await this.handleTermsRequired(error);
       return false
     }
   }
@@ -254,7 +255,10 @@ export class AddOutfitPage implements OnInit {
         this.handleBackButton()
         
       }, 800);
-    } catch { return; }
+    } catch (error) {
+      await this.handleTermsRequired(error);
+      return;
+    }
 
 
   }
@@ -263,6 +267,24 @@ export class AddOutfitPage implements OnInit {
     if (createdOutfit.moderationStatus === 'safe' && createdOutfit.status === 'approved') return 'Outfit pubblicato con successo.';
     if (createdOutfit.moderationStatus === 'error') return 'Il controllo automatico non è temporaneamente disponibile. Il tuo outfit è stato salvato e sarà verificato prima della pubblicazione.';
     return 'Il tuo outfit è stato inviato e sarà verificato prima della pubblicazione.';
+  }
+
+  async handleTermsRequired(error: unknown): Promise<boolean> {
+    if (!(error instanceof ApiRequestError) || error.code !== 'TERMS_ACCEPTANCE_REQUIRED') return false;
+    const decision = await this.termsAcceptance.allowAppAccess();
+    if (decision === 'declined') {
+      await this.router.navigateByUrl('/login');
+      return true;
+    }
+    if (decision === 'accepted') {
+      const alert = await this.alert.create({
+        header: 'Termini aggiornati',
+        message: 'I Termini ora risultano accettati. Riprova il salvataggio.',
+        buttons: ['Ok']
+      });
+      await alert.present();
+    }
+    return true;
   }
 
   async editTag(tag: Tag) {

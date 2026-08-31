@@ -22,14 +22,25 @@ export class TermsConditionsPage implements OnInit {
     this.Data =`${da.getMonth() +1}/${da.getFullYear()}`
   }
   
-  onScroll(event: any) {
-    const scrollElement = event.detail.scrollElement;
-    const scrollTop = scrollElement.scrollTop;
-    const scrollHeight = scrollElement.scrollHeight;
-    const offsetHeight = scrollElement.offsetHeight;
+  async ionViewDidEnter(): Promise<void> {
+    if (this.acceptanceMode) await this.updateScrollState();
+  }
 
-    // Se l'utente è a fine pagina, abilita il flag
-    this.isScrollAtBottom = (scrollTop + offsetHeight) >= scrollHeight;
+  async onScroll(event: CustomEvent<{ scrollTop: number }>): Promise<void> {
+    await this.updateScrollState(event.detail.scrollTop);
+  }
+
+  async updateScrollState(scrollTop?: number): Promise<void> {
+    if (!this.acceptanceMode || !this.content) return;
+    try {
+      const scrollElement = await this.content.getScrollElement();
+      const currentScrollTop = scrollTop ?? scrollElement.scrollTop;
+      const tolerance = 4;
+      this.isScrollAtBottom = scrollElement.scrollHeight <= scrollElement.clientHeight
+        || currentScrollTop + scrollElement.clientHeight >= scrollElement.scrollHeight - tolerance;
+    } catch {
+      this.isScrollAtBottom = false;
+    }
   }
 
   // Funzione per chiudere la pagina se l'utente ha scrollato fino alla fine

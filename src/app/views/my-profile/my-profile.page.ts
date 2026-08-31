@@ -10,6 +10,7 @@ import { AddOutfitPage } from '../add-outfit/add-outfit.page';
 import { Router } from '@angular/router';
 import { ApiRequestError, AppService } from 'src/app/service/app-service';
 import { SharedDataService } from 'src/app/service/shared-data.service';
+import { TermsAcceptanceService } from 'src/app/service/terms-acceptance.service';
 @Component({
   selector: 'app-my-profile',
   templateUrl: './my-profile.page.html',
@@ -67,7 +68,9 @@ export class MyProfilePage implements OnInit {
     private navController: NavController,
     private modalController: ModalController,
     private alert: AlertController,
-    private sharedData: SharedDataService) { 
+    private sharedData: SharedDataService,
+    private termsAcceptance: TermsAcceptanceService,
+    private router: Router) {
 
        // Effetto per ascoltare i cambiamenti
           effect(() => {
@@ -222,7 +225,23 @@ export class MyProfilePage implements OnInit {
       })
     }
   }
-  private async presentProfileError(error: ApiRequestError, picture = false): Promise<void> {
+  async presentProfileError(error: ApiRequestError, picture = false): Promise<void> {
+    if (error.code === 'TERMS_ACCEPTANCE_REQUIRED') {
+      const decision = await this.termsAcceptance.allowAppAccess();
+      if (decision === 'declined') {
+        await this.router.navigateByUrl('/login');
+        return;
+      }
+      if (decision === 'accepted') {
+        const alert = await this.alert.create({
+          header: 'Termini aggiornati',
+          message: 'I Termini ora risultano accettati. Riprova l’aggiornamento del profilo.',
+          buttons: ['Ok']
+        });
+        await alert.present();
+      }
+      return;
+    }
     const message = this.getProfileErrorMessage(error, picture);
     const alert = await this.alert.create({ header: 'Aggiornamento non completato', message, buttons: ['Ok'] });
     await alert.present();

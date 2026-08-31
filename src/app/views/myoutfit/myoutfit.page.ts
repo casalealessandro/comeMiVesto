@@ -79,6 +79,10 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async ionViewWillEnter() {
+    await this.refreshOutfitsFromServer();
+  }
+
+  async refreshOutfitsFromServer(): Promise<void> {
     this.isLoading = true;
     this.filteredOutfits = [];
 
@@ -477,18 +481,7 @@ export class MyOutFitPage implements OnDestroy {
     const id = data?.id;
 
     if (id === 'bloccaUtente') {
-      if (this.cUserID === outfit.userId) {
-        this.isOutfitCompositionOpen = false;
-        return;
-      }
-      try {
-        await this.appService.blockUser(String(outfit.userId));
-        this.isOutfitCompositionOpen = false;
-        await this.ionViewWillEnter();
-      } catch (error: any) {
-        this.isOutfitCompositionOpen = false;
-        await this.presentReportAlert('Errore', error?.message || 'Non è stato possibile bloccare l’utente.');
-      }
+      await this.blockOutfitUser(outfit);
       return;
     }
 
@@ -536,6 +529,21 @@ export class MyOutFitPage implements OnDestroy {
       }
     }
 
+  }
+
+  async blockOutfitUser(outfit: outfit): Promise<void> {
+    if (this.cUserID === outfit.userId) {
+      this.isOutfitCompositionOpen = false;
+      return;
+    }
+    try {
+      await this.appService.blockUser(String(outfit.userId));
+      this.isOutfitCompositionOpen = false;
+      await this.refreshOutfitsFromServer();
+    } catch (error: any) {
+      this.isOutfitCompositionOpen = false;
+      await this.presentReportAlert('Errore', error?.message || 'Non è stato possibile bloccare l’utente.');
+    }
   }
 
   private async selectReportReason(): Promise<ReportReason | null> {

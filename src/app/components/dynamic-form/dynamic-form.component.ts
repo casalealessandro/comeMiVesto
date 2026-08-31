@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
-import { DynamicFormField,CheckBoxOptions } from '../../service/interface/dynamic-form-field'
+import { DynamicFormField } from '../../service/interface/dynamic-form-field'
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { AppService } from 'src/app/service/app-service';
 import { ToastController } from '@ionic/angular';
@@ -216,14 +216,16 @@ export class DynamicFormComponent implements OnInit {
     this.functionalInputFormEvent.emit(send)
   }
 
-  clickLinkCheckBox(evt:any,opt:CheckBoxOptions){
+  clickLinkCheckBox(evt:any, field: DynamicFormField){
     evt.preventDefault();
     evt.stopPropagation(); 
     
     let sendData ={
       name:'linkCheckBoxClick',
-      hrefLink:opt.hrefLink,
-      hrefText:opt.hrefText
+      fieldName: field.name,
+      field,
+      hrefLink: field.checkBoxOptions?.hrefLink,
+      hrefText: field.checkBoxOptions?.hrefText
     }
 
     this.functionalCheckBoxEvent.emit(sendData)
