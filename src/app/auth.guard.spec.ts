@@ -56,8 +56,18 @@ describe('protected routing', () => {
   });
 
   it('keeps register and Terms routes public', () => {
-    for (const path of ['register', 'terms-conditions']) {
-      expect(routes.find(route => route.path === path)?.canActivate).toBeUndefined();
+    for (const path of ['login', 'register', 'intro', 'terms-conditions']) {
+      const publicRoute = routes.find(route => route.path === path);
+      expect(publicRoute?.canActivate).toBeUndefined();
+      expect(publicRoute?.canActivateChild).toBeUndefined();
     }
+  });
+
+  it('applies the real child guard when navigating between tabs children', () => {
+    const tabsRoute = routes.find(route => route.path === 'tabs');
+    expect(tabsRoute?.canActivate).toBeUndefined();
+    expect(tabsRoute?.canActivateChild).toEqual([authGuard]);
+    expect(tabsRoute?.children?.some(child => child.path === 'myoutfit')).toBeTrue();
+    expect(tabsRoute?.children?.some(child => child.path === 'my-profile')).toBeTrue();
   });
 });
