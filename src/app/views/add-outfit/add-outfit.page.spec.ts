@@ -1,8 +1,13 @@
 import { AddOutfitPage } from './add-outfit.page';
+import { ApiRequestError } from '../../service/app-service';
 import { Gender } from '../../service/interface/outfit-all-interface';
 
-describe('AddOutfitPage gender', () => {
+describe('AddOutfitPage gender and Terms errors', () => {
+  let terms: any;
+  let alerts: any;
   function page(profileGender: Gender): AddOutfitPage {
+    terms = { allowAppAccess: jasmine.createSpy().and.resolveTo('accepted') };
+    alerts = { create: jasmine.createSpy().and.resolveTo({ present: jasmine.createSpy().and.resolveTo() }) };
     const profile = { gender: profileGender };
     const userService = {
       gUserProfile: () => () => profile,
@@ -10,7 +15,7 @@ describe('AddOutfitPage gender', () => {
     };
     return new AddOutfitPage(
       {} as any, {} as any, {} as any, {} as any,
-      {} as any, {} as any, {} as any, userService as any
+      {} as any, alerts, {} as any, userService as any, terms
     );
   }
 
@@ -38,5 +43,19 @@ describe('AddOutfitPage gender', () => {
 
   it('maps moderation errors to the temporarily unavailable message', () => {
     expect(page('U').getOutfitCreationMessage({ moderationStatus: 'error', status: 'pending' } as any)).toContain('temporaneamente disponibile');
+  });
+
+
+  it('opens Terms for the exact runtime code on create or edit errors', async () => {
+    const component = page('U');
+    expect(await component.handleTermsRequired(new ApiRequestError('Terms', 403, 'TERMS_ACCEPTANCE_REQUIRED'))).toBeTrue();
+    expect(terms.allowAppAccess).toHaveBeenCalledTimes(1);
+    expect(alerts.create).toHaveBeenCalled();
+  });
+
+  it('does not interpret an ordinary 403 as a Terms error', async () => {
+    const component = page('U');
+    expect(await component.handleTermsRequired(new ApiRequestError('Forbidden', 403))).toBeFalse();
+    expect(terms.allowAppAccess).not.toHaveBeenCalled();
   });
 });

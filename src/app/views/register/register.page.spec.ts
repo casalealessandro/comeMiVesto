@@ -54,4 +54,25 @@ describe('RegisterPage terms consent', () => {
     component.register(registration);
     expect(users.registerUser).not.toHaveBeenCalled();
   });
+
+
+  it('clears consent when the technical Terms checkbox is unchecked', async () => {
+    await component.functionalCheckBox(termsEvent);
+    await component.functionalCheckBox({ ...termsEvent, checked: false });
+    expect(component.termsAccepted).toBeFalse();
+  });
+
+  it('ignores localized labels when the technical link is not the Terms route', async () => {
+    await component.functionalCheckBox({
+      checked: true,
+      field: { name: 'other', type: 'checkBox', label: 'Terms prize draw', checkBoxOptions: { haveLink: true, hrefLink: '/marketing', hrefText: 'Terms' } }
+    });
+    expect(component.termsAccepted).toBeFalse();
+  });
+
+  it('normalizes equivalent internal Terms route links', () => {
+    for (const hrefLink of ['terms-conditions', '/terms-conditions', '/terms-conditions/']) {
+      expect(component.isTermsCheckboxEvent({ ...termsEvent, field: { ...termsEvent.field, checkBoxOptions: { ...termsEvent.field.checkBoxOptions, hrefLink } } })).toBeTrue();
+    }
+  });
 });

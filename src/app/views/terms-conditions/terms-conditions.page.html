@@ -9,7 +9,7 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-content class="terms-content" (ionScroll)="onScroll($event)">
+  <ion-content class="terms-content" [scrollEvents]="acceptanceMode" (ionScroll)="onScroll($event)">
     <ion-card>
       <ion-card-header>
         <ion-card-subtitle>Ultimo aggiornamento: {{Data}}</ion-card-subtitle>

@@ -61,7 +61,7 @@
           [checked]="formValues[field.name]" 
           (ionChange)="onCheckBoxChange(field, $event.detail.checked)">
               
-              <a href="#"   (click)="clickLinkCheckBox($event,field.checkBoxOptions!)">
+              <a href="#"   (click)="clickLinkCheckBox($event, field)">
                 {{!field.checkBoxOptions!.hrefText ? field.label : field.checkBoxOptions!.hrefText  }}
               </a>
           </ion-checkbox>

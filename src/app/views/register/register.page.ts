@@ -109,8 +109,8 @@ export class RegisterPage {
     const field = evt?.field;
     const options = field?.checkBoxOptions;
     if (typeof evt?.checked !== 'boolean' || field?.type !== 'checkBox' || !options?.haveLink) return false;
-    const termsMetadata = `${field.label ?? ''} ${options.hrefText ?? ''} ${options.hrefLink ?? ''}`.toLocaleLowerCase('it');
-    return termsMetadata.includes('termin') || termsMetadata.includes('terms');
+    const normalizedLink = `/${String(options.hrefLink ?? '').split(/[?#]/, 1)[0].replace(/^\/+|\/+$/g, '')}`;
+    return normalizedLink === '/terms-conditions';
   }
 
   private async showAlert(header: string, message: string): Promise<void> {

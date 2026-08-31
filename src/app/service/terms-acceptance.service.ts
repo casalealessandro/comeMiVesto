@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 import { AlertController, ModalController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { TermsConditionsPage } from '../views/terms-conditions/terms-conditions.page';
@@ -7,10 +6,10 @@ import { UserService } from './user.service';
 
 @Injectable({ providedIn: 'root' })
 export class TermsAcceptanceService {
-  private activeCheck?: Promise<boolean>;
-  constructor(private users: UserService, private modals: ModalController, private router: Router, private alerts: AlertController) {}
+  private activeCheck?: Promise<TermsAccessDecision>;
+  constructor(private users: UserService, private modals: ModalController, private alerts: AlertController) {}
 
-  async allowAppAccess(): Promise<boolean> {
+  async allowAppAccess(): Promise<TermsAccessDecision> {
     if (this.activeCheck) return this.activeCheck;
     this.activeCheck = this.checkTerms().catch(async () => {
       const alert = await this.alerts.create({
@@ -19,7 +18,7 @@ export class TermsAcceptanceService {
         buttons: ['Ok']
       });
       await alert.present();
-      return false;
+      return 'unavailable' as const;
     });
     try {
       return await this.activeCheck;
@@ -28,19 +27,21 @@ export class TermsAcceptanceService {
     }
   }
 
-  private async checkTerms(): Promise<boolean> {
+  private async checkTerms(): Promise<TermsAccessDecision> {
     const status = await firstValueFrom(this.users.getTermsStatus());
-    if (status.accepted) return true;
+    if (status.accepted) return 'accepted';
     const modal = await this.modals.create({
       component: TermsConditionsPage,
       componentProps: { acceptanceMode: true },
-      backdropDismiss: false
+      backdropDismiss: false,
+      canDismiss: async (_data, role) => role === 'accepted' || role === 'declined'
     });
     await modal.present();
     const result = await modal.onDidDismiss<{ accepted: boolean }>();
-    if (result.data?.accepted) return true;
+    if (result.data?.accepted) return 'accepted';
     await this.users.logOut();
-    await this.router.navigateByUrl('/login');
-    return false;
+    return 'declined';
   }
 }
+
+export type TermsAccessDecision = 'accepted' | 'declined' | 'unavailable';

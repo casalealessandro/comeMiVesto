@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { AppService } from 'src/app/service/app-service';
+import { ApiRequestError, AppService } from 'src/app/service/app-service';
 import { FavoriteOutfit, outfit, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
 import { UserService } from 'src/app/service/user.service';
 import { MyProfilePage } from './my-profile.page';
@@ -10,6 +10,8 @@ describe('MyProfilePage data refresh', () => {
   let component: MyProfilePage;
   let userService: jasmine.SpyObj<UserService>;
   let appService: jasmine.SpyObj<AppService>;
+  let terms: any;
+  let alerts: any;
 
   const event = {
     stopPropagation: jasmine.createSpy('stopPropagation'),
@@ -30,6 +32,8 @@ describe('MyProfilePage data refresh', () => {
     userService.getUserWardrobes.and.returnValue(of([]));
     userService.loadFaveUserOutfits.and.returnValue(of([]));
 
+    terms = { allowAppAccess: jasmine.createSpy().and.resolveTo('accepted') };
+    alerts = { create: jasmine.createSpy().and.resolveTo({ present: jasmine.createSpy().and.resolveTo() }) };
     appService = jasmine.createSpyObj<AppService>('AppService', ['deleteOutfit', 'deleteWardrobe']);
     TestBed.configureTestingModule({});
     component = TestBed.runInInjectionContext(() => new MyProfilePage(
@@ -37,8 +41,10 @@ describe('MyProfilePage data refresh', () => {
       appService,
       {} as any,
       {} as any,
-      { create: jasmine.createSpy('create') } as any,
+      alerts,
       {} as any,
+      terms,
+      { navigateByUrl: jasmine.createSpy().and.resolveTo(true) } as any,
     ));
   });
 
@@ -87,5 +93,19 @@ describe('MyProfilePage data refresh', () => {
     const error = { status: 503, code: 'MODERATION_UNAVAILABLE' } as any;
     expect(component.getProfileErrorMessage(error)).toContain('temporaneamente disponibile');
     expect(component.getProfileErrorMessage(error, true)).toContain('temporaneamente disponibile');
+  });
+
+
+  it('opens Terms for stale Terms on displayName and photoURL updates', async () => {
+    const error = new ApiRequestError('Terms', 403, 'TERMS_ACCEPTANCE_REQUIRED');
+    await component.presentProfileError(error);
+    await component.presentProfileError(error, true);
+    expect(terms.allowAppAccess).toHaveBeenCalledTimes(2);
+    expect(alerts.create).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not open Terms for a generic forbidden profile response', async () => {
+    await component.presentProfileError(new ApiRequestError('Forbidden', 403));
+    expect(terms.allowAppAccess).not.toHaveBeenCalled();
   });
 });

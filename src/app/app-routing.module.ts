@@ -4,7 +4,7 @@ import { LayoutTabsPage } from './views/layout-tabs/layout-tabs.page';
 import { authGuard } from './auth.guard';
 import { IntroSliderComponent } from './components/intro-slider/intro-slider.component';
 
-const routes: Routes = [
+export const routes: Routes = [
   {
     path: 'tabs',
     component: LayoutTabsPage,
@@ -23,7 +23,6 @@ const routes: Routes = [
           import('./views/detail-outfit/detail-outfit.module').then(
             (m) => m.DetailOutfitPageModule
           ),
-        canActivate: [authGuard],
       },
       {
         path: 'add-outfit',
@@ -31,7 +30,6 @@ const routes: Routes = [
           import('./views/add-outfit/add-outfit.module').then(
             (m) => m.AddOutfitPageModule
           ),
-        canActivate: [authGuard],
       },
       {
         path: 'my-wardrobes',
@@ -39,7 +37,6 @@ const routes: Routes = [
           import('./views/my-wardrobes/my-wardrobes.module').then(
             (m) => m.MyWardrobesPageModule
           ),
-        canActivate: [authGuard],
       },
       {
         path: 'outfit-products',
@@ -54,7 +51,6 @@ const routes: Routes = [
           import('./views/my-profile/my-profile.module').then(
             (m) => m.MyProfilePageModule
           ),
-        canActivate: [authGuard],
       },
       {
         path: 'layout-tabs',
@@ -62,7 +58,6 @@ const routes: Routes = [
           import('./views/layout-tabs/layout-tabs.module').then(
             (m) => m.LayoutTabsPageModule
           ),
-        canActivate: [authGuard],
       },
       {
         path: 'filter-outfits',
@@ -70,7 +65,6 @@ const routes: Routes = [
           import('./views/filter-outfits/filter-outfits.module').then(
             (m) => m.FilterOutfitsPageModule
           ),
-        canActivate: [authGuard],
       },
       {
         path: '',
