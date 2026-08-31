@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, Input, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AlertController, IonContent, ModalController, NavController } from '@ionic/angular';
 import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom } from 'rxjs';
@@ -10,15 +10,19 @@ export type TermsPageMode = 'view' | 'registration' | 'authenticated';
   templateUrl: './terms-conditions.page.html',
   styleUrls: ['./terms-conditions.page.scss'],
 })
-export class TermsConditionsPage implements OnInit {
+export class TermsConditionsPage implements OnInit, OnDestroy {
   @Input() mode: TermsPageMode = 'view';
   @ViewChild(IonContent, { static: false }) content: IonContent | undefined;
   isScrollAtBottom: boolean = false; // Flag per tenere traccia se l'utente ha raggiunto il fondo della pagina
   modalController = inject(ModalController)
   Data:any
   accepting = false;
+  private scrollElement?: HTMLElement;
+  private readonly scrollHandler = (): void => {
+    this.zone.run(() => this.updateScrollState());
+  };
   get requiresAcceptance(): boolean { return this.mode !== 'view'; }
-  constructor(private navController: NavController, private users: UserService, private alerts: AlertController) { }
+  constructor(private navController: NavController, private users: UserService, private alerts: AlertController, private zone: NgZone) { }
 
   ngOnInit() {  
     const da =  new Date()
@@ -26,24 +30,37 @@ export class TermsConditionsPage implements OnInit {
   }
   
   async ionViewDidEnter(): Promise<void> {
-    if (this.requiresAcceptance) await this.updateScrollState();
-  }
-
-  async onScroll(event: CustomEvent<{ scrollTop: number }>): Promise<void> {
-    await this.updateScrollState(event.detail.scrollTop);
-  }
-
-  async updateScrollState(scrollTop?: number): Promise<void> {
+    this.detachScrollListener();
     if (!this.requiresAcceptance || !this.content) return;
     try {
-      const scrollElement = await this.content.getScrollElement();
-      const currentScrollTop = scrollTop ?? scrollElement.scrollTop;
-      const tolerance = 4;
-      this.isScrollAtBottom = scrollElement.scrollHeight <= scrollElement.clientHeight
-        || currentScrollTop + scrollElement.clientHeight >= scrollElement.scrollHeight - tolerance;
+      this.scrollElement = await this.content.getScrollElement();
+      this.scrollElement.addEventListener('scroll', this.scrollHandler, { passive: true });
+      this.updateScrollState();
     } catch {
+      this.detachScrollListener();
       this.isScrollAtBottom = false;
     }
+  }
+
+  ionViewWillLeave(): void {
+    this.detachScrollListener();
+  }
+
+  ngOnDestroy(): void {
+    this.detachScrollListener();
+  }
+
+  updateScrollState(): void {
+    if (!this.requiresAcceptance || !this.scrollElement) return;
+    const { scrollTop, scrollHeight, clientHeight } = this.scrollElement;
+    const tolerance = 4;
+    this.isScrollAtBottom = scrollHeight <= clientHeight
+      || scrollTop + clientHeight >= scrollHeight - tolerance;
+  }
+
+  private detachScrollListener(): void {
+    this.scrollElement?.removeEventListener('scroll', this.scrollHandler);
+    this.scrollElement = undefined;
   }
 
   async acceptAndContinue(): Promise<void> {
