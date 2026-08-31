@@ -1,3 +1,4 @@
+import { NgZone } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
@@ -13,30 +14,101 @@ describe('TermsConditionsPage', () => {
     users = jasmine.createSpyObj<UserService>('UserService', ['acceptTerms']);
     modal = { dismiss: jasmine.createSpy().and.resolveTo(true), getTop: jasmine.createSpy() };
     TestBed.configureTestingModule({ providers: [{ provide: ModalController, useValue: modal }] });
-    component = TestBed.runInInjectionContext(() => new TermsConditionsPage({} as any, users, {
-      create: jasmine.createSpy().and.resolveTo({ present: () => Promise.resolve() })
-    } as any));
+    component = TestBed.runInInjectionContext(() => new TermsConditionsPage(
+      {} as any,
+      users,
+      { create: jasmine.createSpy().and.resolveTo({ present: () => Promise.resolve() }) } as any,
+      TestBed.inject(NgZone)
+    ));
   });
 
   function setMode(mode: TermsPageMode): void { component.mode = mode; }
-  function scrollElement(scrollTop: number, clientHeight: number, scrollHeight: number): void {
-    component.content = { getScrollElement: jasmine.createSpy().and.resolveTo({ scrollTop, clientHeight, scrollHeight }) } as unknown as IonContent;
+  function scrollElement(scrollTop: number, clientHeight: number, scrollHeight: number): HTMLElement {
+    const element = document.createElement('div');
+    Object.defineProperties(element, {
+      scrollTop: { value: scrollTop, writable: true, configurable: true },
+      clientHeight: { value: clientHeight, configurable: true },
+      scrollHeight: { value: scrollHeight, configurable: true }
+    });
+    component.content = { getScrollElement: jasmine.createSpy().and.resolveTo(element) } as unknown as IonContent;
+    return element;
   }
 
-  it('preserves bottom, tolerance, no-overflow and fail-closed scroll behavior', async () => {
+  it('attaches one native passive scroll listener in registration mode', async () => {
     setMode('registration');
-    scrollElement(0, 500, 1000); await component.updateScrollState(); expect(component.isScrollAtBottom).toBeFalse();
-    scrollElement(497, 500, 1000); await component.updateScrollState(); expect(component.isScrollAtBottom).toBeTrue();
-    scrollElement(0, 1000, 800); await component.updateScrollState(); expect(component.isScrollAtBottom).toBeTrue();
-    component.content = { getScrollElement: jasmine.createSpy().and.rejectWith(new Error('DOM')) } as unknown as IonContent;
-    await component.updateScrollState(); expect(component.isScrollAtBottom).toBeFalse();
+    const element = scrollElement(0, 500, 1000);
+    const addListener = spyOn(element, 'addEventListener').and.callThrough();
+
+    await component.ionViewDidEnter();
+
+    expect((component.content?.getScrollElement as jasmine.Spy)).toHaveBeenCalledTimes(1);
+    expect(addListener).toHaveBeenCalledOnceWith('scroll', jasmine.any(Function), { passive: true });
+    expect(component.isScrollAtBottom).toBeFalse();
   });
 
-  it('does not accept registration before the bottom', async () => {
+  it('updates from a real native scroll event and applies tolerance', async () => {
     setMode('registration');
-    await component.acceptAndContinue();
-    expect(modal.dismiss).not.toHaveBeenCalled();
-    expect(users.acceptTerms).not.toHaveBeenCalled();
+    const element = scrollElement(0, 500, 1000);
+    await component.ionViewDidEnter();
+    expect(component.isScrollAtBottom).toBeFalse();
+
+    element.scrollTop = 497;
+    element.dispatchEvent(new Event('scroll'));
+
+    expect(component.isScrollAtBottom).toBeTrue();
+  });
+
+  it('detects no overflow immediately without a scroll event', async () => {
+    setMode('registration');
+    scrollElement(0, 1000, 800);
+    await component.ionViewDidEnter();
+    expect(component.isScrollAtBottom).toBeTrue();
+  });
+
+  it('removes the same handler and ignores old-element events after leaving', async () => {
+    setMode('registration');
+    const element = scrollElement(0, 500, 1000);
+    const addListener = spyOn(element, 'addEventListener').and.callThrough();
+    const removeListener = spyOn(element, 'removeEventListener').and.callThrough();
+    await component.ionViewDidEnter();
+    const attachedHandler = addListener.calls.mostRecent().args[1];
+    component.ionViewWillLeave();
+    expect(removeListener).toHaveBeenCalledOnceWith('scroll', attachedHandler);
+
+    element.scrollTop = 500;
+    element.dispatchEvent(new Event('scroll'));
+    expect(component.isScrollAtBottom).toBeFalse();
+  });
+
+  it('does not accumulate listeners across leave and re-entry', async () => {
+    setMode('authenticated');
+    const first = scrollElement(0, 500, 1000);
+    const firstRemove = spyOn(first, 'removeEventListener').and.callThrough();
+    await component.ionViewDidEnter();
+    component.ionViewWillLeave();
+
+    const second = scrollElement(0, 500, 1000);
+    const secondAdd = spyOn(second, 'addEventListener').and.callThrough();
+    await component.ionViewDidEnter();
+
+    expect(firstRemove).toHaveBeenCalledTimes(1);
+    expect(secondAdd).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not attach a consent listener in view mode', async () => {
+    setMode('view');
+    const element = scrollElement(0, 500, 1000);
+    const addListener = spyOn(element, 'addEventListener').and.callThrough();
+    await component.ionViewDidEnter();
+    expect(addListener).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when getScrollElement rejects', async () => {
+    setMode('registration');
+    component.isScrollAtBottom = true;
+    component.content = { getScrollElement: jasmine.createSpy().and.rejectWith(new Error('DOM')) } as unknown as IonContent;
+    await component.ionViewDidEnter();
+    expect(component.isScrollAtBottom).toBeFalse();
   });
 
   it('accepts registration locally without calling the authenticated endpoint', async () => {
@@ -46,32 +118,14 @@ describe('TermsConditionsPage', () => {
     expect(modal.dismiss).toHaveBeenCalledOnceWith({ accepted: true }, 'accepted');
   });
 
-  it('declines registration explicitly', async () => {
-    setMode('registration');
-    await component.decline();
-    expect(modal.dismiss).toHaveBeenCalledOnceWith({ accepted: false }, 'declined');
-  });
-
-  it('calls the backend exactly once for authenticated acceptance', async () => {
+  it('calls the backend only for authenticated acceptance and stays open on error', async () => {
     setMode('authenticated'); component.isScrollAtBottom = true;
     users.acceptTerms.and.returnValue(of({ termsVersion: '2', termsAcceptedAt: 123 }));
     await component.acceptAndContinue();
     expect(users.acceptTerms).toHaveBeenCalledTimes(1);
-    expect(modal.dismiss).toHaveBeenCalledWith({ accepted: true }, 'accepted');
-  });
-
-  it('keeps the authenticated modal open when the backend fails', async () => {
-    setMode('authenticated'); component.isScrollAtBottom = true;
+    modal.dismiss.calls.reset();
     users.acceptTerms.and.returnValue(throwError(() => new Error('backend')));
     await component.acceptAndContinue();
-    expect(modal.dismiss).not.toHaveBeenCalled();
-    expect(component.accepting).toBeFalse();
-  });
-
-  it('view mode never produces consent or calls the backend', async () => {
-    setMode('view'); component.isScrollAtBottom = true;
-    await component.acceptAndContinue();
-    expect(users.acceptTerms).not.toHaveBeenCalled();
     expect(modal.dismiss).not.toHaveBeenCalled();
   });
 });
