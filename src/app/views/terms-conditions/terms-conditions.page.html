@@ -2,14 +2,14 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button *ngIf="!acceptanceMode" (click)="handleBackButton()" size="small"><ion-icon slot="icon-only"
+        <ion-button *ngIf="mode === 'view'" (click)="handleBackButton()" size="small"><ion-icon slot="icon-only"
             name="chevron-back-outline"></ion-icon></ion-button>
       </ion-buttons>
       <ion-title>Termini di Servizio </ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <ion-content class="terms-content" [scrollEvents]="acceptanceMode" (ionScroll)="onScroll($event)">
+  <ion-content class="terms-content" [scrollEvents]="requiresAcceptance" (ionScroll)="onScroll($event)">
     <ion-card>
       <ion-card-header>
         <ion-card-subtitle>Ultimo aggiornamento: {{Data}}</ion-card-subtitle>
@@ -88,9 +88,9 @@
       </ion-card-content>
     </ion-card>
   </ion-content>
-  <ion-footer *ngIf="acceptanceMode">
+  <ion-footer *ngIf="requiresAcceptance">
     <ion-toolbar>
-      <ion-buttons slot="start"><ion-button color="medium" (click)="decline()">Esci</ion-button></ion-buttons>
+      <ion-buttons slot="start"><ion-button color="medium" (click)="decline()">{{ mode === 'registration' ? 'Non accetto' : 'Esci' }}</ion-button></ion-buttons>
       <ion-buttons slot="end"><ion-button [disabled]="!isScrollAtBottom || accepting" (click)="acceptAndContinue()">Accetta e continua</ion-button></ion-buttons>
     </ion-toolbar>
   </ion-footer>

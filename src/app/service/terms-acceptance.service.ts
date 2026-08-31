@@ -32,7 +32,7 @@ export class TermsAcceptanceService {
     if (status.accepted) return 'accepted';
     const modal = await this.modals.create({
       component: TermsConditionsPage,
-      componentProps: { acceptanceMode: true },
+      componentProps: { mode: 'authenticated' },
       backdropDismiss: false,
       canDismiss: async (_data, role) => role === 'accepted' || role === 'declined'
     });

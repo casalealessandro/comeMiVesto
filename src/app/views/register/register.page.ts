@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router } from '@angular/router';
 import { AlertController, ModalController, NavController } from '@ionic/angular';
@@ -7,6 +7,7 @@ import { TermsConditionsPage } from '../terms-conditions/terms-conditions.page';
 import { ApiRequestError } from 'src/app/service/app-service';
 import { UserService } from 'src/app/service/user.service';
 import { finalize } from 'rxjs';
+import { DynamicFormComponent } from 'src/app/components/dynamic-form/dynamic-form.component';
 
 @Component({
   selector: 'app-register',
@@ -15,6 +16,7 @@ import { finalize } from 'rxjs';
 })
 
 export class RegisterPage {
+  @ViewChild(DynamicFormComponent) registrationForm?: DynamicFormComponent;
 
   email: string = '';
   password: string = '';
@@ -91,26 +93,39 @@ export class RegisterPage {
   }
 
   async functionalCheckBox(evt:any){
-    if (typeof evt?.checked === 'boolean') {
-      if (this.isTermsCheckboxEvent(evt)) this.termsAccepted = evt.checked;
+    if (!this.isTermsCheckboxEvent(evt)) return;
+    const fieldName = evt.fieldName ?? evt.field?.name;
+    if (evt.checked === false) {
+      this.setTermsConsent(fieldName, false);
       return;
     }
-
-    const modal = await  this.modalController.create({
-      component: TermsConditionsPage,   
-    })
-
-    await modal.present();
-
-    const { data } = await modal.onDidDismiss();
+    this.setTermsConsent(fieldName, false);
+    await this.openRegistrationTerms(fieldName);
   }
 
   isTermsCheckboxEvent(evt: any): boolean {
     const field = evt?.field;
     const options = field?.checkBoxOptions;
-    if (typeof evt?.checked !== 'boolean' || field?.type !== 'checkBox' || !options?.haveLink) return false;
+    if (field?.type !== 'checkBox' || !options?.haveLink) return false;
     const normalizedLink = `/${String(options.hrefLink ?? '').split(/[?#]/, 1)[0].replace(/^\/+|\/+$/g, '')}`;
     return normalizedLink === '/terms-conditions';
+  }
+
+  async openRegistrationTerms(fieldName: string): Promise<void> {
+    const modal = await this.modalController.create({
+      component: TermsConditionsPage,
+      componentProps: { mode: 'registration' },
+      backdropDismiss: false,
+      canDismiss: async (_data, role) => role === 'accepted' || role === 'declined'
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss<{ accepted: boolean }>();
+    this.setTermsConsent(fieldName, data?.accepted === true);
+  }
+
+  private setTermsConsent(fieldName: string, accepted: boolean): void {
+    this.termsAccepted = accepted;
+    this.registrationForm?.setFieldValue(fieldName, accepted);
   }
 
   private async showAlert(header: string, message: string): Promise<void> {

@@ -85,7 +85,7 @@ export class DynamicFormComponent implements OnInit {
     const validators = [];
   
     if (field.required) {
-      validators.push(Validators.required);
+      validators.push(field.type === 'checkBox' ? Validators.requiredTrue : Validators.required);
     }
     if (typeof field.minlength !== 'undefined') {
       validators.push(Validators.minLength(field.minlength));
@@ -132,6 +132,12 @@ export class DynamicFormComponent implements OnInit {
   onCheckBoxChange(field: DynamicFormField, checked: boolean) {
     this.onValueChange(field.name, checked);
     this.functionalCheckBoxEvent.emit({ fieldName: field.name, checked, field });
+  }
+  setFieldValue(fieldName: string, value: unknown): void {
+    const control = this.form.get(fieldName);
+    if (!control) return;
+    control.setValue(value);
+    this.formValues[fieldName] = value;
   }
   onValueChangeFile(fieldName: string, value: any) {
    
