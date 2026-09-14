@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 
 @Component({
+  standalone: false,
   selector: 'app-modal-list',
   templateUrl: './modal-list.component.html',
   styleUrls: ['./modal-list.component.scss'],

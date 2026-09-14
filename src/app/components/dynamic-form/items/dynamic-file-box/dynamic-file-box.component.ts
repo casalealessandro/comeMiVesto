@@ -13,6 +13,7 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Directory } from '@capacitor/filesystem';
 
 @Component({
+  standalone: false,
   selector: 'app-dynamic-file-box',
   templateUrl: './dynamic-file-box.component.html',
   styleUrls: ['./dynamic-file-box.component.scss'],

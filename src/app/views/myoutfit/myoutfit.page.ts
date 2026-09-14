@@ -18,6 +18,7 @@ import { SocialSharing } from 'src/app/service/social-sharing.service';
 import { CategoryService } from 'src/app/service/category.service';
 
 @Component({
+  standalone: false,
   selector: 'app-myoutfit',
   templateUrl: './myoutfit.page.html',
   styleUrls: ['./myoutfit.page.scss'],

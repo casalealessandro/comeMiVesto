@@ -13,6 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs/operators';
 
 @Component({
+  standalone: false,
   selector: 'app-prodotti-online',
   templateUrl: './prodotti-online.page.html',
   styleUrls: ['./prodotti-online.page.scss'],

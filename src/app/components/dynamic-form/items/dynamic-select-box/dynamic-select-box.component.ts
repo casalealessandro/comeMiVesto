@@ -7,6 +7,7 @@ import { DynamicFormField } from 'src/app/service/interface/dynamic-form-field';
 
 
 @Component({
+  standalone: false,
   selector: 'app-dynamic-select-box',
   templateUrl: './dynamic-select-box.component.html',
   styleUrls: ['./dynamic-select-box.component.scss'],

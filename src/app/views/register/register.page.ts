@@ -9,6 +9,7 @@ import { finalize } from 'rxjs';
 import { DynamicFormComponent } from 'src/app/components/dynamic-form/dynamic-form.component';
 
 @Component({
+  standalone: false,
   selector: 'app-register',
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss','../login/login.page.scss'],
