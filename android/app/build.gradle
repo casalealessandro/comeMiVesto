@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+
 def releaseSigningEnvironment = [
     storeFile: System.getenv('ANDROID_KEYSTORE_PATH'),
     storePassword: System.getenv('ANDROID_KEYSTORE_PASSWORD'),
@@ -16,20 +17,23 @@ if (configuredReleaseSigningValues && configuredReleaseSigningValues.size() != r
 def hasReleaseSigning = configuredReleaseSigningValues.size() == releaseSigningEnvironment.size()
 def ciVersionCode = System.getenv('ANDROID_VERSION_CODE')
 def ciVersionName = System.getenv('ANDROID_VERSION_NAME')
+
 android {
-    namespace "com.acasale.comemivesto"
-    compileSdk rootProject.ext.compileSdkVersion
+    namespace = "com.acasale.comemivesto"
+    compileSdk = rootProject.ext.compileSdkVersion
+
     defaultConfig {
-        applicationId "com.acasale.comemivesto"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode (ciVersionCode ? ciVersionCode.toInteger() : 13)
-        versionName (ciVersionName ?: "1.0.7")
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        applicationId = "com.acasale.comemivesto"
+        minSdk = rootProject.ext.minSdkVersion
+        targetSdk = rootProject.ext.targetSdkVersion
+        versionCode = ciVersionCode ? ciVersionCode.toInteger() : 13
+        versionName = ciVersionName ?: "1.0.7"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
         aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
-            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+            // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+            // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
 
@@ -49,14 +53,14 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             if (hasReleaseSigning) {
-              signingConfig signingConfigs.release
+                signingConfig signingConfigs.release
             }
         }
     }
 }
 
 repositories {
-    flatDir{
+    flatDir {
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
     }
 }
