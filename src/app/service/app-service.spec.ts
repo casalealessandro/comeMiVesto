@@ -1,8 +1,8 @@
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { environment } from 'src/environments/environment';
 import { ApiRequestError, AppService } from './app-service';
+import { FirebaseService } from './firebase.service';
 
 describe('AppService REST contracts', () => {
   let service: AppService;
@@ -11,7 +11,7 @@ describe('AppService REST contracts', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [{ provide: AngularFireStorage, useValue: {} }],
+      providers: [{ provide: FirebaseService, useValue: { storage: {} } }],
     });
     service = TestBed.inject(AppService);
     http = TestBed.inject(HttpTestingController);

@@ -2,11 +2,12 @@ import { Injectable, signal } from '@angular/core';
 import { DynamicFormField } from './interface/dynamic-form-field';
 import { lastValueFrom, Observable, throwError } from 'rxjs';
 import { catchError, map, retry, tap } from 'rxjs/operators';
-import { AngularFireStorage } from '@angular/fire/compat/storage';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { BlockedUser, OutfitPreferencePayload, UserProfile } from './interface/user-interface';
 import { EditableOutfit, OutfitFilterPayload, ReportPayload, WardrobePayload, outfit, wardrobesItem } from './interface/outfit-all-interface';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
+import { FirebaseService } from './firebase.service';
 export interface ApiResponse<T> {
   message: string;
   data: T;
@@ -37,7 +38,7 @@ export class AppService {
   selectedProduct = signal<string | null>(null);
   
 
-  constructor(private storage: AngularFireStorage, private http:HttpClient) { }
+  constructor(private firebase: FirebaseService, private http:HttpClient) { }
 
   private normalizeQueryString(queryString: string = ''): string {
     if (!queryString) {
@@ -237,18 +238,14 @@ export class AppService {
   // Caricamento dell'immagine in Firebase Storage
 
   async uploadImage(filePath: Blob, fileName: string, contentType: string): Promise<string> {
-    const fileRef = this.storage.ref(fileName);
-    let metaData = {
+    const fileRef = ref(this.firebase.storage, fileName);
+    const metaData = {
       contentType: contentType
     }
 
-    const task = this.storage.upload(fileName, filePath, metaData);
-
     try {
-      await task;  // Assicurati che l'upload sia completato prima di ottenere l'URL
-      let downloadURL = await lastValueFrom(fileRef.getDownloadURL())
-
-      return downloadURL;
+      await uploadBytes(fileRef, filePath, metaData);
+      return await getDownloadURL(fileRef);
     } catch (error) {
       throw new Error('Errore durante il caricamento dell\'immagine: ' + error);
     }

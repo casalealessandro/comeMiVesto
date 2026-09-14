@@ -5,13 +5,13 @@ import {
   HttpInterceptor,
   HttpRequest,
 } from '@angular/common/http';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { from, Observable, switchMap } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { FirebaseService } from '../service/firebase.service';
 
 @Injectable()
 export class FirebaseAuthInterceptor implements HttpInterceptor {
-  constructor(private angularFireAuth: AngularFireAuth) {}
+  constructor(private firebase: FirebaseService) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const isBackendRequest =
@@ -22,7 +22,7 @@ export class FirebaseAuthInterceptor implements HttpInterceptor {
       return next.handle(request);
     }
 
-    return from(this.angularFireAuth.currentUser).pipe(
+    return from(this.firebase.waitForAuthState()).pipe(
       switchMap((user) => {
         if (!user) {
           return next.handle(request);

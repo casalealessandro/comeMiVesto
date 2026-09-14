@@ -1,5 +1,4 @@
 import { Component, inject, ViewChild } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router } from '@angular/router';
 import { AlertController, ModalController, NavController } from '@ionic/angular';
 import { RegisterPayload } from 'src/app/service/interface/user-interface';
@@ -27,7 +26,6 @@ export class RegisterPage {
   submitting: boolean = false;
   termsAccepted = false;
   constructor(
-    private afAuth: AngularFireAuth,
     private userService: UserService,
     private navController: NavController,
     private alert:AlertController) {}

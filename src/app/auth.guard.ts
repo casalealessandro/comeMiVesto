@@ -1,12 +1,12 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { UserService } from './service/user.service';
 import { firstValueFrom } from 'rxjs';
 import { TermsAcceptanceService } from './service/terms-acceptance.service';
+import { FirebaseService } from './service/firebase.service';
 
 export const authGuard: CanActivateFn = async (route, state) => {
-  const angularFireAuth = inject(AngularFireAuth);
+  const firebase = inject(FirebaseService);
   const userService = inject(UserService);
   const router = inject(Router);
   const termsAcceptance = inject(TermsAcceptanceService);
@@ -14,7 +14,7 @@ export const authGuard: CanActivateFn = async (route, state) => {
 
   try {
     // Otteniamo l'utente autenticato
-    const user = await firstValueFrom(angularFireAuth.authState);
+    const user = await firebase.waitForAuthState();
 
     if (!user) {
       console.warn('Utente non autenticato, reindirizzamento alla login.');

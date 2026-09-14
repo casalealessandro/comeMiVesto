@@ -1,11 +1,10 @@
-import { Component, inject } from '@angular/core';
-import { FirebaseApp } from '@angular/fire/compat';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
-import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import { browserLocalPersistence, browserSessionPersistence, sendPasswordResetEmail, setPersistence, signInWithEmailAndPassword } from 'firebase/auth';
 import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom } from 'rxjs';
+import { FirebaseService } from 'src/app/service/firebase.service';
 
 export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
   if (!returnUrl || !returnUrl.startsWith('/tabs') || returnUrl.startsWith('//') || returnUrl.includes('://') || returnUrl.split(/[?#]/, 1)[0].split('/').includes('..')) return '/tabs/myoutfit';
@@ -26,15 +25,13 @@ export class LoginPage {
   showLogin:boolean=true;
   stayConnected:boolean=true;
   emailRecup:string=''
-  auth = getAuth(inject(FirebaseApp));
-
   recupPasswordError:string = 'Inserisci un email valida'
-  constructor(private afAuth: AngularFireAuth,private userService: UserService, private alert:AlertController,private router :Router, private route: ActivatedRoute) {}
+  constructor(private firebase: FirebaseService,private userService: UserService, private alert:AlertController,private router :Router, private route: ActivatedRoute) {}
 
   async login() {
 
-    const persistence = this.stayConnected  ? 'local' : 'session'
-    await this.afAuth.setPersistence(persistence);
+    const persistence = this.stayConnected ? browserLocalPersistence : browserSessionPersistence;
+    await setPersistence(this.firebase.auth, persistence);
 
     const userLoginData  = {
       email: this.email,
@@ -44,7 +41,7 @@ export class LoginPage {
 
     //this.userService.loginUser('/user/login',userLoginData)
     try {
-      const userCredential: any = await this.afAuth.signInWithEmailAndPassword(this.email, this.password);
+      const userCredential = await signInWithEmailAndPassword(this.firebase.auth, this.email, this.password);
         if (!userCredential || !userCredential.user) {
           alert('Qualcosa è andato storto');
           return;
@@ -91,7 +88,7 @@ export class LoginPage {
   async recuperaPassword(evtForm:any) {
     const email = evtForm.formData.emailRecup
     try {
-      await sendPasswordResetEmail(this.auth,email);
+      await sendPasswordResetEmail(this.firebase.auth,email);
       this.showLogin = !this.showLogin;
     } catch (error) {
       this.alert.create(

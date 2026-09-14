@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
@@ -7,6 +6,7 @@ import { routes } from './app-routing.module';
 import { authGuard } from './auth.guard';
 import { TermsAcceptanceService } from './service/terms-acceptance.service';
 import { UserService } from './service/user.service';
+import { FirebaseService } from './service/firebase.service';
 
 describe('protected routing', () => {
   let auth: any;
@@ -15,11 +15,11 @@ describe('protected routing', () => {
   let router: Router;
 
   beforeEach(() => {
-    auth = { authState: of(null) };
+    auth = { waitForAuthState: jasmine.createSpy().and.resolveTo(null) };
     users = { getUserProfile: jasmine.createSpy().and.returnValue(of({ uid: 'user' })), setUserInfo: jasmine.createSpy() };
     terms = { allowAppAccess: jasmine.createSpy().and.resolveTo('accepted') };
     TestBed.configureTestingModule({ imports: [RouterTestingModule], providers: [
-      { provide: AngularFireAuth, useValue: auth }, { provide: UserService, useValue: users },
+      { provide: FirebaseService, useValue: auth }, { provide: UserService, useValue: users },
       { provide: TermsAcceptanceService, useValue: terms }
     ] });
     router = TestBed.inject(Router);
@@ -34,21 +34,33 @@ describe('protected routing', () => {
     expect(router.serializeUrl(result)).toBe('/login?returnUrl=%2Ftabs%2Fdetail-outfit%2Fabc');
   });
 
+  it('waits for persisted auth state before deciding the route', async () => {
+    let restoreSession!: (user: any) => void;
+    auth.waitForAuthState.and.returnValue(new Promise(resolve => restoreSession = resolve));
+
+    const decision = run('/tabs/myoutfit');
+    expect(users.getUserProfile).not.toHaveBeenCalled();
+    restoreSession({ uid: 'user', getIdToken: () => Promise.resolve('token') });
+
+    expect(await decision).toBeTrue();
+    expect(users.getUserProfile).toHaveBeenCalledWith('user');
+  });
+
   it('allows the original protected route when signed in with current Terms', async () => {
-    auth.authState = of({ uid: 'user', getIdToken: () => Promise.resolve('token') });
+    auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
     expect(await run('/tabs/detail-outfit/abc')).toBeTrue();
     expect(terms.allowAppAccess).toHaveBeenCalledTimes(1);
   });
 
   it('continues the original navigation after Terms acceptance without a home redirect', async () => {
-    auth.authState = of({ uid: 'user', getIdToken: () => Promise.resolve('token') });
+    auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
     spyOn(router, 'navigateByUrl');
     expect(await run('/tabs/detail-outfit/abc')).toBeTrue();
     expect(router.navigateByUrl).not.toHaveBeenCalled();
   });
 
   it('redirects a decline after one service-owned logout and fails closed when unavailable', async () => {
-    auth.authState = of({ uid: 'user', getIdToken: () => Promise.resolve('token') });
+    auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
     terms.allowAppAccess.and.resolveTo('declined');
     expect(router.serializeUrl(await run('/tabs/myoutfit') as UrlTree)).toContain('/login?returnUrl=');
     terms.allowAppAccess.and.resolveTo('unavailable');
