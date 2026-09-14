@@ -13,7 +13,7 @@ export class DeepLinkService {
       return false;
     }
 
-    void this.router.navigate(['/detail-outfit', outfitId]);
+    void this.router.navigate(['/tabs/detail-outfit', outfitId]);
     return true;
   }
 
