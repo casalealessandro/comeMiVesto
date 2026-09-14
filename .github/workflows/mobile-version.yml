@@ -1,0 +1,80 @@
+name: Come Mi Vesto Mobile Version
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: write
+
+concurrency:
+  group: comemivesto-mobile-version
+  cancel-in-progress: false
+
+jobs:
+  release-version:
+    name: Create mobile release version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate commercial version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE_VERSION="$(tr -d '[:space:]' < VERSION)"
+          if [[ ! "$BASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "VERSION must contain a semantic version in X.Y.Z format" >&2
+            exit 1
+          fi
+
+          LATEST_VERSION="$(
+            git tag --list 'release-v*' |
+              sed -nE 's/^release-v([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' |
+              sort -V |
+              tail -n 1
+          )"
+
+          if [ -z "$LATEST_VERSION" ]; then
+            NEXT_VERSION="$BASE_VERSION"
+          elif [ "$(printf '%s\n%s\n' "$BASE_VERSION" "$LATEST_VERSION" | sort -V | tail -n 1)" = "$BASE_VERSION" ] && [ "$BASE_VERSION" != "$LATEST_VERSION" ]; then
+            NEXT_VERSION="$BASE_VERSION"
+          else
+            IFS='.' read -r BASE_MAJOR BASE_MINOR BASE_PATCH <<< "$BASE_VERSION"
+            IFS='.' read -r LATEST_MAJOR LATEST_MINOR LATEST_PATCH <<< "$LATEST_VERSION"
+
+            if [ "$BASE_MAJOR" != "$LATEST_MAJOR" ] || [ "$BASE_MINOR" != "$LATEST_MINOR" ]; then
+              echo "Latest release $LATEST_VERSION is newer than baseline series $BASE_VERSION" >&2
+              exit 1
+            fi
+
+            NEXT_VERSION="${LATEST_MAJOR}.${LATEST_MINOR}.$((LATEST_PATCH + 1))"
+          fi
+
+          RELEASE_TAG="release-v${NEXT_VERSION}"
+          if git rev-parse --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            echo "Release tag $RELEASE_TAG already exists" >&2
+            exit 1
+          fi
+
+          echo "next_version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "Next commercial version: $NEXT_VERSION"
+
+      - name: Create commercial release tag
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.release_tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "$RELEASE_TAG" "$GITHUB_SHA"
+          git push origin "$RELEASE_TAG"
+          echo "Created commercial release tag: $RELEASE_TAG"
