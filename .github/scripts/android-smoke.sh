@@ -5,12 +5,16 @@ APK="android/app/build/outputs/apk/release/app-release.apk"
 PACKAGE="com.acasale.comemivesto"
 CUSTOM_LINK="comemivesto://outfit/1"
 APP_LINK="https://comemivesto.app/detail-outfit/1"
+SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+APKSIGNER="$(find "$SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
 
 test -f "$APK"
+test -n "$APKSIGNER"
+test -x "$APKSIGNER"
 
 # Keep the signing certificate visible in CI. App Links verification depends on
 # this certificate matching one of the fingerprints published in assetlinks.json.
-apksigner verify --print-certs "$APK" | tee /tmp/apk-certs.txt
+"$APKSIGNER" verify --print-certs "$APK" | tee /tmp/apk-certs.txt
 
 adb install -r "$APK"
 adb logcat -c
