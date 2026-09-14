@@ -43,7 +43,7 @@
     "@capacitor/splash-screen": "^8.0.0",
     "@capacitor/status-bar": "^8.0.0",
     "@flaticon/flaticon-uicons": "^3.3.1",
-    "@ionic/angular": "^8.2.7",
+    "@ionic/angular": "^8.8.16",
     "@ionic/pwa-elements": "^3.3.0",
     "cordova-plugin-ionic-webview": "^5.0.1",
     "firebase": "^10.13.1",
