@@ -258,42 +258,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          script: |
-            set -eu
-            APK="android/app/build/outputs/apk/release/app-release.apk"
-            test -f "$APK"
-            adb install -r "$APK"
-
-            adb logcat -c
-            adb shell monkey -p com.acasale.comemivesto -c android.intent.category.LAUNCHER 1
-            sleep 8
-
-            PID="$(adb shell pidof com.acasale.comemivesto | tr -d '\r')"
-            test -n "$PID"
-            echo "ComeMiVesto running with PID $PID"
-
-            if adb logcat -d | grep -E "FATAL EXCEPTION|Process: com\.acasale\.comemivesto.*AndroidRuntime"; then
-              echo "Android crash detected"
-              exit 1
-            fi
-
-            adb shell pm verify-app-links --re-verify com.acasale.comemivesto || true
-            sleep 12
-            adb shell pm get-app-links com.acasale.comemivesto | tee /tmp/app-links.txt
-
-            adb shell am start -W \
-              -a android.intent.action.VIEW \
-              -c android.intent.category.BROWSABLE \
-              -d "https://comemivesto.app/detail-outfit/1"
-            sleep 3
-
-            adb shell dumpsys activity activities | grep -m1 "mResumedActivity\|topResumedActivity" | tee /tmp/resumed.txt
-            grep -q "com.acasale.comemivesto" /tmp/resumed.txt
-
-            if adb logcat -d | grep -E "FATAL EXCEPTION|Process: com\.acasale\.comemivesto.*AndroidRuntime"; then
-              echo "Android crash detected after App Link"
-              exit 1
-            fi
+          script: bash .github/scripts/android-smoke.sh
 
       - name: Remove temporary keystore
         if: always()
@@ -469,7 +434,7 @@ jobs:
           RELEASE_TAG: ${{ needs.android-build.outputs.release_tag }}
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+casalealessandro@users.noreply.github.com"
 
           git tag "$RELEASE_TAG" "$GITHUB_SHA"
           git push origin "$RELEASE_TAG"
