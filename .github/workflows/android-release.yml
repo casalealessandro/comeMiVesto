@@ -1,6 +1,9 @@
 name: Come Mi Vesto Android Pipeline
 
 on:
+  pull_request:
+    branches:
+      - develop
   workflow_run:
     workflows:
       - Come Mi Vesto Mobile Version
@@ -14,12 +17,17 @@ on:
         description: Neutral release tag to build
         required: true
         type: string
+      publish:
+        description: Publish the build to Google Play
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
 
 concurrency:
-  group: comemivesto-android-${{ github.event.workflow_run.head_sha || inputs.release_tag }}
+  group: comemivesto-android-${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha || inputs.release_tag }}
   cancel-in-progress: false
 
 jobs:
@@ -30,7 +38,7 @@ jobs:
   # ============================================================
   build:
     name: Build
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -38,7 +46,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_tag || github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.pull_request.head.sha || inputs.release_tag || github.event.workflow_run.head_sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -66,6 +74,7 @@ jobs:
   android-build:
     name: Android Build
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
@@ -230,6 +239,7 @@ jobs:
       - android-build
     permissions:
       contents: write
+    if: github.event_name == 'workflow_run' || inputs.publish == true
     runs-on: ubuntu-latest
     timeout-minutes: 15
 

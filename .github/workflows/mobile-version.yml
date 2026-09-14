@@ -1,9 +1,7 @@
 name: Come Mi Vesto Mobile Version
 
 on:
-  push:
-    branches:
-      - develop
+  workflow_dispatch:
 
 permissions:
   contents: write
