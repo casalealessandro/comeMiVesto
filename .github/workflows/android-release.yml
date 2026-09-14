@@ -266,7 +266,7 @@ jobs:
 
   # ============================================================
   # SMOKE IOS
-  # Avvia l'app su simulatore e prova URL scheme / universal link
+  # Avvia l'app su simulatore e prova lo URL scheme applicativo
   # ============================================================
   ios-smoke:
     name: iOS Smoke
@@ -309,33 +309,22 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Run iOS simulator smoke
+      - name: Prepare iOS simulator
+        id: simulator
         shell: bash
         run: |
           set -euo pipefail
           DEVICE="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/{print $2; exit}')"
           test -n "$DEVICE"
           echo "Using simulator $DEVICE"
-
+          echo "udid=$DEVICE" >> "$GITHUB_OUTPUT"
           xcrun simctl boot "$DEVICE" || true
           xcrun simctl bootstatus "$DEVICE" -b
 
-          APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Debug-iphonesimulator/App.app"
-          test -d "$APP_PATH"
-          xcrun simctl install "$DEVICE" "$APP_PATH"
-
-          xcrun simctl launch "$DEVICE" com.acasale.comemivesto
-          sleep 8
-          xcrun simctl openurl "$DEVICE" "comemivesto://outfit/1"
-          sleep 3
-          xcrun simctl openurl "$DEVICE" "https://comemivesto.app/detail-outfit/1"
-          sleep 3
-          xcrun simctl launch "$DEVICE" com.acasale.comemivesto
-
-          if find "$HOME/Library/Logs/DiagnosticReports" -type f -name 'App*.crash' -mmin -5 2>/dev/null | grep -q .; then
-            echo "iOS crash report detected"
-            exit 1
-          fi
+      - name: Run iOS simulator smoke
+        env:
+          DEVICE_ID: ${{ steps.simulator.outputs.udid }}
+        run: bash .github/scripts/ios-smoke.sh "$DEVICE_ID" "$RUNNER_TEMP/DerivedData"
 
       - name: Validate public association files
         shell: bash
@@ -362,6 +351,15 @@ jobs:
               for item in details
           ), 'Apple association file does not contain ComeMiVesto appID'
           PY
+
+      - name: Shutdown iOS simulator
+        if: always()
+        env:
+          DEVICE_ID: ${{ steps.simulator.outputs.udid }}
+        run: |
+          if [ -n "$DEVICE_ID" ]; then
+            xcrun simctl shutdown "$DEVICE_ID" || true
+          fi
 
   # ============================================================
   # RELEASE
