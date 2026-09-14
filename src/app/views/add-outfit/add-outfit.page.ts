@@ -1,6 +1,6 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { FirebaseService } from 'src/app/service/firebase.service';
 
 import { ApiRequestError, AppService } from 'src/app/service/app-service';
 import { EditableOutfit, Gender, outfit, OutfitSeason, OutfitStyle, Tag } from 'src/app/service/interface/outfit-all-interface';
@@ -45,7 +45,7 @@ export class AddOutfitPage implements OnInit {
 
     private appService: AppService,
     private router: Router,
-    private afAuth: AngularFireAuth,
+    private firebase: FirebaseService,
     private loading: LoadingController,
     private modalController: ModalController,
     private alert: AlertController,
@@ -180,7 +180,7 @@ export class AddOutfitPage implements OnInit {
         color: this.color
       };
       let outfitSaveed =  await this.editOutfit(partialOutfit);
-      const user = await this.afAuth.currentUser;
+      const user = await this.firebase.auth.currentUser;
       const uid = !user?.uid ? '' : user?.uid
       if(outfitSaveed){
         
@@ -223,7 +223,7 @@ export class AddOutfitPage implements OnInit {
 
     }
 
-    const user = await this.afAuth.currentUser;
+    const user = await this.firebase.auth.currentUser;
     if (user) {
       this.outfit = {
         id: '',

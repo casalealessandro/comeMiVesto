@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { FirebaseService } from 'src/app/service/firebase.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
 import { IonModal, ModalController, NavController } from '@ionic/angular';
@@ -27,7 +27,7 @@ export class DetailOutfitPage implements OnInit {
     private router:Router, 
     private route: ActivatedRoute, 
     private appService: AppService, 
-    private navController: NavController,private afAuth: AngularFireAuth,
+    private navController: NavController,private firebase: FirebaseService,
     private sharedData:SharedDataService
   ) { }
 
@@ -61,7 +61,7 @@ export class DetailOutfitPage implements OnInit {
       }
     });
 
-    this.afAuth.authState.subscribe(async user => {
+    this.firebase.authState.subscribe(async user => {
       if (user) {
         this.userID = user.uid;
       }

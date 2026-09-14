@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { FirebaseService } from 'src/app/service/firebase.service';
 import { ModalController } from '@ionic/angular';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { AppService } from 'src/app/service/app-service';
@@ -32,12 +32,12 @@ export class MyWardrobesPage implements OnInit {
   subCategoryCloth: outfitCategories[] = [];
   openModal: any = null
   
-  constructor(private appService: AppService, private afAuth: AngularFireAuth, private modalController: ModalController, private userProfileService: UserService, private router: Router) { }
+  constructor(private appService: AppService, private firebase: FirebaseService, private modalController: ModalController, private userProfileService: UserService, private router: Router) { }
 
   ngOnInit() {
 
 
-    this.afAuth.authState.subscribe(async user => {
+    this.firebase.authState.subscribe(async user => {
       if (user) {
         console.log('user', user)
         this.userID = user.uid;

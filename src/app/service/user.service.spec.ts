@@ -1,13 +1,12 @@
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ApiRequestError, AppService } from './app-service';
 import { outfit } from './interface/outfit-all-interface';
 import { UserPreference } from './interface/user-interface';
 import { UserService } from './user.service';
+import { FirebaseService } from './firebase.service';
 
 describe('UserService REST contracts', () => {
   let service: UserService;
@@ -19,8 +18,11 @@ describe('UserService REST contracts', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [
-        { provide: AngularFireAuth, useValue: { currentUser: { uid: 'user-id' } } },
-        { provide: AngularFireStorage, useValue: {} },
+        { provide: FirebaseService, useValue: {
+          auth: { currentUser: { uid: 'user-id' } },
+          storage: {},
+          waitForAuthState: () => Promise.resolve({ uid: 'user-id' }),
+        } },
         { provide: AppService, useValue: appService },
       ],
     });
