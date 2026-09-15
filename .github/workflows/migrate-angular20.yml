@@ -1,0 +1,64 @@
+name: Migrate Angular 20
+
+on:
+  push:
+    branches:
+      - angular-20
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: angular-20
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.0'
+          cache: npm
+
+      - name: Install Angular 19 dependencies
+        run: npm ci
+
+      - name: Run Angular 20 migrations
+        run: npx ng update @angular/core@20 @angular/cli@20
+
+      - name: Update Angular CDK
+        run: npx ng update @angular/cdk@20
+
+      - name: Align Angular ESLint
+        run: |
+          npm install --save-dev \
+            @angular-eslint/builder@20.7.0 \
+            @angular-eslint/eslint-plugin@20.7.0 \
+            @angular-eslint/eslint-plugin-template@20.7.0 \
+            @angular-eslint/schematics@20.7.0 \
+            @angular-eslint/template-parser@20.7.0
+
+      - name: Align Node engine
+        run: npm pkg set engines.node=">=22.12.0"
+
+      - name: Verify clean install
+        run: |
+          rm -rf node_modules
+          npm ci
+          npm ls
+
+      - name: Verify web build
+        run: npm run build
+
+      - name: Commit migration
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: upgrade Angular 20" || exit 0
+          git push
