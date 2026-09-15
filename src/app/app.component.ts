@@ -3,6 +3,7 @@ import { App } from '@capacitor/app';
 import { Platform } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { DeepLinkService } from './service/deep-link.service';
+import { PushNotificationService } from './service/push-notification.service';
 
 @Component({
   standalone: false,
@@ -15,10 +16,12 @@ export class AppComponent {
 
   constructor(
     private platform: Platform,
-    private deepLinkService: DeepLinkService
+    private deepLinkService: DeepLinkService,
+    private pushNotificationService: PushNotificationService
   ) {
     this.platform.ready().then(() => {
       void this.setupDeepLinks();
+      void this.pushNotificationService.initialize();
       this.setStatusBar();
     });
   }

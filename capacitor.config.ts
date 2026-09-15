@@ -12,6 +12,9 @@ const config: CapacitorConfig = {
     contentInset: 'always'
   },
   plugins: {
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert']
+    },
     DeepLinks: {
       appId: 'com.acasale.comemivesto',
       schemes: ['https'],
