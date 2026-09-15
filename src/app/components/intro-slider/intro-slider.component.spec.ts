@@ -1,5 +1,5 @@
+import { provideRouter } from '@angular/router';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 
 import { IntroSliderComponent } from './intro-slider.component';
 
@@ -9,10 +9,17 @@ describe('IntroSliderComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ IntroSliderComponent ],
-      imports: [IonicModule.forRoot()]
-    }).compileComponents();
+      imports: [IntroSliderComponent],
+      providers: [provideRouter([])]
+    });
 
+    TestBed.overrideComponent(IntroSliderComponent, {
+      set: { template: '' }
+    });
+
+    TestBed.compileComponents();
+
+    localStorage.removeItem('hasSeenIntro');
     fixture = TestBed.createComponent(IntroSliderComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
