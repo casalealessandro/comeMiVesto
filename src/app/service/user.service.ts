@@ -9,6 +9,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { FavoriteOutfit, FavoriteRelation } from './interface/outfit-all-interface';
 import { FirebaseService } from './firebase.service';
+import { PushNotificationService } from './push-notification.service';
 
 @Injectable({
   providedIn: 'root'
@@ -33,7 +34,12 @@ export class UserService {
     createAt: 0
   }); // Signal che tiene traccia del profilo utente
 
-  constructor(private firebase: FirebaseService, private appService: AppService, private httpClient: HttpClient) {
+  constructor(
+    private firebase: FirebaseService,
+    private appService: AppService,
+    private httpClient: HttpClient,
+    private pushNotificationService: PushNotificationService,
+  ) {
 
     // Effetto per ascoltare i cambiamenti
     effect(() => {
@@ -251,6 +257,10 @@ export class UserService {
 
   async logOut(): Promise<boolean> {
     try {
+      await Promise.race([
+        this.pushNotificationService.disableCurrentDevice(),
+        new Promise<void>((resolve) => setTimeout(resolve, 2000)),
+      ]);
       await signOut(this.firebase.auth);
       console.log('Logout effettuato con successo');
       return true; // Logout completato con successo
