@@ -1,4 +1,4 @@
-name: Verify Angular 20 tests
+name: Compare Angular 20 tests
 
 on:
   push:
@@ -8,9 +8,18 @@ on:
 jobs:
   test:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ref:
+          - develop
+          - angular-20
+    name: test (${{ matrix.ref }})
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
