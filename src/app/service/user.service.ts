@@ -1,14 +1,15 @@
-import { effect, inject, Injectable, signal } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { effect, Injectable, signal } from '@angular/core';
 import { firstValueFrom, forkJoin, lastValueFrom, Observable, of, throwError } from 'rxjs';
 import { catchError, map, retry, switchMap, tap } from 'rxjs/operators';
 import { EditableUserProfile, OutfitPreferencePayload, TermsAcceptanceResult, TermsStatus, UserPreference, UserProfile } from './interface/user-interface';
-import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { ApiRequestError, ApiResponse, AppService } from './app-service';
-import { deleteUser } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { FavoriteOutfit, FavoriteRelation } from './interface/outfit-all-interface';
+import { FirebaseService } from './firebase.service';
+import { PushNotificationService } from './push-notification.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,8 +20,6 @@ export class UserService {
   // Crea un Signal per il wardrobe
   faveUserOutfitsSignal =  signal<any[]>([]); // Stato reattivo
   numberFaveUserOutfitsSignal =  signal<number>(0); // Stato reattivo
-  angularFireAuth = inject(AngularFireAuth);
-
   //private _userInfo?: UserProfile | null; // Variabile privata per memorizzare il valore
   // Utilizzo di signal per mantenere lo stato reattivo
   _userInfo = signal<UserProfile | null>({
@@ -35,7 +34,12 @@ export class UserService {
     createAt: 0
   }); // Signal che tiene traccia del profilo utente
 
-  constructor(private afAuth: AngularFireAuth, private storage: AngularFireStorage, private appService: AppService, private httpClient: HttpClient) {
+  constructor(
+    private firebase: FirebaseService,
+    private appService: AppService,
+    private httpClient: HttpClient,
+    private pushNotificationService: PushNotificationService,
+  ) {
 
     // Effetto per ascoltare i cambiamenti
     effect(() => {
@@ -54,7 +58,7 @@ export class UserService {
   
   // Metodo per caricare le informazioni dell'utente
   async loadUser(): Promise<boolean> {
-    const user = await this.angularFireAuth.currentUser ?? await firstValueFrom(this.angularFireAuth.authState);
+    const user = await this.firebase.waitForAuthState();
   if (user) {
     await user.getIdToken();
     
@@ -128,13 +132,12 @@ export class UserService {
   }
 
   async updateProfilePicture(imageData: string): Promise<void> {
-    const user = await this.afAuth.currentUser;
+    const user = await this.firebase.waitForAuthState();
     if (user) {
       const filePath = `profile_pictures/${user.uid}.jpg`;
-      const ref = this.storage.ref(filePath);
-      await ref.putString(imageData, 'data_url');
-
-      let photoURL = await lastValueFrom(ref.getDownloadURL())
+      const storageRef = ref(this.firebase.storage, filePath);
+      await uploadString(storageRef, imageData, 'data_url');
+      const photoURL = await getDownloadURL(storageRef);
 
       await lastValueFrom(this.updateUserProfile(user.uid, { photoURL }));
     }
@@ -159,7 +162,7 @@ export class UserService {
   // Funzione per controllare se l'utente è loggato e caricare i dettagli
   async isUserLoggin(): Promise<boolean> {
     
-    const user = await firstValueFrom(this.afAuth.authState);
+    const user = await this.firebase.waitForAuthState();
 
     if (user) {
       const token = await user.getIdToken();
@@ -228,7 +231,7 @@ export class UserService {
 
   async getUserPreference(): Promise<UserPreference | null> {
     try {
-      const user = await this.afAuth.currentUser;
+      const user = await this.firebase.waitForAuthState();
       if (user) {
         const response = await firstValueFrom(this.httpClient.get<ApiResponse<UserPreference | UserPreference[] | null>>(`${this.apiFire}/gen/user-preferences`));
         const preference = Array.isArray(response.data) ? response.data[0] : response.data;
@@ -254,7 +257,11 @@ export class UserService {
 
   async logOut(): Promise<boolean> {
     try {
-      await this.afAuth.signOut();
+      await Promise.race([
+        this.pushNotificationService.disableCurrentDevice(),
+        new Promise<void>((resolve) => setTimeout(resolve, 2000)),
+      ]);
+      await signOut(this.firebase.auth);
       console.log('Logout effettuato con successo');
       return true; // Logout completato con successo
     } catch (error) {
@@ -264,7 +271,7 @@ export class UserService {
   }
 
   async deleteAccount(): Promise<boolean> {
-    const user = await this.afAuth.currentUser;
+    const user = await this.firebase.waitForAuthState();
     if (user) {
       try {
         //await deleteUser(user); 

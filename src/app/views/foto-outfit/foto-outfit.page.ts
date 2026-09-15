@@ -8,6 +8,7 @@ import { Directory, Filesystem } from '@capacitor/filesystem';
 import { MyWardrobesPage } from '../my-wardrobes/my-wardrobes.page';
 
 @Component({
+  standalone: false,
   selector: 'app-foto-outfit',
   templateUrl: './foto-outfit.page.html',
   styleUrls: ['./foto-outfit.page.scss'],

@@ -1,5 +1,4 @@
 import { Component, inject, ViewChild } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router } from '@angular/router';
 import { AlertController, ModalController, NavController } from '@ionic/angular';
 import { RegisterPayload } from 'src/app/service/interface/user-interface';
@@ -10,6 +9,7 @@ import { finalize } from 'rxjs';
 import { DynamicFormComponent } from 'src/app/components/dynamic-form/dynamic-form.component';
 
 @Component({
+  standalone: false,
   selector: 'app-register',
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss','../login/login.page.scss'],
@@ -27,7 +27,6 @@ export class RegisterPage {
   submitting: boolean = false;
   termsAccepted = false;
   constructor(
-    private afAuth: AngularFireAuth,
     private userService: UserService,
     private navController: NavController,
     private alert:AlertController) {}

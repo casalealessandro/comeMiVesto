@@ -1,9 +1,12 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
 import { App } from '@capacitor/app';
 import { Platform } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { DeepLinkService } from './service/deep-link.service';
+import { PushNotificationService } from './service/push-notification.service';
+
 @Component({
+  standalone: false,
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
@@ -12,11 +15,13 @@ export class AppComponent {
   isUserLogin: boolean = false;
 
   constructor(
-    private router: Router,
-    private platform: Platform
+    private platform: Platform,
+    private deepLinkService: DeepLinkService,
+    private pushNotificationService: PushNotificationService
   ) {
     this.platform.ready().then(() => {
-      this.setupDeepLinkListener();
+      void this.setupDeepLinks();
+      void this.pushNotificationService.initialize();
       this.setStatusBar();
     });
   }
@@ -31,17 +36,15 @@ export class AppComponent {
       console.error('Error setting status bar:', error);
     }
   }
-  private setupDeepLinkListener() {
-    App.addListener('appUrlOpen', (event: any) => {
-      const url = event.url;
 
-      // Verifica se l'URL è un deep link riconosciuto
-      if (url.startsWith('comemivesto://outfit/')) {
-        const outfitId = url.split('/')[2]; // Estrai l'ID dall'URL
-        if (outfitId) {
-          this.router.navigate([`/detail-outfit/${outfitId}`]);
-        }
-      }
+  private async setupDeepLinks(): Promise<void> {
+    await App.addListener('appUrlOpen', (event) => {
+      this.deepLinkService.handle(event.url);
     });
+
+    const launchUrl = await App.getLaunchUrl();
+    if (launchUrl?.url) {
+      this.deepLinkService.handle(launchUrl.url);
+    }
   }
 }

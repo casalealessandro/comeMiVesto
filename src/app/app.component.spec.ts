@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Platform } from '@ionic/angular';
+import { PushNotificationService } from './service/push-notification.service';
 
 describe('AppComponent', () => {
 
@@ -11,7 +12,10 @@ describe('AppComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [AppComponent],
       imports: [RouterTestingModule],
-      providers: [{ provide: Platform, useValue: { ready: () => Promise.resolve() } }],
+      providers: [
+        { provide: Platform, useValue: { ready: () => Promise.resolve() } },
+        { provide: PushNotificationService, useValue: { initialize: () => Promise.resolve() } },
+      ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
   });

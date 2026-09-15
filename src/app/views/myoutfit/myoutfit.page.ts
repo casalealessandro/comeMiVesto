@@ -1,5 +1,4 @@
 import { Component, effect, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { AlertController, ModalController, NavController, RefresherEventDetail } from '@ionic/angular';
 
@@ -19,6 +18,7 @@ import { SocialSharing } from 'src/app/service/social-sharing.service';
 import { CategoryService } from 'src/app/service/category.service';
 
 @Component({
+  standalone: false,
   selector: 'app-myoutfit',
   templateUrl: './myoutfit.page.html',
   styleUrls: ['./myoutfit.page.scss'],
@@ -67,7 +67,6 @@ export class MyOutFitPage implements OnDestroy {
   constructor(
     private router: Router,
     private appService: AppService,
-    private afAuth: AngularFireAuth,
     private userProfileService: UserService,
     private modalController: ModalController,
     private alertController: AlertController,

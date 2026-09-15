@@ -1,5 +1,5 @@
 import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { FirebaseService } from 'src/app/service/firebase.service';
 import { Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
 import { ModalController, NavController } from '@ionic/angular';
@@ -13,6 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs/operators';
 
 @Component({
+  standalone: false,
   selector: 'app-prodotti-online',
   templateUrl: './prodotti-online.page.html',
   styleUrls: ['./prodotti-online.page.scss'],
@@ -23,7 +24,7 @@ export class ProdottiOnlinePage implements OnInit {
     private modalController: ModalController,
     private categoryService:CategoryService,
     private navController: NavController,
-    private afAuth: AngularFireAuth,
+    private firebase: FirebaseService,
     private userProfileService: UserService,
 
   ) { }
@@ -47,7 +48,7 @@ export class ProdottiOnlinePage implements OnInit {
   selectedFilterStyleIndex?:number;
   isModal:boolean = true
   ngOnInit() {
-    this.afAuth.authState.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async user => {
+    this.firebase.authState.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async user => {
       if (user) {
        
         this.userID =  this.userProfile$()?.uid; 

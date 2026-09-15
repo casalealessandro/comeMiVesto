@@ -5,6 +5,7 @@ import { CategoryService } from 'src/app/service/category.service';
 import { Tag } from 'src/app/service/interface/outfit-all-interface';
 
 @Component({
+  standalone: false,
   selector: 'app-products-grid',
   templateUrl: './products-grid.component.html',
   styleUrls: ['./products-grid.component.scss'],

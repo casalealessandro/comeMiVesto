@@ -7,6 +7,7 @@ import { UserService } from 'src/app/service/user.service';
 import { TermsConditionsPage } from 'src/app/views/terms-conditions/terms-conditions.page';
 
 @Component({
+  standalone: false,
   selector: 'app-menu',
   templateUrl: './menu.component.html',
   styleUrls: ['./menu.component.scss'],
