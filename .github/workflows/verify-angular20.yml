@@ -6,29 +6,51 @@ on:
       - angular-20
 
 jobs:
-  test:
+  test-angular20:
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        ref:
-          - develop
-          - angular-20
-    name: test (${{ matrix.ref }})
+    name: test angular-20
     steps:
-      - name: Checkout repository
+      - name: Checkout Angular 20
         uses: actions/checkout@v4
         with:
-          ref: ${{ matrix.ref }}
-
+          ref: angular-20
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22.22.0'
           cache: npm
-
       - name: Install dependencies
         run: npm ci
+      - name: Run unit tests
+        run: npm test -- --watch=false --browsers=ChromeHeadless
 
+  test-develop-baseline:
+    runs-on: ubuntu-24.04
+    name: test develop with async compatibility patch
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+      - name: Apply only async compatibility patch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for file in [
+              Path('src/app/views/layout-tabs/layout-tabs.page.spec.ts'),
+              Path('src/app/views/my-wardrobes/my-wardrobes.page.spec.ts'),
+          ]:
+              text = file.read_text()
+              text = text.replace("import { ComponentFixture, TestBed } from '@angular/core/testing';", "import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';")
+              text = text.replace('beforeEach(async(() => {', 'beforeEach(waitForAsync(() => {')
+              file.write_text(text)
+          PY
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.0'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
       - name: Run unit tests
         run: npm test -- --watch=false --browsers=ChromeHeadless
