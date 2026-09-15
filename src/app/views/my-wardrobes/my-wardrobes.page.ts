@@ -12,6 +12,7 @@ import { UserService } from 'src/app/service/user.service';
 import { Router } from '@angular/router';
 
 @Component({
+  standalone: false,
   selector: 'app-my-wardrobes',
   templateUrl: './my-wardrobes.page.html',
   styleUrls: ['./my-wardrobes.page.scss'],

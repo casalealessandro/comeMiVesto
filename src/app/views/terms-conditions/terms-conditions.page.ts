@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 export type TermsPageMode = 'view' | 'registration' | 'authenticated';
 
 @Component({
+  standalone: false,
   selector: 'app-terms-conditions',
   templateUrl: './terms-conditions.page.html',
   styleUrls: ['./terms-conditions.page.scss'],

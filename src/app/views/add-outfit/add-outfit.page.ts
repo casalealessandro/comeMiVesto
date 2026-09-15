@@ -13,6 +13,7 @@ import { MyOutFitPage } from '../myoutfit/myoutfit.page';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { TermsAcceptanceService } from 'src/app/service/terms-acceptance.service';
 @Component({
+  standalone: false,
   selector: 'app-add-outfit',
   templateUrl: './add-outfit.page.html',
   styleUrls: ['./add-outfit.page.scss'],

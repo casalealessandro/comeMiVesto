@@ -30,7 +30,7 @@ describe('RegisterPage Terms consent', () => {
       { provide: ModalController, useValue: modalController },
       { provide: AlertController, useValue: { create: jasmine.createSpy().and.resolveTo({ present: () => Promise.resolve() }) } }
     ] });
-    component = TestBed.runInInjectionContext(() => new RegisterPage({} as any, users, { back: () => undefined } as any, TestBed.inject(AlertController)));
+    component = TestBed.runInInjectionContext(() => new RegisterPage(users, { back: () => undefined } as any, TestBed.inject(AlertController)));
     component.registrationForm = dynamicForm;
   });
 

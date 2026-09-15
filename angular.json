@@ -42,7 +42,6 @@
               "src/theme/variables.scss",
               "src/theme/appstyle.scss"
             ],
-
             "scripts": []
           },
           "configurations": {
@@ -65,6 +64,11 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ],
+              "optimization": {
+                "scripts": true,
+                "styles": true,
+                "fonts": false
+              },
               "outputHashing": "all"
             },
             "development": {

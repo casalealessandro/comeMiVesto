@@ -8,6 +8,7 @@ import { Tag } from 'src/app/service/interface/outfit-all-interface';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 
 @Component({
+  standalone: false,
   selector: 'app-detail-outfit',
   templateUrl: './detail-outfit.page.html',
   styleUrls: ['./detail-outfit.page.scss'],

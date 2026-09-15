@@ -5,6 +5,7 @@ import { filter } from 'rxjs/operators';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 
 @Component({
+  standalone: false,
   selector: 'app-layout-tabs',
   templateUrl: './layout-tabs.page.html',
   styleUrls: ['./layout-tabs.page.scss'],

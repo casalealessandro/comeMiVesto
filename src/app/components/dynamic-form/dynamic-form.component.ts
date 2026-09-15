@@ -6,6 +6,7 @@ import { AppService } from 'src/app/service/app-service';
 import { ToastController } from '@ionic/angular';
 
 @Component({
+  standalone: false,
   selector: 'app-dynamic-form',
   templateUrl: './dynamic-form.component.html',
   styleUrls: ['./dynamic-form.component.scss'],

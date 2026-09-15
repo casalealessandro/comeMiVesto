@@ -7,6 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs/operators';
 
 @Component({
+  standalone: false,
   selector: 'app-filter-outfits',
   templateUrl: './filter-outfits.page.html',
   styleUrls: ['./filter-outfits.page.scss'],

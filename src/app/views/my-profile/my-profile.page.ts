@@ -12,6 +12,7 @@ import { ApiRequestError, AppService } from 'src/app/service/app-service';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 import { TermsAcceptanceService } from 'src/app/service/terms-acceptance.service';
 @Component({
+  standalone: false,
   selector: 'app-my-profile',
   templateUrl: './my-profile.page.html',
   styleUrls: ['./my-profile.page.scss'],
