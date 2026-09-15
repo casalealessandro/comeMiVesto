@@ -1,4 +1,4 @@
-name: Migrate Angular 20
+name: Complete Angular 20 migration
 
 on:
   push:
@@ -24,22 +24,13 @@ jobs:
           node-version: '22.22.0'
           cache: npm
 
-      - name: Install Angular 19 dependencies
+      - name: Install dependencies
         run: npm ci
 
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Run Angular 20 migrations
-        run: npx ng update @angular/core@20 @angular/cli@20
-
-      - name: Commit Angular core migration
-        run: |
-          git add -A
-          git commit -m "chore: migrate Angular core 20"
-          git push
 
       - name: Update Angular CDK
         run: npx ng update @angular/cdk@20
@@ -53,6 +44,9 @@ jobs:
             @angular-eslint/schematics@20.7.0 \
             @angular-eslint/template-parser@20.7.0
 
+      - name: Keep TypeScript compatible with Ionic 8
+        run: npm install --save-dev typescript@~5.8.3
+
       - name: Align Node engine
         run: npm pkg set engines.node=">=22.12.0"
 
@@ -64,6 +58,14 @@ jobs:
 
       - name: Verify web build
         run: npm run build
+
+      - name: Verify lint
+        run: npm run lint
+
+      - name: Synchronize Capacitor projects
+        run: |
+          npx cap sync android
+          npx cap sync ios
 
       - name: Commit migration
         shell: bash
