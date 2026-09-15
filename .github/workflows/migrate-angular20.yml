@@ -27,8 +27,19 @@ jobs:
       - name: Install Angular 19 dependencies
         run: npm ci
 
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Run Angular 20 migrations
         run: npx ng update @angular/core@20 @angular/cli@20
+
+      - name: Commit Angular core migration
+        run: |
+          git add -A
+          git commit -m "chore: migrate Angular core 20"
+          git push
 
       - name: Update Angular CDK
         run: npx ng update @angular/cdk@20
@@ -57,8 +68,6 @@ jobs:
       - name: Commit migration
         shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "chore: upgrade Angular 20" || exit 0
+          git commit -m "chore: complete Angular 20 upgrade" || exit 0
           git push
