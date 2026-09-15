@@ -1,6 +1,12 @@
 name: Come Mi Vesto Mobile Version
 
 on:
+  push:
+    branches:
+      - develop
+    paths:
+      - VERSION
+
   workflow_dispatch:
 
 permissions:
@@ -15,6 +21,9 @@ jobs:
     name: Create mobile release version
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      next_version: ${{ steps.version.outputs.next_version }}
+      release_tag: ${{ steps.version.outputs.release_tag }}
 
     steps:
       - name: Checkout repository
@@ -76,3 +85,12 @@ jobs:
           git tag "$RELEASE_TAG" "$GITHUB_SHA"
           git push origin "$RELEASE_TAG"
           echo "Created commercial release tag: $RELEASE_TAG"
+
+  android-build:
+    name: Validate Android release
+    needs: release-version
+    uses: ./.github/workflows/android-release.yml
+    with:
+      release_tag: ${{ needs.release-version.outputs.release_tag }}
+      publish: false
+    secrets: inherit
