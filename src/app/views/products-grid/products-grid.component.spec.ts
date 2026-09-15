@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 
+import { CategoryService } from 'src/app/service/category.service';
 import { ProductsGridComponent } from './products-grid.component';
 
 describe('ProductsGridComponent', () => {
@@ -9,12 +9,26 @@ describe('ProductsGridComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ ProductsGridComponent ],
-      imports: [IonicModule.forRoot()]
-    }).compileComponents();
+      declarations: [ProductsGridComponent],
+      providers: [
+        {
+          provide: CategoryService,
+          useValue: {
+            fetchCategory: jasmine.createSpy('fetchCategory').and.resolveTo('Categoria test')
+          }
+        }
+      ]
+    });
+
+    TestBed.overrideComponent(ProductsGridComponent, {
+      set: { template: '' }
+    });
+
+    TestBed.compileComponents();
 
     fixture = TestBed.createComponent(ProductsGridComponent);
     component = fixture.componentInstance;
+    component.products = [];
     fixture.detectChanges();
   }));
 
