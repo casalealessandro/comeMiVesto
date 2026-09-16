@@ -6,7 +6,7 @@ ComeMiVesto can be built and uploaded to TestFlight without a local Mac by using
 
 - Bundle ID: `com.acasale.comemivesto`
 - Apple Team ID: `Z9SD7XVK87`
-- Commercial version comes from a neutral `release-vX.Y.Z` tag.
+- Commercial version comes from the `VERSION` file on `develop`.
 - iOS build numbers are independent and tracked with `ios-vX.Y.Z-buildN` tags.
 - The first CI build starts after the historical App Store Connect build 7, so the initial generated build is 8.
 
@@ -44,16 +44,23 @@ The APNs `.p8` key stays in Firebase/Apple configuration and is not stored in th
 
 ## Run
 
-The workflow is manual: **Come Mi Vesto iOS TestFlight**.
+The TestFlight workflow belongs to `develop` and builds the exact `develop` commit that requests the test.
 
-For the current test use `release-v1.1.0`. The workflow:
+To request a TestFlight build, push a commit to `develop` whose commit message contains `[testflight]`, for example:
 
-1. checks out the neutral release tag;
-2. calculates the next iOS build number;
-3. builds Angular/Ionic and runs `npx cap sync ios`;
-4. restores the Firebase plist and push entitlement only on the runner;
-5. archives and exports the signed IPA with automatic signing;
-6. validates and uploads the IPA to App Store Connect/TestFlight;
-7. creates the corresponding `ios-vX.Y.Z-buildN` tag only after a successful upload.
+`ci: run iOS TestFlight [testflight]`
+
+Normal pushes to `develop` do not upload anything to TestFlight because the job is skipped unless the marker is present.
+
+The workflow:
+
+1. checks out the triggering `develop` commit;
+2. reads the commercial version from `VERSION`;
+3. calculates the next iOS build number;
+4. builds Angular/Ionic and runs `npx cap sync ios`;
+5. restores the Firebase plist and push entitlement only on the runner;
+6. archives and exports the signed IPA with automatic signing;
+7. validates and uploads the IPA to App Store Connect/TestFlight;
+8. creates the corresponding `ios-vX.Y.Z-buildN` tag only after a successful upload.
 
 After Apple finishes processing the build, install it through TestFlight on a physical iPhone and run the notification end-to-end checklist in `docs/push-notifications.md`.
