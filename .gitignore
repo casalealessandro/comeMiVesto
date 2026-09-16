@@ -68,6 +68,12 @@ testem.log
 *.keystore
 key.properties
 
+# iOS signing and Firebase build files
+*.p8
+*.p12
+*.mobileprovision
+ios/App/App/GoogleService-Info.plist
+
 # System files
 .DS_Store
 Thumbs.db
