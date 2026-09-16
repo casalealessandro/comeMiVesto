@@ -1,0 +1,302 @@
+name: Come Mi Vesto iOS TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Neutral release tag to publish (release-vX.Y.Z)
+        required: true
+        default: release-v1.1.0
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: comemivesto-ios-testflight
+  cancel-in-progress: false
+
+env:
+  APPLE_TEAM_ID: Z9SD7XVK87
+
+jobs:
+  testflight:
+    name: Build and upload to TestFlight
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Validate input
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_TAG="${{ inputs.release_tag }}"
+          if [[ ! "$RELEASE_TAG" =~ ^release-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "release_tag must match release-vX.Y.Z" >&2
+            exit 1
+          fi
+
+      - name: Checkout release
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.release_tag }}
+
+      - name: Verify Xcode version
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          XCODE_MAJOR="$(xcodebuild -version | awk '/Xcode/{split($2,v,"."); print v[1]; exit}')"
+          if [ -z "$XCODE_MAJOR" ] || [ "$XCODE_MAJOR" -lt 26 ]; then
+            echo "Xcode 26 or newer is required for App Store Connect uploads" >&2
+            exit 1
+          fi
+
+      - name: Calculate iOS version
+        id: ios_version
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_TAG="${{ inputs.release_tag }}"
+          VERSION_NAME="${RELEASE_TAG#release-v}"
+          LATEST_BUILD=7
+
+          while IFS= read -r tag; do
+            build="${tag##*-build}"
+            if [[ "$build" =~ ^[0-9]+$ ]] && (( build > LATEST_BUILD )); then
+              LATEST_BUILD=$build
+            fi
+          done < <(git tag --list 'ios-v*-build*')
+
+          BUILD_NUMBER=$((LATEST_BUILD + 1))
+          IOS_RELEASE_TAG="ios-v${VERSION_NAME}-build${BUILD_NUMBER}"
+
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "ios_release_tag=$IOS_RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+          echo "Commercial version: $VERSION_NAME"
+          echo "iOS build number: $BUILD_NUMBER"
+
+      - name: Validate required secrets
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$APP_STORE_CONNECT_ISSUER_ID" || { echo "Missing APP_STORE_CONNECT_ISSUER_ID" >&2; exit 1; }
+          test -n "$APP_STORE_CONNECT_KEY_ID" || { echo "Missing APP_STORE_CONNECT_KEY_ID" >&2; exit 1; }
+          test -n "$APP_STORE_CONNECT_PRIVATE_KEY" || { echo "Missing APP_STORE_CONNECT_PRIVATE_KEY" >&2; exit 1; }
+          test -n "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" || { echo "Missing IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" >&2; exit 1; }
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web application
+        run: npm run build
+
+      - name: Synchronize iOS
+        run: npx cap sync ios
+
+      - name: Restore Firebase iOS configuration
+        env:
+          IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import os
+          from pathlib import Path
+
+          target = Path('ios/App/App/GoogleService-Info.plist')
+          target.write_bytes(base64.b64decode(os.environ['IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64']))
+          PY
+          plutil -lint ios/App/App/GoogleService-Info.plist
+          ruby .github/scripts/add-ios-firebase-config.rb ios/App/App.xcodeproj
+
+      - name: Enable production push entitlement
+        shell: bash
+        run: |
+          set -euo pipefail
+          ENTITLEMENTS="ios/App/App/App.entitlements"
+          /usr/libexec/PlistBuddy -c 'Delete :aps-environment' "$ENTITLEMENTS" >/dev/null 2>&1 || true
+          /usr/libexec/PlistBuddy -c 'Add :aps-environment string production' "$ENTITLEMENTS"
+          /usr/libexec/PlistBuddy -c 'Print :aps-environment' "$ENTITLEMENTS"
+
+      - name: Restore App Store Connect API key
+        id: asc_key
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY_DIR="$HOME/.appstoreconnect/private_keys"
+          KEY_PATH="$KEY_DIR/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
+          mkdir -p "$KEY_DIR"
+          chmod 700 "$KEY_DIR"
+
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          value = os.environ['APP_STORE_CONNECT_PRIVATE_KEY']
+          if '\\n' in value and '\n' not in value:
+              value = value.replace('\\n', '\n')
+          path = Path.home() / '.appstoreconnect' / 'private_keys' / f"AuthKey_{os.environ['APP_STORE_CONNECT_KEY_ID']}.p8"
+          path.write_text(value.rstrip() + '\n', encoding='utf-8')
+          path.chmod(0o600)
+          PY
+
+          test -s "$KEY_PATH"
+          echo "path=$KEY_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Archive iOS application
+        env:
+          VERSION_NAME: ${{ steps.ios_version.outputs.version_name }}
+          BUILD_NUMBER: ${{ steps.ios_version.outputs.build_number }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_KEY_PATH: ${{ steps.asc_key.outputs.path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/ComeMiVesto.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$APP_STORE_CONNECT_KEY_PATH" \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            MARKETING_VERSION="$VERSION_NAME" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            archive
+
+      - name: Create export options
+        shell: bash
+        run: |
+          set -euo pipefail
+          METHOD="app-store-connect"
+          if ! xcodebuild -help 2>&1 | grep -q 'app-store-connect'; then
+            METHOD="app-store"
+          fi
+
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>${METHOD}</string>
+            <key>destination</key>
+            <string>export</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>teamID</key>
+            <string>${APPLE_TEAM_ID}</string>
+            <key>manageAppVersionAndBuildNumber</key>
+            <false/>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+          plutil -lint "$RUNNER_TEMP/ExportOptions.plist"
+
+      - name: Export signed IPA
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_KEY_PATH: ${{ steps.asc_key.outputs.path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/export"
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$RUNNER_TEMP/ComeMiVesto.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$APP_STORE_CONNECT_KEY_PATH" \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID"
+
+          IPA_PATH="$(find "$RUNNER_TEMP/export" -maxdepth 1 -name '*.ipa' -print -quit)"
+          test -n "$IPA_PATH" && test -f "$IPA_PATH"
+          echo "IPA_PATH=$IPA_PATH" >> "$GITHUB_ENV"
+
+      - name: Upload signed IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: comemivesto-ios-${{ steps.ios_version.outputs.version_name }}-build${{ steps.ios_version.outputs.build_number }}
+          path: ${{ env.IPA_PATH }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Validate build with App Store Connect
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun altool \
+            --validate-app \
+            --file "$IPA_PATH" \
+            --type ios \
+            --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+
+      - name: Upload build to TestFlight
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun altool \
+            --upload-app \
+            --file "$IPA_PATH" \
+            --type ios \
+            --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+
+      - name: Tag successful iOS build
+        env:
+          IOS_RELEASE_TAG: ${{ steps.ios_version.outputs.ios_release_tag }}
+          SOURCE_SHA: ${{ steps.ios_version.outputs.source_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "$IOS_RELEASE_TAG" "$SOURCE_SHA"
+          git push origin "$IOS_RELEASE_TAG"
+          echo "Created iOS build tag: $IOS_RELEASE_TAG"
+
+      - name: Remove private files
+        if: always()
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+        shell: bash
+        run: |
+          rm -f "ios/App/App/GoogleService-Info.plist"
+          rm -f "$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
