@@ -1,13 +1,9 @@
 name: Come Mi Vesto iOS TestFlight
 
 on:
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: Neutral release tag to publish (release-vX.Y.Z)
-        required: true
-        default: release-v1.1.0
-        type: string
+  push:
+    branches:
+      - develop
 
 permissions:
   contents: write
@@ -22,25 +18,15 @@ env:
 jobs:
   testflight:
     name: Build and upload to TestFlight
+    if: contains(github.event.head_commit.message, '[testflight]')
     runs-on: macos-latest
     timeout-minutes: 60
 
     steps:
-      - name: Validate input
-        shell: bash
-        run: |
-          set -euo pipefail
-          RELEASE_TAG="${{ inputs.release_tag }}"
-          if [[ ! "$RELEASE_TAG" =~ ^release-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "release_tag must match release-vX.Y.Z" >&2
-            exit 1
-          fi
-
-      - name: Checkout release
+      - name: Checkout develop commit
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.release_tag }}
 
       - name: Verify Xcode version
         shell: bash
@@ -58,10 +44,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          RELEASE_TAG="${{ inputs.release_tag }}"
-          VERSION_NAME="${RELEASE_TAG#release-v}"
-          LATEST_BUILD=7
 
+          VERSION_NAME="$(tr -d '[:space:]' < VERSION)"
+          if [[ ! "$VERSION_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "VERSION must match X.Y.Z" >&2
+            exit 1
+          fi
+
+          LATEST_BUILD=7
           while IFS= read -r tag; do
             build="${tag##*-build}"
             if [[ "$build" =~ ^[0-9]+$ ]] && (( build > LATEST_BUILD )); then
