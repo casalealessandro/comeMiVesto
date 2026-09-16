@@ -124,7 +124,28 @@ jobs:
           target.write_bytes(base64.b64decode(os.environ['IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64']))
           PY
           plutil -lint ios/App/App/GoogleService-Info.plist
-          ruby .github/scripts/add-ios-firebase-config.rb ios/App/App.xcodeproj
+
+          ruby <<'RUBY'
+          require 'xcodeproj'
+
+          project = Xcodeproj::Project.open('ios/App/App.xcodeproj')
+          target = project.targets.find { |item| item.name == 'App' }
+          abort 'App target not found' unless target
+
+          app_group = project.main_group.groups.find { |group| group.display_name == 'App' }
+          abort 'App group not found' unless app_group
+
+          plist_name = 'GoogleService-Info.plist'
+          file_ref = app_group.files.find { |file| File.basename(file.path.to_s) == plist_name }
+          file_ref ||= app_group.new_file(plist_name)
+
+          unless target.resources_build_phase.files_references.include?(file_ref)
+            target.resources_build_phase.add_file_reference(file_ref, true)
+          end
+
+          project.save
+          puts "#{plist_name} added to App resources"
+          RUBY
 
       - name: Enable production push entitlement
         shell: bash
