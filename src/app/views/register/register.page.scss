@@ -1,3 +1,19 @@
+.login-container {
+  position: relative;
+}
+
+.register-back-button {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 8px);
+  left: 4px;
+  z-index: 2;
+
+  ion-button {
+    --color: #fff;
+    margin: 0;
+  }
+}
+
 .login-header-container {
   .title {
     padding-top: 35px;
