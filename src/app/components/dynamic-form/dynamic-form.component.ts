@@ -4,6 +4,7 @@ import { DynamicFormField } from '../../service/interface/dynamic-form-field'
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { AppService } from 'src/app/service/app-service';
 import { ToastController } from '@ionic/angular';
+import { finalize } from 'rxjs';
 
 @Component({
   standalone: false,
@@ -33,6 +34,7 @@ export class DynamicFormComponent implements OnInit {
   fieldConfigs: any = [];
   labelplacement:'fixed' | 'stacked' | 'floating' = 'stacked';
   showPasswordButton: any = {};
+  loading: boolean = true;
   constructor(private templateService: AppService, private formBuilder: FormBuilder,private toastController: ToastController) {
 
 
@@ -41,14 +43,22 @@ export class DynamicFormComponent implements OnInit {
   ngOnInit(): void {
 
     if (!this.service) {
+      this.loading = false;
       return
     }
     if (typeof this.editData === 'undefined') {
       this.editData = {};
     }
-    this.templateService.getFormFields(this.service).subscribe(fields => {
-      this.fields = fields;
-      this.initializeForm();
+    this.templateService.getFormFields(this.service)
+    .pipe(finalize(() => this.loading = false))
+    .subscribe({
+      next: fields => {
+        this.fields = fields;
+        this.initializeForm();
+      },
+      error: () => {
+        void this.presentToast('Impossibile caricare la form. Riprova.');
+      }
     });
 
 
@@ -87,6 +97,9 @@ export class DynamicFormComponent implements OnInit {
   
     if (field.required) {
       validators.push(field.type === 'checkBox' ? Validators.requiredTrue : Validators.required);
+    }
+    if (field.typeInput === 'email') {
+      validators.push(Validators.email);
     }
     if (typeof field.minlength !== 'undefined') {
       validators.push(Validators.minLength(field.minlength));
@@ -180,11 +193,37 @@ export class DynamicFormComponent implements OnInit {
     if (this.form.valid) {
       this.submitFormEvent.emit(this.form.value);
     } else {
+      this.form.markAllAsTouched();
       const invalidFields = this.getInvalidFields(this.form);
 
 
       this.presentToast(`Mancano i seguenti campi:${invalidFields.join(', ')}`);
     }
+  }
+
+  isFieldInvalid(fieldName: string): boolean {
+    const control = this.form.get(fieldName);
+    return !!control && control.invalid && (control.touched || control.dirty);
+  }
+
+  getFieldErrorMessage(field: DynamicFormField): string {
+    const control = this.form.get(field.name);
+    if (!control || !control.errors) return '';
+
+    if (control.hasError('required')) {
+      return `${field.label} è obbligatorio`;
+    }
+    if (control.hasError('email')) {
+      return 'Inserisci un indirizzo email valido';
+    }
+    if (control.hasError('minlength')) {
+      return `Inserisci almeno ${field.minlength} caratteri`;
+    }
+    if (control.hasError('maxlength')) {
+      return `Inserisci al massimo ${field.maxlength} caratteri`;
+    }
+
+    return 'Valore non valido';
   }
 
   // Metodo per ottenere i campi non validi
