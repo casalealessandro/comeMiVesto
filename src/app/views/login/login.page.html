@@ -26,25 +26,6 @@
           </div>
         </div>
         <div class="login-center-container">
-          <div *ngIf="apiDebugEnabled" style="margin-bottom: 16px; padding: 12px; border: 1px solid currentColor; border-radius: 8px; font-size: 12px;">
-            <div><strong>DEV API DEBUG</strong></div>
-            <div style="word-break: break-all; margin-top: 6px;">{{ loginFormApiUrl }}</div>
-
-            <div style="margin-top: 10px;">
-              <strong>1. AppService / HttpClient:</strong> {{ appServiceDebugStatus }}
-            </div>
-            <div *ngIf="appServiceDebugDetail" style="margin-top: 2px;">{{ appServiceDebugDetail }}</div>
-
-            <div style="margin-top: 8px;">
-              <strong>2. fetch diretto:</strong> {{ fetchDebugStatus }}
-            </div>
-            <div *ngIf="fetchDebugDetail" style="margin-top: 2px;">{{ fetchDebugDetail }}</div>
-
-            <div style="margin-top: 8px;">
-              <strong>3. Firebase waitForAuthState:</strong> {{ authDebugStatus }}
-            </div>
-            <div *ngIf="authDebugDetail" style="margin-top: 2px;">{{ authDebugDetail }}</div>
-          </div>
 
           <app-dynamic-form 
             [service]="'loginForm'" 
