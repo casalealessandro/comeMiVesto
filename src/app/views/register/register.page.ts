@@ -134,7 +134,6 @@ export class RegisterPage {
 
 
   handleBackButton() {
-    // Altrimenti, esegui il comportamento predefinito del back button
-    this.navController.back();
+    this.navController.navigateBack('/login');
    }
 }
