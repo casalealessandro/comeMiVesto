@@ -1,3 +1,4 @@
+# Diagnostic trigger after correcting App Store Connect Team API Key ID
 name: App Store Connect Auth Diagnostic
 
 on:
