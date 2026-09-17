@@ -17,6 +17,7 @@ export class DynamicSelectBoxComponent implements OnChanges, OnInit {
   @Input() formControlD!: FormControl;
   @Input() parentValue!: string;
   @Input() disabled = false;
+  @Input() invalid = false;
   @Input() value:any;
   @Input() values:any = [];
   @Input() labelPlacement:'fixed' | 'stacked' | 'floating' = 'fixed';
