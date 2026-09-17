@@ -1,102 +1,118 @@
+<div *ngIf="loading" class="form-loader">
+  <ion-spinner name="crescent"></ion-spinner>
+</div>
 
-  <form [formGroup]="form" (ngSubmit)="submitForm()">
-    <ion-list class="form-group">
-      <ng-container *ngFor="let field of fields">
-        <ion-item *ngIf="field.type === 'textBox'" lines="none">
-          
-          <ion-input 
-            [formControlName]="field.name" 
-            class="textbox"
-            
-            [type]="!field.typeInput ? 'text' : field.typeInput " [placeholder]="field.placeholder"
-            [(ngModel)]="formValues[field.name]"
-            [label]="field.label"
-            line="none"
-            [labelPlacement]="labelplacement"
-            (ngModelChange)="onValueChange(field.name, $event)"
-          >
-          <ion-button *ngIf="field.funcButton" fill="clear" slot="end" (click)="onFucBtnClick(field)">
-            <ion-ripple-effect></ion-ripple-effect>
-            <ion-icon name="open-outline"></ion-icon>
-          </ion-button>
-          <ion-button *ngIf="showPasswordButton[field.name]"  class="functional-btn" fill="clear" slot="end" (click)="togglePasswordClick($event,field)">
-            <ion-ripple-effect></ion-ripple-effect>
-           
-            <i
-                  class="fi"
-                  [ngClass]="{
-                    
-                    'fi-rs-eye ': field.typeInput === 'password',
-                    'fi-rr-eye-crossed': field.typeInput === 'text',
-                  }"
-                  
-                ></i>
-          </ion-button>
-        </ion-input>
-         
-        </ion-item>
-        <ion-item *ngIf="field.type === 'textArea'" lines="none">
-       
-          <ion-textarea 
-            [formControlName]="field.name" 
-            class="textbox"
-            [placeholder]="field.placeholder" rows="4" 
-            [(ngModel)]="formValues[field.name]"
-            [label]="field.label"
-            lines="none"
-            [labelPlacement]="labelplacement"
-            >
-          </ion-textarea>
-        </ion-item>
-        <ion-item *ngIf="field.type === 'fileBox'" lines="none">
-            <app-dynamic-file-box
-            [labelPlacement]="labelplacement"
-            [image]="formValues[field.name]"
-            (eventFotoCaptured)="onValueChangeFile(field.name, $event)"
-            ></app-dynamic-file-box> 
-        </ion-item>
-        <ion-item *ngIf="field.type === 'checkBox'" lines="none">
-          
-          <ion-checkbox *ngIf="field.checkBoxOptions!.haveLink;else checkboxNormale" 
-          [checked]="formValues[field.name]" 
-          (ionChange)="onCheckBoxChange(field, $event.detail.checked)">
-              
-              <a href="#"   (click)="clickLinkCheckBox($event, field)">
-                {{!field.checkBoxOptions!.hrefText ? field.label : field.checkBoxOptions!.hrefText  }}
-              </a>
-          </ion-checkbox>
-
-          <ng-template #checkboxNormale>
-            <ion-checkbox  [checked]="formValues[field.name]" 
-            (ionChange)="onCheckBoxChange(field, $event.detail.checked)"
-             labelPlacement="end" justify="start">
-            </ion-checkbox>
-          </ng-template>
-
-         
-        </ion-item>
-
-        <app-dynamic-select-box
-          *ngIf="field.type === 'selectBox'"
-          [config]="field"
-          [labelPlacement]="labelplacement"
-          [parentValue]="formValues[field.selectOptions?.parent || '']"
-          [value]="formValues[field.name]"
-          [values]="field.selectOptions?.multiple ? formValues[field.name] : []"
-          (valueChange)="onValueChange(field.name, $event)">
-        </app-dynamic-select-box>
-      </ng-container>
-    
-    </ion-list>
-    <div class="form-footer">
-      <ion-item>
-        <ion-button type="submit" [disabled]="isSubmitting" expand="block"  class="btn outfit-button">
-          <ion-ripple-effect></ion-ripple-effect>
-          {{btnFormText}}
+<form *ngIf="!loading" [formGroup]="form" (ngSubmit)="submitForm()">
+  <ion-list class="form-group">
+    <ng-container *ngFor="let field of fields">
+      <ion-item *ngIf="field.type === 'textBox'" lines="none" [class.form-field-invalid]="isFieldInvalid(field.name)">
         
+        <ion-input 
+          [formControlName]="field.name" 
+          class="textbox"
+          [class.ion-invalid]="isFieldInvalid(field.name)"
+          [class.ion-touched]="isFieldInvalid(field.name)"
+          [errorText]="getFieldErrorMessage(field)"
+          [type]="!field.typeInput ? 'text' : field.typeInput " [placeholder]="field.placeholder"
+          [(ngModel)]="formValues[field.name]"
+          [label]="field.label"
+          line="none"
+          [labelPlacement]="labelplacement"
+          (ngModelChange)="onValueChange(field.name, $event)"
+        >
+        <ion-button *ngIf="field.funcButton" fill="clear" slot="end" (click)="onFucBtnClick(field)">
+          <ion-ripple-effect></ion-ripple-effect>
+          <ion-icon name="open-outline"></ion-icon>
         </ion-button>
+        <ion-button *ngIf="showPasswordButton[field.name]"  class="functional-btn" fill="clear" slot="end" (click)="togglePasswordClick($event,field)">
+          <ion-ripple-effect></ion-ripple-effect>
+         
+          <i
+                class="fi"
+                [ngClass]="{
+                  
+                  'fi-rs-eye ': field.typeInput === 'password',
+                  'fi-rr-eye-crossed': field.typeInput === 'text',
+                }"
+                
+              ></i>
+        </ion-button>
+      </ion-input>
+       
       </ion-item>
+      <ion-item *ngIf="field.type === 'textArea'" lines="none" [class.form-field-invalid]="isFieldInvalid(field.name)">
      
-    </div>
+        <ion-textarea 
+          [formControlName]="field.name" 
+          class="textbox"
+          [class.ion-invalid]="isFieldInvalid(field.name)"
+          [class.ion-touched]="isFieldInvalid(field.name)"
+          [errorText]="getFieldErrorMessage(field)"
+          [placeholder]="field.placeholder" rows="4" 
+          [(ngModel)]="formValues[field.name]"
+          [label]="field.label"
+          lines="none"
+          [labelPlacement]="labelplacement"
+          >
+        </ion-textarea>
+      </ion-item>
+      <ion-item *ngIf="field.type === 'fileBox'" lines="none" [class.form-field-invalid]="isFieldInvalid(field.name)">
+          <app-dynamic-file-box
+          [labelPlacement]="labelplacement"
+          [image]="formValues[field.name]"
+          (eventFotoCaptured)="onValueChangeFile(field.name, $event)"
+          ></app-dynamic-file-box> 
+      </ion-item>
+      <ion-item *ngIf="field.type === 'checkBox'" lines="none" [class.form-field-invalid]="isFieldInvalid(field.name)">
+        
+        <ion-checkbox *ngIf="field.checkBoxOptions!.haveLink;else checkboxNormale" 
+        [checked]="formValues[field.name]" 
+        (ionChange)="onCheckBoxChange(field, $event.detail.checked)">
+            
+            <a href="#"   (click)="clickLinkCheckBox($event, field)">
+              {{!field.checkBoxOptions!.hrefText ? field.label : field.checkBoxOptions!.hrefText  }}
+            </a>
+        </ion-checkbox>
+
+        <ng-template #checkboxNormale>
+          <ion-checkbox  [checked]="formValues[field.name]" 
+          (ionChange)="onCheckBoxChange(field, $event.detail.checked)"
+           labelPlacement="end" justify="start">
+          </ion-checkbox>
+        </ng-template>
+
+       
+      </ion-item>
+
+      <app-dynamic-select-box
+        *ngIf="field.type === 'selectBox'"
+        [config]="field"
+        [labelPlacement]="labelplacement"
+        [parentValue]="formValues[field.selectOptions?.parent || '']"
+        [value]="formValues[field.name]"
+        [values]="field.selectOptions?.multiple ? formValues[field.name] : []"
+        [invalid]="isFieldInvalid(field.name)"
+        (valueChange)="onValueChange(field.name, $event)">
+      </app-dynamic-select-box>
+
+      <ion-note
+        *ngIf="isFieldInvalid(field.name) && field.type !== 'textBox' && field.type !== 'textArea'"
+        class="field-error">
+        {{ getFieldErrorMessage(field) }}
+      </ion-note>
+    </ng-container>
+  
+  </ion-list>
+  <div class="form-footer">
+    <ion-item>
+      <ion-button type="submit" [disabled]="isSubmitting" expand="block"  class="btn outfit-button">
+        <ion-ripple-effect></ion-ripple-effect>
+        <ion-spinner *ngIf="isSubmitting" name="crescent" class="submit-spinner"></ion-spinner>
+        <span *ngIf="!isSubmitting">{{btnFormText}}</span>
+      
+      </ion-button>
+    </ion-item>
    
-  </form>
+  </div>
+ 
+</form>
