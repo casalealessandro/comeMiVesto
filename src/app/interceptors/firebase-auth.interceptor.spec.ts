@@ -39,6 +39,14 @@ describe('FirebaseAuthInterceptor', () => {
     } });
   });
 
+  it('does not wait for auth on public form requests', () => {
+    const request = new HttpRequest('GET', `${environment.BASE_API_URL}/gen/forms/loginForm`);
+    new FirebaseAuthInterceptor(firebase).intercept(request, handler).subscribe();
+
+    expect(firebase.waitForAuthState).not.toHaveBeenCalled();
+    expect(handler.handle).toHaveBeenCalledOnceWith(request);
+  });
+
   it('does not inspect auth or add a token to external requests', () => {
     const request = new HttpRequest('GET', 'https://example.com/image.jpg');
     new FirebaseAuthInterceptor(firebase).intercept(request, handler).subscribe();
