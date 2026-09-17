@@ -112,6 +112,15 @@ ion-card-subtitle {
 
 }
 
+ion-button {
+    transition: transform 90ms ease, opacity 90ms ease;
+}
+
+ion-button:not([disabled]):active {
+    transform: scale(0.98);
+    opacity: 0.82;
+}
+
 .profile-header{
     --background:#fff;
     border: none;
