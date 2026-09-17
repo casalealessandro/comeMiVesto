@@ -1,6 +1,15 @@
 import { Injectable } from '@angular/core';
 import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
-import { Auth, connectAuthEmulator, getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import {
+  Auth,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  connectAuthEmulator,
+  getAuth,
+  initializeAuth,
+  onAuthStateChanged,
+  User,
+} from 'firebase/auth';
 import { FirebaseStorage, connectStorageEmulator, getStorage } from 'firebase/storage';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -10,7 +19,7 @@ let emulatorsConnected = false;
 @Injectable({ providedIn: 'root' })
 export class FirebaseService {
   readonly app: FirebaseApp = getApps().length ? getApp() : initializeApp(environment.firebase);
-  readonly auth: Auth = getAuth(this.app);
+  readonly auth: Auth = this.initializeFirebaseAuth();
   readonly storage: FirebaseStorage = getStorage(this.app);
   readonly authState = new Observable<User | null>((subscriber) =>
     onAuthStateChanged(this.auth, subscriber),
@@ -49,5 +58,19 @@ export class FirebaseService {
         () => finish(this.auth.currentUser),
       );
     });
+  }
+
+  private initializeFirebaseAuth(): Auth {
+    try {
+      return initializeAuth(this.app, {
+        persistence: [browserLocalPersistence, browserSessionPersistence],
+      });
+    } catch (error) {
+      const code = (error as { code?: string })?.code;
+      if (code === 'auth/already-initialized') {
+        return getAuth(this.app);
+      }
+      throw error;
+    }
   }
 }
