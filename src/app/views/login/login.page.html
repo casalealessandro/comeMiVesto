@@ -33,6 +33,25 @@
             (submitFormEvent)="submitFormEvent($event)">
           </app-dynamic-form>
 
+          <div *ngIf="loginDebugEnabled" style="margin: 14px 0; padding: 12px; border: 1px solid currentColor; border-radius: 8px; font-size: 12px; line-height: 1.35;">
+            <div><strong>DEV LOGIN DEBUG</strong></div>
+
+            <div style="margin-top: 8px;"><strong>0. Firebase persistence:</strong> {{ persistenceDebugStatus }}</div>
+            <div *ngIf="persistenceDebugDetail">{{ persistenceDebugDetail }}</div>
+
+            <div style="margin-top: 6px;"><strong>1. Firebase signIn:</strong> {{ firebaseLoginDebugStatus }}</div>
+            <div *ngIf="firebaseLoginDebugDetail">{{ firebaseLoginDebugDetail }}</div>
+
+            <div style="margin-top: 6px;"><strong>2. Firebase ID token:</strong> {{ tokenDebugStatus }}</div>
+            <div *ngIf="tokenDebugDetail">{{ tokenDebugDetail }}</div>
+
+            <div style="margin-top: 6px;"><strong>3. GET user-profile:</strong> {{ profileDebugStatus }}</div>
+            <div *ngIf="profileDebugDetail">{{ profileDebugDetail }}</div>
+
+            <div style="margin-top: 6px;"><strong>4. Navigazione:</strong> {{ navigationDebugStatus }}</div>
+            <div *ngIf="navigationDebugDetail">{{ navigationDebugDetail }}</div>
+          </div>
+
           <div class="login-links">
             <span><ion-checkbox labelPlacement="end"  (ionChange)="setStayConnected($event)" >Resta connesso</ion-checkbox></span>
             <span class="link" component="nav-profile recupPassword" (click)="showRecupPassword()">Password
