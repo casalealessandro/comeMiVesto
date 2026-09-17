@@ -1,0 +1,141 @@
+name: App Store Connect Auth Diagnostic
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    name: Validate App Store Connect API authentication
+    if: contains(github.event.head_commit.message, '[asc-auth-test]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate required secrets
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$APP_STORE_CONNECT_ISSUER_ID" || { echo "Missing APP_STORE_CONNECT_ISSUER_ID" >&2; exit 1; }
+          test -n "$APP_STORE_CONNECT_KEY_ID" || { echo "Missing APP_STORE_CONNECT_KEY_ID" >&2; exit 1; }
+          test -n "$APP_STORE_CONNECT_PRIVATE_KEY" || { echo "Missing APP_STORE_CONNECT_PRIVATE_KEY" >&2; exit 1; }
+
+      - name: Restore and validate API private key
+        id: asc_key
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY_PATH="$RUNNER_TEMP/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
+
+          node <<'NODE'
+          const fs = require('fs');
+          const crypto = require('crypto');
+
+          let value = process.env.APP_STORE_CONNECT_PRIVATE_KEY || '';
+          if (value.includes('\\n') && !value.includes('\n')) {
+            value = value.replace(/\\n/g, '\n');
+          }
+          value = value.trimEnd() + '\n';
+
+          const path = `${process.env.RUNNER_TEMP}/AuthKey_${process.env.APP_STORE_CONNECT_KEY_ID}.p8`;
+          fs.writeFileSync(path, value, { mode: 0o600 });
+          crypto.createPrivateKey(fs.readFileSync(path, 'utf8'));
+          console.log('Private key format: OK');
+          NODE
+
+          test -s "$KEY_PATH"
+          echo "path=$KEY_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Validate App Store Connect REST authentication
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_KEY_PATH: ${{ steps.asc_key.outputs.path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASC_TOKEN="$(node <<'NODE'
+          const fs = require('fs');
+          const crypto = require('crypto');
+
+          const b64urlJson = value => Buffer.from(JSON.stringify(value)).toString('base64url');
+          const now = Math.floor(Date.now() / 1000);
+          const header = {
+            alg: 'ES256',
+            kid: process.env.APP_STORE_CONNECT_KEY_ID,
+            typ: 'JWT'
+          };
+          const payload = {
+            iss: process.env.APP_STORE_CONNECT_ISSUER_ID,
+            iat: now - 30,
+            exp: now + 600,
+            aud: 'appstoreconnect-v1'
+          };
+          const unsigned = `${b64urlJson(header)}.${b64urlJson(payload)}`;
+          const key = fs.readFileSync(process.env.APP_STORE_CONNECT_KEY_PATH, 'utf8');
+          const signature = crypto.sign('sha256', Buffer.from(unsigned), {
+            key,
+            dsaEncoding: 'ieee-p1363'
+          }).toString('base64url');
+          process.stdout.write(`${unsigned}.${signature}`);
+          NODE
+          )"
+
+          RESPONSE_FILE="$RUNNER_TEMP/appstore-connect-response.json"
+          HTTP_STATUS="$(curl --silent --show-error \
+            --output "$RESPONSE_FILE" \
+            --write-out '%{http_code}' \
+            --header "Authorization: Bearer $ASC_TOKEN" \
+            --header 'Accept: application/json' \
+            'https://api.appstoreconnect.apple.com/v1/apps?limit=1')"
+
+          echo "App Store Connect HTTP status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" != "200" ]; then
+            node <<'NODE'
+            const fs = require('fs');
+            const path = `${process.env.RUNNER_TEMP}/appstore-connect-response.json`;
+            try {
+              const body = JSON.parse(fs.readFileSync(path, 'utf8'));
+              const errors = Array.isArray(body.errors) ? body.errors : [];
+              for (const error of errors) {
+                console.error(`Apple error: ${error.status || ''} ${error.code || ''} ${error.title || ''} ${error.detail || ''}`.trim());
+              }
+              if (!errors.length) console.error('Apple returned an unexpected response body.');
+            } catch {
+              console.error('Apple returned a non-JSON error response.');
+            }
+            NODE
+            exit 1
+          fi
+
+          node <<'NODE'
+          const fs = require('fs');
+          const path = `${process.env.RUNNER_TEMP}/appstore-connect-response.json`;
+          const body = JSON.parse(fs.readFileSync(path, 'utf8'));
+          console.log(`App Store Connect REST authentication: OK (apps returned: ${Array.isArray(body.data) ? body.data.length : 0})`);
+          NODE
+
+      - name: Remove private key
+        if: always()
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
