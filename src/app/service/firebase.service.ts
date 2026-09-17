@@ -24,8 +24,30 @@ export class FirebaseService {
     }
   }
 
-  async waitForAuthState(): Promise<User | null> {
-    await this.auth.authStateReady();
-    return this.auth.currentUser;
+  async waitForAuthState(timeoutMs = 5000): Promise<User | null> {
+    if (this.auth.currentUser) {
+      return this.auth.currentUser;
+    }
+
+    return new Promise<User | null>((resolve) => {
+      let settled = false;
+      let unsubscribe: (() => void) | undefined;
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+      const finish = (user: User | null) => {
+        if (settled) return;
+        settled = true;
+        if (timeoutId) clearTimeout(timeoutId);
+        unsubscribe?.();
+        resolve(user);
+      };
+
+      timeoutId = setTimeout(() => finish(this.auth.currentUser), timeoutMs);
+      unsubscribe = onAuthStateChanged(
+        this.auth,
+        (user) => finish(user),
+        () => finish(this.auth.currentUser),
+      );
+    });
   }
 }
