@@ -26,6 +26,13 @@
           </div>
         </div>
         <div class="login-center-container">
+          <div *ngIf="apiDebugEnabled" style="margin-bottom: 16px; padding: 12px; border: 1px solid currentColor; border-radius: 8px; font-size: 12px;">
+            <div><strong>DEV API DEBUG</strong></div>
+            <div style="word-break: break-all; margin-top: 6px;">{{ loginFormApiUrl }}</div>
+            <div style="margin-top: 6px;"><strong>{{ apiDebugStatus }}</strong></div>
+            <div *ngIf="apiDebugDetail" style="margin-top: 4px;">{{ apiDebugDetail }}</div>
+          </div>
+
           <app-dynamic-form 
             [service]="'loginForm'" 
             [btnFormText]="'Accedi'"
