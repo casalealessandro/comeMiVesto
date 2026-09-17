@@ -1,4 +1,4 @@
-<ion-item *ngIf="noCustom" lines="none">
+<ion-item *ngIf="noCustom" lines="none" [class.form-field-invalid]="invalid">
   <div class="selectbox">
     <div class="label-wrap">
       <label position="stacked">{{ config.label }}</label>
@@ -21,7 +21,7 @@
 </ion-item>
 
 
-<ion-item *ngIf="!noCustom" (click)="openCustomSelect()" [disabled]="disabled" class="cstomselectbox">
+<ion-item *ngIf="!noCustom" (click)="openCustomSelect()" [disabled]="disabled" class="cstomselectbox" [class.form-field-invalid]="invalid">
   <ion-label [position]="labelPlacement">{{config.label}}</ion-label>
 
   <ion-text>{{ noCustomOptions.length ? noCustomOptions.join(', ') : "Seleziona un'opzione" }}</ion-text>
