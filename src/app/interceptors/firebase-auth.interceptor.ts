@@ -17,8 +17,11 @@ export class FirebaseAuthInterceptor implements HttpInterceptor {
     const isBackendRequest =
       request.url === environment.BASE_API_URL ||
       request.url.startsWith(`${environment.BASE_API_URL}/`);
+    const isPublicFormRequest =
+      request.method === 'GET' &&
+      request.url.startsWith(`${environment.BASE_API_URL}/gen/forms/`);
 
-    if (!isBackendRequest) {
+    if (!isBackendRequest || isPublicFormRequest) {
       return next.handle(request);
     }
 
