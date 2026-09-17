@@ -38,7 +38,7 @@ jobs:
             exit 1
           fi
 
-          if [ "$APP_STORE_CONNECT_KEY_ID" != "BVAH5ZRZWC" ]; then
+          if [ "$APP_STORE_CONNECT_KEY_ID" != "BVAH5ZR2WC" ]; then
             echo "APP_STORE_CONNECT_KEY_ID does not match the current ComeMiVesto GitHub Admin team key." >&2
             exit 1
           fi
