@@ -9,6 +9,17 @@ import { from, Observable, switchMap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { FirebaseService } from '../service/firebase.service';
 
+interface PublicApiRoute {
+  method: string;
+  path: RegExp;
+}
+
+const PUBLIC_API_ROUTES: PublicApiRoute[] = [
+  { method: 'GET', path: /^\/gen\/forms\/[^/]+$/ },
+  { method: 'POST', path: /^\/user\/register$/ },
+  { method: 'POST', path: /^\/user\/token$/ },
+];
+
 @Injectable()
 export class FirebaseAuthInterceptor implements HttpInterceptor {
   constructor(private firebase: FirebaseService) {}
@@ -17,11 +28,20 @@ export class FirebaseAuthInterceptor implements HttpInterceptor {
     const isBackendRequest =
       request.url === environment.BASE_API_URL ||
       request.url.startsWith(`${environment.BASE_API_URL}/`);
-    const isPublicFormRequest =
-      request.method === 'GET' &&
-      request.url.startsWith(`${environment.BASE_API_URL}/gen/forms/`);
 
-    if (!isBackendRequest || isPublicFormRequest) {
+    if (!isBackendRequest) {
+      return next.handle(request);
+    }
+
+    const relativePath = request.url
+      .slice(environment.BASE_API_URL.length)
+      .split('?')[0];
+
+    const isPublicApiRequest = PUBLIC_API_ROUTES.some(
+      (route) => route.method === request.method && route.path.test(relativePath),
+    );
+
+    if (isPublicApiRequest) {
       return next.handle(request);
     }
 
