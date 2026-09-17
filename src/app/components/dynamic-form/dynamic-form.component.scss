@@ -6,3 +6,38 @@
   
     
 }
+
+.form-loader {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-loader ion-spinner {
+    width: 28px;
+    height: 28px;
+}
+
+.submit-spinner {
+    width: 18px;
+    height: 18px;
+}
+
+.form-field-invalid .textbox {
+    --highlight-color-invalid: var(--ion-color-danger, #eb445a);
+    border: 1px solid var(--ion-color-danger, #eb445a);
+    border-radius: 5px;
+}
+
+.form-field-invalid ion-checkbox {
+    --border-color: var(--ion-color-danger, #eb445a);
+    --border-color-checked: var(--ion-color-danger, #eb445a);
+}
+
+.field-error {
+    display: block;
+    margin: 4px 16px 0;
+    font-size: 12px;
+    color: var(--ion-color-danger, #eb445a);
+}
