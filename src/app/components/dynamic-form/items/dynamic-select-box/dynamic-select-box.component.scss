@@ -1,0 +1,10 @@
+.form-field-invalid {
+  .native-wrapper {
+    border-color: var(--ion-color-danger, #eb445a) !important;
+  }
+
+  label,
+  ion-label {
+    color: var(--ion-color-danger, #eb445a);
+  }
+}
