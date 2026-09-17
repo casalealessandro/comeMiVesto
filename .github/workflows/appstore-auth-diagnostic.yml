@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Validate required secrets
+      - name: Validate configured identifiers
         env:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
@@ -32,6 +32,19 @@ jobs:
           test -n "$APP_STORE_CONNECT_ISSUER_ID" || { echo "Missing APP_STORE_CONNECT_ISSUER_ID" >&2; exit 1; }
           test -n "$APP_STORE_CONNECT_KEY_ID" || { echo "Missing APP_STORE_CONNECT_KEY_ID" >&2; exit 1; }
           test -n "$APP_STORE_CONNECT_PRIVATE_KEY" || { echo "Missing APP_STORE_CONNECT_PRIVATE_KEY" >&2; exit 1; }
+
+          if [ "$APP_STORE_CONNECT_ISSUER_ID" != "2d3b2400-624f-44f8-ae93-b99466078c39" ]; then
+            echo "APP_STORE_CONNECT_ISSUER_ID does not match the Team Keys issuer shown in App Store Connect." >&2
+            exit 1
+          fi
+
+          if [ "$APP_STORE_CONNECT_KEY_ID" != "BVAH5ZRZWC" ]; then
+            echo "APP_STORE_CONNECT_KEY_ID does not match the current ComeMiVesto GitHub Admin team key." >&2
+            exit 1
+          fi
+
+          echo "Issuer ID: OK"
+          echo "Key ID: OK"
 
       - name: Restore and validate API private key
         id: asc_key
@@ -109,29 +122,12 @@ jobs:
           echo "App Store Connect HTTP status: $HTTP_STATUS"
 
           if [ "$HTTP_STATUS" != "200" ]; then
-            node <<'NODE'
-            const fs = require('fs');
-            const path = `${process.env.RUNNER_TEMP}/appstore-connect-response.json`;
-            try {
-              const body = JSON.parse(fs.readFileSync(path, 'utf8'));
-              const errors = Array.isArray(body.errors) ? body.errors : [];
-              for (const error of errors) {
-                console.error(`Apple error: ${error.status || ''} ${error.code || ''} ${error.title || ''} ${error.detail || ''}`.trim());
-              }
-              if (!errors.length) console.error('Apple returned an unexpected response body.');
-            } catch {
-              console.error('Apple returned a non-JSON error response.');
-            }
-            NODE
+            echo "Apple response:"
+            cat "$RESPONSE_FILE"
             exit 1
           fi
 
-          node <<'NODE'
-          const fs = require('fs');
-          const path = `${process.env.RUNNER_TEMP}/appstore-connect-response.json`;
-          const body = JSON.parse(fs.readFileSync(path, 'utf8'));
-          console.log(`App Store Connect REST authentication: OK (apps returned: ${Array.isArray(body.data) ? body.data.length : 0})`);
-          NODE
+          echo "App Store Connect REST authentication: OK"
 
       - name: Remove private key
         if: always()
