@@ -5,6 +5,8 @@ import { browserLocalPersistence, browserSessionPersistence, sendPasswordResetEm
 import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom } from 'rxjs';
 import { FirebaseService } from 'src/app/service/firebase.service';
+import { ApiRequestError, AppService } from 'src/app/service/app-service';
+import { environment } from 'src/environments/environment';
 
 export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
   if (!returnUrl || !returnUrl.startsWith('/tabs') || returnUrl.startsWith('//') || returnUrl.includes('://') || returnUrl.split(/[?#]/, 1)[0].split('/').includes('..')) return '/tabs/myoutfit';
@@ -27,7 +29,42 @@ export class LoginPage {
   stayConnected:boolean=true;
   emailRecup:string=''
   recupPasswordError:string = 'Inserisci un email valida'
-  constructor(private firebase: FirebaseService,private userService: UserService, private alert:AlertController,private router :Router, private route: ActivatedRoute) {}
+
+  readonly apiDebugEnabled = !environment.production;
+  readonly loginFormApiUrl = `${environment.BASE_API_URL}/gen/forms/loginForm`;
+  apiDebugStatus = 'IN ATTESA';
+  apiDebugDetail = '';
+  private apiDebugExecuted = false;
+
+  constructor(
+    private firebase: FirebaseService,
+    private userService: UserService,
+    private appService: AppService,
+    private alert:AlertController,
+    private router :Router,
+    private route: ActivatedRoute
+  ) {}
+
+  async ionViewDidEnter(): Promise<void> {
+    if (!this.apiDebugEnabled || this.apiDebugExecuted) return;
+
+    this.apiDebugExecuted = true;
+    this.apiDebugStatus = 'CHIAMATA IN CORSO...';
+    this.apiDebugDetail = '';
+
+    try {
+      const fields = await firstValueFrom(this.appService.getFormFields('loginForm'));
+      this.apiDebugStatus = 'HTTP OK';
+      this.apiDebugDetail = `${fields.length} campi ricevuti`;
+    } catch (error) {
+      this.apiDebugStatus = 'ERRORE';
+      if (error instanceof ApiRequestError) {
+        this.apiDebugDetail = `HTTP ${error.status} - ${error.message}`;
+      } else {
+        this.apiDebugDetail = error instanceof Error ? error.message : 'Errore sconosciuto';
+      }
+    }
+  }
 
   async login() {
 
