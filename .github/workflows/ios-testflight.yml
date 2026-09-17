@@ -93,8 +93,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build web application
-        run: npm run build
+      - name: Build web application for apiDev
+        run: npm run build -- --configuration dev
 
       - name: Synchronize iOS
         run: npx cap sync ios
@@ -260,54 +260,29 @@ jobs:
           name: comemivesto-ios-${{ steps.ios_version.outputs.version_name }}-build${{ steps.ios_version.outputs.build_number }}
           path: ${{ env.IPA_PATH }}
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 7
 
-      - name: Validate build with App Store Connect
+      - name: Upload to TestFlight
         env:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          xcrun altool \
-            --validate-app \
-            --file "$IPA_PATH" \
-            --type ios \
-            --apiKey "$APP_STORE_CONNECT_KEY_ID" \
-            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
-
-      - name: Upload build to TestFlight
-        env:
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_KEY_PATH: ${{ steps.asc_key.outputs.path }}
         shell: bash
         run: |
           set -euo pipefail
           xcrun altool \
             --upload-app \
-            --file "$IPA_PATH" \
             --type ios \
+            --file "$IPA_PATH" \
             --apiKey "$APP_STORE_CONNECT_KEY_ID" \
             --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
 
-      - name: Tag successful iOS build
+      - name: Push iOS release tag
         env:
           IOS_RELEASE_TAG: ${{ steps.ios_version.outputs.ios_release_tag }}
           SOURCE_SHA: ${{ steps.ios_version.outputs.source_sha }}
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag "$IOS_RELEASE_TAG" "$SOURCE_SHA"
           git push origin "$IOS_RELEASE_TAG"
-          echo "Created iOS build tag: $IOS_RELEASE_TAG"
-
-      - name: Remove private files
-        if: always()
-        env:
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-        shell: bash
-        run: |
-          rm -f "ios/App/App/GoogleService-Info.plist"
-          rm -f "$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
