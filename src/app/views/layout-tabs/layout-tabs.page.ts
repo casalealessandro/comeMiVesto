@@ -14,9 +14,21 @@ export class LayoutTabsPage  {
 
   canGoBack:boolean=false
   showHeader:boolean=true
+  tabLoading:boolean=false
+  private tabLoadingTimeout:any
   constructor(private sharedData: SharedDataService,private navController: NavController,private router: Router) { }
   
+  onTabWillChange() {
+    if (this.tabLoadingTimeout) {
+      clearTimeout(this.tabLoadingTimeout)
+    }
+    this.tabLoading = true
+  }
+
   onTabChange(event: any) {
+    this.tabLoadingTimeout = setTimeout(() => {
+      this.tabLoading = false
+    }, 250)
     const selectedTab = event.tab;
     console.log('Selected tab:', event);
     switch (selectedTab) {
