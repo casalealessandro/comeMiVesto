@@ -41,6 +41,8 @@ body {
   font-family: 'Instrument Sans', sans-serif;;
 } */
 
-.tabs-inner{
-  //min-height: 100vh;
+ion-tabs > .tabs-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
