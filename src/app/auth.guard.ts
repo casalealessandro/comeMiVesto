@@ -28,16 +28,19 @@ export const authGuard: CanActivateFn = async (route, state) => {
       return loginRedirect();
     }
 
-    // Recuperiamo il profilo utente dal backend
-    try {
-      const profile = await firstValueFrom(userService.getUserProfile(user.uid));
-      userService.setUserInfo(profile); // Salviamo il profilo nel service
-    } catch (error) {
-      console.error('Errore nel recupero del profilo utente:', error);
-      return false;
+    // Recuperiamo il profilo utente solo se non è già caricato
+    const currentProfile = userService.gUserProfile()();
+    if (currentProfile?.uid !== user.uid) {
+      try {
+        const profile = await firstValueFrom(userService.getUserProfile(user.uid));
+        userService.setUserInfo(profile); // Salviamo il profilo nel service
+      } catch (error) {
+        console.error('Errore nel recupero del profilo utente:', error);
+        return false;
+      }
     }
 
-    const decision = await termsAcceptance.allowAppAccess();
+    const decision = await termsAcceptance.allowAppAccess(user.uid);
     return decision === 'accepted' ? true : decision === 'declined' ? loginRedirect() : false;
   } catch (error) {
     console.error('Errore nella verifica dello stato di autenticazione:', error);
