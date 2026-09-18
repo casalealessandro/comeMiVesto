@@ -32,6 +32,8 @@ export class LoginPage {
   persistenceDebugDetail = '';
   firebaseLoginDebugStatus = 'IN ATTESA';
   firebaseLoginDebugDetail = '';
+  backendTokenDebugStatus = 'IN ATTESA';
+  backendTokenDebugDetail = '';
   tokenDebugStatus = 'IN ATTESA';
   tokenDebugDetail = '';
   profileDebugStatus = 'IN ATTESA';
@@ -117,6 +119,9 @@ export class LoginPage {
       } else if (this.firebaseLoginDebugStatus === 'IN CORSO...') {
         this.firebaseLoginDebugStatus = this.isTimeout(error) ? 'TIMEOUT' : 'ERRORE';
         this.firebaseLoginDebugDetail = detail;
+        if (this.loginDebugEnabled) {
+          await this.runBackendTokenDebug();
+        }
       } else if (this.tokenDebugStatus === 'IN CORSO...') {
         this.tokenDebugStatus = this.isTimeout(error) ? 'TIMEOUT' : 'ERRORE';
         this.tokenDebugDetail = detail;
@@ -143,12 +148,58 @@ export class LoginPage {
     this.persistenceDebugDetail = '';
     this.firebaseLoginDebugStatus = 'IN ATTESA';
     this.firebaseLoginDebugDetail = '';
+    this.backendTokenDebugStatus = 'IN ATTESA';
+    this.backendTokenDebugDetail = '';
     this.tokenDebugStatus = 'IN ATTESA';
     this.tokenDebugDetail = '';
     this.profileDebugStatus = 'IN ATTESA';
     this.profileDebugDetail = '';
     this.navigationDebugStatus = 'IN ATTESA';
     this.navigationDebugDetail = '';
+  }
+
+  private async runBackendTokenDebug(): Promise<void> {
+    this.backendTokenDebugStatus = 'IN CORSO...';
+    this.backendTokenDebugDetail = '';
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+
+    try {
+      const response = await fetch(`${environment.BASE_API_URL}/user/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: this.email, password: this.password }),
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+
+      let payload: any = null;
+      try {
+        payload = await response.json();
+      } catch {
+        payload = null;
+      }
+
+      if (response.ok) {
+        this.backendTokenDebugStatus = 'HTTP OK';
+        this.backendTokenDebugDetail = 'Firebase backend ha autenticato le credenziali';
+        return;
+      }
+
+      this.backendTokenDebugStatus = `HTTP ${response.status}`;
+      this.backendTokenDebugDetail = payload?.message || response.statusText || 'Risposta non valida';
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        this.backendTokenDebugStatus = 'TIMEOUT';
+        this.backendTokenDebugDetail = 'POST /user/token oltre 8 secondi';
+      } else {
+        this.backendTokenDebugStatus = 'ERRORE';
+        this.backendTokenDebugDetail = error instanceof Error ? error.message : 'Errore sconosciuto';
+      }
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
   }
 
   private withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {
