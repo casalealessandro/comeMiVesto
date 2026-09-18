@@ -435,9 +435,6 @@ export class MyOutFitPage implements OnDestroy {
 
   async outfitMenu(outfit: outfit) {
 
-    this.modalController.dismiss()
-
-
     // Imposta la variabile a true quando il modale viene aperto
     this.isOutfitCompositionOpen = true;
     let itemsElement = [
@@ -568,7 +565,7 @@ export class MyOutFitPage implements OnDestroy {
   async openShareModal(outfit: outfit) {
 
 
-    this.sharingSocial.shareVia(outfit)
+    await this.sharingSocial.shareVia(outfit)
     /*  const modal = await this.modalController.create({
        component: SocialSharingComponent,
        componentProps: { outfit: outfit },
