@@ -42,6 +42,9 @@
             <div style="margin-top: 6px;"><strong>1. Firebase signIn:</strong> {{ firebaseLoginDebugStatus }}</div>
             <div *ngIf="firebaseLoginDebugDetail">{{ firebaseLoginDebugDetail }}</div>
 
+            <div style="margin-top: 6px;"><strong>1B. POST /user/token:</strong> {{ backendTokenDebugStatus }}</div>
+            <div *ngIf="backendTokenDebugDetail">{{ backendTokenDebugDetail }}</div>
+
             <div style="margin-top: 6px;"><strong>2. Firebase ID token:</strong> {{ tokenDebugStatus }}</div>
             <div *ngIf="tokenDebugDetail">{{ tokenDebugDetail }}</div>
 
