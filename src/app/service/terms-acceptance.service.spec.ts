@@ -22,6 +22,22 @@ describe('TermsAcceptanceService', () => {
     expect(modals.create).not.toHaveBeenCalled();
   });
 
+  it('reuses an accepted Terms check for the same user during the app session', async () => {
+    users.getTermsStatus.and.returnValue(of(current));
+    const instance = service();
+    expect(await instance.allowAppAccess('user-1')).toBe('accepted');
+    expect(await instance.allowAppAccess('user-1')).toBe('accepted');
+    expect(users.getTermsStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('checks Terms again when the authenticated user changes', async () => {
+    users.getTermsStatus.and.returnValue(of(current));
+    const instance = service();
+    expect(await instance.allowAppAccess('user-1')).toBe('accepted');
+    expect(await instance.allowAppAccess('user-2')).toBe('accepted');
+    expect(users.getTermsStatus).toHaveBeenCalledTimes(2);
+  });
+
   it('waits for explicit acceptance', async () => {
     users.getTermsStatus.and.returnValue(of({ ...current, accepted: false }));
     modals.create.and.resolveTo({ present: () => Promise.resolve(), onDidDismiss: () => Promise.resolve({ data: { accepted: true } }) });
