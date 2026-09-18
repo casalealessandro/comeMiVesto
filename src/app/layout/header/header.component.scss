@@ -21,11 +21,12 @@
 
         --padding-top: 0px;
         --padding-bottom: 0px;
-        min-height: 24px !important;
-        height: 24px;
+        min-height: 44px !important;
+        height: 44px;
 
         ion-button {
-            min-height: 24px;
+            min-width: 44px;
+            min-height: 44px;
 
             --padding-top: 0px;
             --padding-bottom: 0px;
