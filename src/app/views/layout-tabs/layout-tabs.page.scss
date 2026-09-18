@@ -50,6 +50,13 @@
     --background: transparent;
     height: 121px;
     align-items: flex-end;
+    background: linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(100% - var(--ion-safe-area-bottom, 0px)),
+        #F1F1F1 calc(100% - var(--ion-safe-area-bottom, 0px)),
+        #F1F1F1 100%
+    );
     /*
     height: 121px;
     position: absolute;
@@ -94,6 +101,7 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                transition: color 100ms ease, box-shadow 100ms ease;
                 --padding-top: 15.5px;
                 --padding-bottom: 12.5px;
                 --padding-end: 15px;
@@ -117,6 +125,20 @@
 
                 ion-ripple-effect {
                     color: rgba(255, 255, 255, 0.3);
+                }
+
+                &:not(.center-tab-button).tab-selected {
+                    --color-selected: #1f1f1f;
+                    color: #1f1f1f;
+                    box-shadow: inset 0 -3px 0 #3f3f3f;
+
+                    .fi {
+                        transform: scale(1.08);
+                    }
+
+                    .outfit-tab-text {
+                        font-weight: 700;
+                    }
                 }
             }
         }
