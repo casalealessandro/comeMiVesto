@@ -1,4 +1,4 @@
-<div #imageContainer class="image-container">
+<div #imageContainer class="image-container" [class.has-image]="!!image">
   <!-- Loader che viene mostrato durante il caricamento dell'immagine -->
   <ion-spinner *ngIf="imageLoading" name="crescent"></ion-spinner>
 
@@ -29,10 +29,22 @@
    
     <i class="fi fi-rr-tags"></i>
   </ion-button>
-  <ion-button *ngIf="enableNewImagecaptured" expand="full" size="small" class="select-photo" (click)="captureImage()">
+  <ion-button
+    *ngIf="enableNewImagecaptured && image"
+    size="small"
+    class="change-photo"
+    (click)="captureImage()">
+    <ion-icon slot="start" name="camera-outline"></ion-icon>
+    Cambia foto
+  </ion-button>
 
+  <ion-button
+    *ngIf="enableNewImagecaptured && !image"
+    expand="full"
+    size="small"
+    class="select-photo"
+    (click)="captureImage()">
     Seleziona foto
-
   </ion-button>
 </div>
 

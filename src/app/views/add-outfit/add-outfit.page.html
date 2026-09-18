@@ -36,6 +36,7 @@
     class="outfit-form"
     [service]="'outfitForm'"
     [editData]="outfitData"
+    [btnFormText]="isEditMode ? 'Salva' : 'Crea outfit'"
     (submitFormEvent)="saveOutfit($event)"
 
     >
