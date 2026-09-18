@@ -41,6 +41,7 @@ body {
   font-family: 'Instrument Sans', sans-serif;;
 } */
 
+/* Keep the Angular tabs wrapper sized so routed tab pages can fill the available area. */
 ion-tabs > .tabs-inner {
   position: relative;
   width: 100%;
