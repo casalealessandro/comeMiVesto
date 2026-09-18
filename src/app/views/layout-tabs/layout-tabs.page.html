@@ -4,7 +4,7 @@
   </ion-content>
 </ion-menu>
 
-<ion-tabs class="app-layout-tabs" id="main-content" (ionTabsDidChange)="onTabChange($event)">
+<ion-tabs class="app-layout-tabs" id="main-content" (ionTabsWillChange)="onTabWillChange()" (ionTabsDidChange)="onTabChange($event)">
   <app-header slot="top"></app-header>
   <ion-tab-bar
     style="padding-bottom: 0px !important"
@@ -30,7 +30,7 @@
 
       <div class="button-block">
         <div class="outfit-center-button">
-          <ion-tab-button class="outfit-bar-button" tab="add-outfit">
+          <ion-tab-button class="outfit-bar-button center-tab-button" tab="add-outfit">
             <ion-ripple-effect></ion-ripple-effect>
             <span class="fi fi-rr-plus"></span>
           </ion-tab-button>
@@ -53,3 +53,10 @@
     </div>
   </ion-tab-bar>
 </ion-tabs>
+
+<div *ngIf="tabLoading" class="tab-loading-overlay">
+  <div class="tab-loading-content">
+    <ion-spinner name="crescent"></ion-spinner>
+    <span>Caricamento...</span>
+  </div>
+</div>
