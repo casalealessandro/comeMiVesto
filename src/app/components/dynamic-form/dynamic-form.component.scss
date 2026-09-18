@@ -24,17 +24,6 @@
     height: 18px;
 }
 
-.form-field-invalid .textbox {
-    --highlight-color-invalid: var(--ion-color-danger, #eb445a);
-    border: 1px solid var(--ion-color-danger, #eb445a);
-    border-radius: 5px;
-}
-
-.form-field-invalid ion-checkbox {
-    --border-color: var(--ion-color-danger, #eb445a);
-    --border-color-checked: var(--ion-color-danger, #eb445a);
-}
-
 .field-error {
     display: block;
     margin: 4px 16px 0;
