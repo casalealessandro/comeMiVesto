@@ -33,6 +33,12 @@ export class DynamicSelectBoxComponent implements OnChanges, OnInit {
   formService=inject(AppService)
   selectedValue!: string | string[];
   multiple: boolean= false;
+  multiSelectInterfaceOptions = {
+    cssClass: 'cmv-multiselect-modal',
+    initialBreakpoint: 0.8,
+    breakpoints: [0, 0.8, 1],
+    handle: true
+  };
   noCustom: boolean = true;
   noCustomOptions:any[]=[];
   isRemote:boolean=false;
