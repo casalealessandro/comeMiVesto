@@ -52,7 +52,7 @@ export class LayoutTabsPage  {
               showLogo:false,
               showUserInfo:false,
               showTitleText:true,
-              titleText:'Inserisci outfit',
+              titleText:'Crea outfit',
               canGoBack:true
              
             }
