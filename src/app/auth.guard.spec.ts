@@ -16,7 +16,11 @@ describe('protected routing', () => {
 
   beforeEach(() => {
     auth = { waitForAuthState: jasmine.createSpy().and.resolveTo(null) };
-    users = { getUserProfile: jasmine.createSpy().and.returnValue(of({ uid: 'user' })), setUserInfo: jasmine.createSpy() };
+    users = {
+      getUserProfile: jasmine.createSpy().and.returnValue(of({ uid: 'user' })),
+      setUserInfo: jasmine.createSpy(),
+      gUserProfile: jasmine.createSpy().and.returnValue(() => ({ uid: '' }))
+    };
     terms = { allowAppAccess: jasmine.createSpy().and.resolveTo('accepted') };
     TestBed.configureTestingModule({ imports: [RouterTestingModule], providers: [
       { provide: FirebaseService, useValue: auth }, { provide: UserService, useValue: users },
@@ -46,10 +50,18 @@ describe('protected routing', () => {
     expect(users.getUserProfile).toHaveBeenCalledWith('user');
   });
 
+  it('does not reload the profile when the current user is already loaded', async () => {
+    auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
+    users.gUserProfile.and.returnValue(() => ({ uid: 'user' }));
+
+    expect(await run('/tabs/my-profile')).toBeTrue();
+    expect(users.getUserProfile).not.toHaveBeenCalled();
+  });
+
   it('allows the original protected route when signed in with current Terms', async () => {
     auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
     expect(await run('/tabs/detail-outfit/abc')).toBeTrue();
-    expect(terms.allowAppAccess).toHaveBeenCalledTimes(1);
+    expect(terms.allowAppAccess).toHaveBeenCalledOnceWith('user');
   });
 
   it('continues the original navigation after Terms acceptance without a home redirect', async () => {
