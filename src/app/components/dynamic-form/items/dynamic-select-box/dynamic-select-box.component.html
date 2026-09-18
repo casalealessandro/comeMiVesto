@@ -6,7 +6,9 @@
     <div class="native-wrapper">
       <ion-select 
         [multiple]="selectOptions.multiple" 
-        [value]="selectedValue" interface="action-sheet"
+        [value]="selectedValue"
+        [interface]="selectOptions.multiple ? 'modal' : 'action-sheet'"
+        [interfaceOptions]="selectOptions.multiple ? multiSelectInterfaceOptions : undefined"
         (ionChange)="onValueChange($event)" 
         placeholder="Seleziona"
         [disabled]="disabled"> <!-- Disabilita la selectbox se necessario -->
