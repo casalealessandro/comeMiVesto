@@ -131,7 +131,7 @@
           justify-content: space-between;
           flex-direction: row;
 
-          height: 24px;
+          min-height: 44px;
 
           .outfit-header-wrapper-title {
             display: flex;
@@ -173,7 +173,10 @@
               --padding-start: 0;
               --padding-end: 0;
               --padding-bottom: 0;
-              min-height: 24px;
+              width: 44px;
+              height: 44px;
+              min-height: 44px;
+              margin: 0;
               font-size: unset;
 
               .fi {
