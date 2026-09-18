@@ -13,6 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  # Stable App Store signing assets are restored from repository secrets.
   APPLE_TEAM_ID: Z9SD7XVK87
 
 jobs:
