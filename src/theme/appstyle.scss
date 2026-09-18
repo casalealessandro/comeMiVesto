@@ -264,23 +264,53 @@ ion-checkbox {
 /* Add outfit: compact density scoped only to this DynamicForm instance. */
 app-dynamic-form.outfit-form {
     .form-group {
-        row-gap: 16px;
+        row-gap: 12px;
+        padding-top: 14px;
     }
 
-    .form-footer {
-        margin-top: 16px;
-        padding-bottom: 8px;
+    .form-group > ng-container,
+    .form-group ion-item {
+        margin: 0;
+    }
+
+    ion-item {
+        --min-height: 0;
+        --padding-start: 16px;
+        --inner-padding-end: 16px;
+        --background: transparent;
+    }
+
+    ion-input.textbox {
+        min-height: 56px;
+        --padding-top: 8px;
+        --padding-bottom: 8px;
+    }
+
+    ion-textarea.textbox {
+        min-height: 116px;
+        --padding-top: 8px;
+        --padding-bottom: 8px;
     }
 
     .selectbox {
         .native-wrapper {
             margin-top: 6px;
-            min-height: 44px;
+            min-height: 46px;
         }
 
         .native-wrapper ion-select::part(container) {
-            min-height: 44px;
+            min-height: 46px;
             padding: 0 12px;
         }
+    }
+
+    .form-footer {
+        margin-top: 14px;
+        padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .form-footer ion-item {
+        --padding-start: 16px;
+        --inner-padding-end: 16px;
     }
 }
