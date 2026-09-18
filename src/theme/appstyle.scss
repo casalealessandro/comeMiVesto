@@ -259,3 +259,28 @@ ion-checkbox {
     color: var(--outfit-btn-text-color);
     --border-color:var(--input-border-color);
 }
+
+
+/* Add outfit: compact density scoped only to this DynamicForm instance. */
+app-dynamic-form.outfit-form {
+    .form-group {
+        row-gap: 16px;
+    }
+
+    .form-footer {
+        margin-top: 16px;
+        padding-bottom: 8px;
+    }
+
+    .selectbox {
+        .native-wrapper {
+            margin-top: 6px;
+            min-height: 44px;
+        }
+
+        .native-wrapper ion-select::part(container) {
+            min-height: 44px;
+            padding: 0 12px;
+        }
+    }
+}

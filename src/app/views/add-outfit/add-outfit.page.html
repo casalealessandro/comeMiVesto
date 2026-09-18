@@ -1,4 +1,4 @@
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="add-outfit-content">
 
   <app-header 
   *ngIf="showheader"
@@ -33,6 +33,7 @@
     </ion-chip>
   </section>
   <app-dynamic-form
+    class="outfit-form"
     [service]="'outfitForm'"
     [editData]="outfitData"
     (submitFormEvent)="saveOutfit($event)"
