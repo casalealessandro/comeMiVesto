@@ -38,13 +38,20 @@
     Cambia foto
   </ion-button>
 
-  <ion-button
-    *ngIf="enableNewImagecaptured && !image"
-    expand="full"
-    size="small"
-    class="select-photo"
-    (click)="captureImage()">
-    Seleziona foto
-  </ion-button>
+  <section *ngIf="enableNewImagecaptured && !image" class="photo-upload-section">
+    <div class="photo-upload-copy">
+      <h2>Foto dell'outfit</h2>
+      <p>Carica una foto del look.</p>
+    </div>
+
+    <button
+      type="button"
+      class="photo-upload-card"
+      (click)="captureImage()"
+      aria-label="Aggiungi foto dell'outfit">
+      <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
+      <span>Aggiungi foto</span>
+    </button>
+  </section>
 </div>
 
