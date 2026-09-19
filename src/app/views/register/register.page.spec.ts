@@ -23,14 +23,21 @@ describe('RegisterPage Terms consent', () => {
     modalController = { create: jasmine.createSpy().and.callFake(async () => ({
       present: jasmine.createSpy().and.resolveTo(), onDidDismiss: jasmine.createSpy().and.callFake(async () => modalResult)
     })) };
-    users = jasmine.createSpyObj<UserService>('UserService', ['registerUser']);
+    users = jasmine.createSpyObj<UserService>('UserService', ['registerUser', 'loadBootstrap']);
     users.registerUser.and.returnValue(of({}));
     dynamicForm = jasmine.createSpyObj<DynamicFormComponent>('DynamicFormComponent', ['setFieldValue']);
     TestBed.configureTestingModule({ providers: [
       { provide: ModalController, useValue: modalController },
       { provide: AlertController, useValue: { create: jasmine.createSpy().and.resolveTo({ present: () => Promise.resolve() }) } }
     ] });
-    component = TestBed.runInInjectionContext(() => new RegisterPage(users, { back: () => undefined } as any, TestBed.inject(AlertController)));
+    component = TestBed.runInInjectionContext(() => new RegisterPage(
+      users,
+      { back: () => undefined } as any,
+      TestBed.inject(AlertController),
+      { auth: {} } as any,
+      { navigateByUrl: jasmine.createSpy().and.resolveTo(true) } as any
+    ));
+    spyOn<any>(component, 'completeRegistrationSession').and.resolveTo();
     component.registrationForm = dynamicForm;
   });
 
@@ -79,6 +86,17 @@ describe('RegisterPage Terms consent', () => {
     const payload = users.registerUser.calls.mostRecent().args[1] as any;
     expect(payload.termsAccepted).toBeTrue();
     for (const field of ['uid', 'createAt', 'termsVersion', 'termsAcceptedAt']) expect(payload[field]).toBeUndefined();
+  });
+
+  it('starts the Firebase session flow after a successful registration', async () => {
+    modalResult = { data: { accepted: true } };
+    await component.functionalCheckBox(termsEvent);
+    component.register(registration);
+
+    expect((component as any).completeRegistrationSession).toHaveBeenCalledWith(
+      registration.email,
+      registration.password
+    );
   });
 
   it('uses the same flow for the technical Terms link and ignores other checkboxes', async () => {
