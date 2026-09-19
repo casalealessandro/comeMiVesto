@@ -62,7 +62,9 @@
 
             <ion-card class="outfit-card">
               <div class="outfit-header">
-                <div class="outfit-header-wrapper-title" *ngIf="outfitUserProfile[outfit.userId]">
+                <div class="outfit-header-wrapper-title" *ngIf="outfitUserProfile[outfit.userId]"
+                  role="button" tabindex="0" (click)="openUserProfile(outfit.userId)"
+                  (keydown.enter)="openUserProfile(outfit.userId)">
                   <ion-avatar slot="start" class="outfit-card-avatar">
                     <img *ngIf="outfitUserProfile[outfit.userId]" [src]="outfitUserProfile[outfit.userId].photoURL" />
                   </ion-avatar>

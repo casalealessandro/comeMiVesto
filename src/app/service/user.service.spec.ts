@@ -37,6 +37,30 @@ describe('UserService REST contracts', () => {
 
   afterEach(() => http.verify());
 
+  it('gets and changes follow relationships using only the viewed uid', async () => {
+    const status = firstValueFrom(service.getFollowStatus('other/user'));
+    let request = http.expectOne(`${environment.BASE_API_URL}/gen/user-follows/other%2Fuser/status`);
+    expect(request.request.method).toBe('GET');
+    request.flush({ message: 'Success', data: { following: false } });
+    expect((await status).following).toBeFalse();
+
+    const follow = firstValueFrom(service.followUser('other/user'));
+    request = http.expectOne(`${environment.BASE_API_URL}/gen/user-follows/other%2Fuser`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({});
+    request.flush({
+      message: 'Success',
+      data: { id: 'relation-id', userId: 'me', followedUserId: 'other/user', createdAt: 123 }
+    });
+    await expectAsync(follow).toBeResolvedTo(undefined);
+
+    const unfollow = firstValueFrom(service.unfollowUser('other/user'));
+    request = http.expectOne(`${environment.BASE_API_URL}/gen/user-follows/other%2Fuser`);
+    expect(request.request.method).toBe('DELETE');
+    request.flush({ message: 'Success' });
+    await expectAsync(unfollow).toBeResolvedTo(undefined);
+  });
+
   it('gets the versioned terms status', async () => {
     const result = firstValueFrom(service.getTermsStatus());
     const request = http.expectOne(`${environment.BASE_API_URL}/user/terms-status`);

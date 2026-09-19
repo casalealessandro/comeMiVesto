@@ -86,6 +86,22 @@ describe('MyOutFitPage filters and search', () => {
   });
 
 
+  it('opens a public profile when the outfit author is another user', () => {
+    const component = page();
+    const router = { navigate: jasmine.createSpy().and.resolveTo(true) };
+    Object.assign(component, { router, cUserID: 'me' });
+    component.openUserProfile('other');
+    expect(router.navigate).toHaveBeenCalledOnceWith(['/tabs/user-profile', 'other']);
+  });
+
+  it('opens MyProfilePage when the outfit author is the authenticated user', () => {
+    const component = page();
+    const router = { navigate: jasmine.createSpy().and.resolveTo(true) };
+    Object.assign(component, { router, cUserID: 'me' });
+    component.openUserProfile('me');
+    expect(router.navigate).toHaveBeenCalledOnceWith(['/tabs/my-profile']);
+  });
+
   it('refreshes the server-authoritative feed after blocking without calling the lifecycle', async () => {
     const component = page();
     const appService = { blockUser: jasmine.createSpy().and.resolveTo({}) };
