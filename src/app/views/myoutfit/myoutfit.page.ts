@@ -463,7 +463,7 @@ export class MyOutFitPage implements OnDestroy {
           response = await this.appService.filterOutfitProducts({ color, gender, limit: 6 });
         }
 
-        if (!response.data.length && brend.length) {
+        if (!response.data.length && color.length && brend.length) {
           response = await this.appService.filterOutfitProducts({ brend, gender, limit: 6 });
         }
       } else {
