@@ -87,4 +87,38 @@ describe('AppService REST contracts', () => {
     request.flush({ message: 'Success', data: { id: 'block-id', blockedUserId: 'blocked/user', createdAt: 1 } });
     await result;
   });
+
+  it('gets catalog products with gender, limit and cursor and preserves pagination', async () => {
+    const result = service.getOutfitProducts({ gender: 'D', limit: 20, cursor: 'next-page' });
+    const request = http.expectOne(req => req.url === `${environment.BASE_API_URL}/gen/outfit-products`);
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.get('gender')).toBe('D');
+    expect(request.request.params.get('limit')).toBe('20');
+    expect(request.request.params.get('cursor')).toBe('next-page');
+    request.flush({ data: [{ id: 'product-1' }], pagination: { nextCursor: 'product-1', hasMore: true } });
+
+    await expectAsync(result).toBeResolvedTo(jasmine.objectContaining({
+      data: [jasmine.objectContaining({ id: 'product-1' })],
+      pagination: { nextCursor: 'product-1', hasMore: true }
+    }));
+  });
+
+  it('posts catalog filters and returns data with pagination', async () => {
+    const filters = {
+      outfitCategory: ['category-1'],
+      gender: 'U',
+      limit: 20,
+      cursor: 'next-page'
+    };
+    const result = service.filterOutfitProducts(filters);
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/filter-outfit-products`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(filters);
+    request.flush({ data: [], pagination: { nextCursor: null, hasMore: false } });
+
+    await expectAsync(result).toBeResolvedTo({
+      data: [],
+      pagination: { nextCursor: null, hasMore: false }
+    });
+  });
 });

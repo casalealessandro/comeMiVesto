@@ -47,10 +47,12 @@ export class DetailOutfitPage implements OnInit {
           console.log(this.tags)
         }
         
-        let products: any[] = await this.appService.filterOutfitProducts({
+        const response = await this.appService.filterOutfitProducts({
           outfitSubCategory: selectedOutfit.outfitSubCategory,
+          gender: selectedOutfit.gender,
+          limit: 20
         });
-        products = products.filter(product => !selectedOutfit.gender || product.gender === selectedOutfit.gender);
+        const products = response.data;
        
         if (this.tags.length > 0 && this.isOpen) {
           const tags =this.tags
@@ -124,7 +126,7 @@ export class DetailOutfitPage implements OnInit {
       outfitCategory: categoryID,
       outfitSubCategory: subCategoryID,
       color:data.color,
-      prezzo:parseInt(data.price, 10),
+      prezzo:data.prezzo ?? data.price,
       link:link
     }
 

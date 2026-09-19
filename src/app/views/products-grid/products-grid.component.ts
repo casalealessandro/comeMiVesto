@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges, OnChanges } from '@angular/core';
 import { Browser } from '@capacitor/browser';
-import { AppService } from 'src/app/service/app-service';
+import { AppCatalogProduct } from 'src/app/service/app-service';
 import { CategoryService } from 'src/app/service/category.service';
 import { Tag } from 'src/app/service/interface/outfit-all-interface';
 
@@ -11,7 +11,7 @@ import { Tag } from 'src/app/service/interface/outfit-all-interface';
   styleUrls: ['./products-grid.component.scss'],
 })
 export class ProductsGridComponent implements  OnChanges {
-  @Input() products: Tag[] = [];
+  @Input() products: Array<Tag | AppCatalogProduct> = [];
   @Input() showRemoveBtn: boolean = false;
   @Input() showSaveBtn: boolean = true;
   @Output() productsEvent = new EventEmitter<any>();
