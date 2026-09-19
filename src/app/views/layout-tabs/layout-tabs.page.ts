@@ -4,6 +4,8 @@ import { ModalController, NavController } from '@ionic/angular';
 import { filter } from 'rxjs/operators';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { UserService } from 'src/app/service/user.service';
+import { PreferencesOnboardingComponent } from 'src/app/components/preferences-onboarding/preferences-onboarding.component';
 
 @Component({
   standalone: false,
@@ -19,7 +21,16 @@ export class LayoutTabsPage implements OnInit {
   tabLoading:boolean=false
   hideBottomBar:boolean=false
   private tabLoadingTimeout:any
-  constructor(private sharedData: SharedDataService,private navController: NavController,private router: Router) { }
+  private preferencesOnboardingOpen = false;
+  private readonly preferencesOnboardingSkippedKey = 'preferencesOnboardingSkipped';
+
+  constructor(
+    private sharedData: SharedDataService,
+    private navController: NavController,
+    private router: Router,
+    private modalController: ModalController,
+    private userService: UserService,
+  ) { }
 
   ngOnInit() {
     this.hideBottomBar = this.router.url.includes('/tabs/add-outfit');
@@ -33,6 +44,40 @@ export class LayoutTabsPage implements OnInit {
     });
   }
   
+  async ionViewDidEnter(): Promise<void> {
+    await this.openPreferencesOnboardingIfNeeded();
+  }
+
+  private async openPreferencesOnboardingIfNeeded(): Promise<void> {
+    if (this.preferencesOnboardingOpen || sessionStorage.getItem(this.preferencesOnboardingSkippedKey) === 'true') {
+      return;
+    }
+
+    const userLoaded = await this.userService.loadUser();
+    if (!userLoaded || this.userService.gPreferencesConfigured()()) {
+      return;
+    }
+
+    this.preferencesOnboardingOpen = true;
+    try {
+      const modal = await this.modalController.create({
+        component: PreferencesOnboardingComponent,
+        cssClass: 'cmv-preferences-onboarding',
+        backdropDismiss: false,
+      });
+      await modal.present();
+
+      const { role } = await modal.onDidDismiss();
+      if (role === 'skip') {
+        sessionStorage.setItem(this.preferencesOnboardingSkippedKey, 'true');
+      } else if (role === 'complete') {
+        sessionStorage.removeItem(this.preferencesOnboardingSkippedKey);
+      }
+    } finally {
+      this.preferencesOnboardingOpen = false;
+    }
+  }
+
   onTabWillChange() {
     if (this.tabLoadingTimeout) {
       clearTimeout(this.tabLoadingTimeout)

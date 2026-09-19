@@ -35,6 +35,7 @@ export class UserService {
   }); // Signal che tiene traccia del profilo utente
   _userPreference = signal<UserPreference | null>(null);
   _termsStatus = signal<TermsStatus | null>(null);
+  _preferencesConfigured = signal<boolean>(false);
   private _bootstrapUid: string | null = null;
 
   constructor(
@@ -88,6 +89,10 @@ export class UserService {
     return this._termsStatus;
   }
 
+  gPreferencesConfigured() {
+    return this._preferencesConfigured;
+  }
+
   isBootstrapReady(uid: string): boolean {
     return this._bootstrapUid === uid && this._userInfo()?.uid === uid;
   }
@@ -101,6 +106,7 @@ export class UserService {
     this.setUserInfo(response.data.profile);
     this._userPreference.set(response.data.preferences);
     this._termsStatus.set(response.data.terms);
+    this._preferencesConfigured.set(response.data.preferencesConfigured);
     this._bootstrapUid = response.data.profile.uid;
     return response.data;
   }
@@ -195,10 +201,16 @@ export class UserService {
       const payload = {
         color: profilePreferData.color ?? [],
         brend: profilePreferData.brend ?? [],
-        style: profilePreferData.style ?? []
+        style: profilePreferData.style ?? [],
+        ...(Number.isInteger(profilePreferData.age) ? { age: profilePreferData.age } : {})
       };
       const response = await lastValueFrom(this.httpClient.put<ApiResponse<UserPreference>>(this.apiFire + '/gen/user-preferences', payload));
-      this._userPreference.set(response.data);
+      this._userPreference.set({
+        ...this._userPreference(),
+        ...response.data,
+        age: response.data.age ?? profilePreferData.age ?? this._userPreference()?.age ?? null
+      });
+      this._preferencesConfigured.set(true);
       return true;
     } catch (error) {
 
@@ -285,9 +297,11 @@ export class UserService {
         const preference = Array.isArray(response.data) ? response.data[0] : response.data;
         const normalizedPreference = preference ? {
           uid: preference.uid ?? '',
-          ...this.toOutfitPreferencePayload(preference)
+          ...this.toOutfitPreferencePayload(preference),
+          age: Number.isInteger(preference.age) ? preference.age : null
         } : null;
         this._userPreference.set(normalizedPreference);
+        this._preferencesConfigured.set(normalizedPreference !== null);
         return normalizedPreference;
       }
     } catch (error) {
@@ -315,6 +329,7 @@ export class UserService {
       this._userInfo.set(null);
       this._userPreference.set(null);
       this._termsStatus.set(null);
+      this._preferencesConfigured.set(false);
       this._bootstrapUid = null;
       console.log('Logout effettuato con successo');
       return true; // Logout completato con successo

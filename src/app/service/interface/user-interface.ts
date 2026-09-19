@@ -34,6 +34,7 @@ export interface UserPreference {
   color: string[];
   brend: string[];
   style: string[];
+  age?: number | null;
 }
 
 export interface UserBootstrap {
@@ -43,7 +44,7 @@ export interface UserBootstrap {
   preferencesConfigured: boolean;
 }
 
-export type OutfitPreferencePayload = Omit<UserPreference, 'uid'>;
+export type OutfitPreferencePayload = Pick<UserPreference, 'color' | 'brend' | 'style'>;
 
 export interface RegisterPayload {
   email: string;
