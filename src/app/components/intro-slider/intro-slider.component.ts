@@ -8,6 +8,7 @@ import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { defineCustomElements } from '@ionic/core/loader';
 import { register } from 'swiper/element/bundle';
+import { FirebaseService } from 'src/app/service/firebase.service';
 
 // Register Swiper custom elements
 register();
@@ -23,12 +24,12 @@ register();
 export class IntroSliderComponent implements OnInit, AfterViewInit {
   INTRO_STORAGE_KEY = 'hasSeenIntro';
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private firebase: FirebaseService) {
     defineCustomElements(window);
   }
 
   ngOnInit() {
-    this.checkFirstTimeUser();
+    void this.checkFirstTimeUser();
   }
 
   ngAfterViewInit() {
@@ -54,11 +55,17 @@ export class IntroSliderComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private checkFirstTimeUser(): void {
+  private async checkFirstTimeUser(): Promise<void> {
     try {
+      const user = await this.firebase.waitForAuthState();
+      if (user) {
+        await this.router.navigateByUrl('/tabs/myoutfit', { replaceUrl: true });
+        return;
+      }
+
       const hasSeenIntro = localStorage.getItem(this.INTRO_STORAGE_KEY);
       if (hasSeenIntro === 'true') {
-        this.router.navigateByUrl('/login');
+        await this.router.navigateByUrl('/login', { replaceUrl: true });
       }
     } catch (error) {
       console.error('Error checking first-time user status:', error);
