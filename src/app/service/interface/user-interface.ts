@@ -34,6 +34,7 @@ export interface UserPreference {
   color: string[];
   brend: string[];
   style: string[];
+  age?: number | null;
 }
 
 export interface UserBootstrap {
