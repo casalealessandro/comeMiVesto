@@ -27,6 +27,8 @@ export class HeaderComponent implements OnInit {
   @Input() showUserInfo: boolean = false;
   @Input() showTitleText: boolean = false;
   @Input() titleText: string | undefined;
+  @Input() showSubtitleText: boolean = false;
+  @Input() subtitleText: string | undefined;
   @Input() showCloseBtn: boolean = false;
   @Input() showMenuBtn: boolean = true;
 
@@ -92,6 +94,8 @@ export class HeaderComponent implements OnInit {
     this.showUserInfo = varObject.showUserInfo;
     this.showTitleText = varObject.showTitleText;;
     this.titleText = varObject.titleText;
+    this.showSubtitleText = varObject.showSubtitleText || false;
+    this.subtitleText = varObject.subtitleText;
     this.showCloseBtn = varObject.showCloseBtn;
   }
 

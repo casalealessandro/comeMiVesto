@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 
 import { FirebaseService } from 'src/app/service/firebase.service';
 
@@ -12,13 +12,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MyOutFitPage } from '../myoutfit/myoutfit.page';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { TermsAcceptanceService } from 'src/app/service/terms-acceptance.service';
+import { SharedDataService } from 'src/app/service/shared-data.service';
 @Component({
   standalone: false,
   selector: 'app-add-outfit',
   templateUrl: './add-outfit.page.html',
   styleUrls: ['./add-outfit.page.scss'],
 })
-export class AddOutfitPage implements OnInit {
+export class AddOutfitPage implements OnInit, OnDestroy {
 
   @ViewChild('imageContainer', { static: false }) imageContainer: ElementRef | undefined;
 
@@ -53,6 +54,7 @@ export class AddOutfitPage implements OnInit {
     private navController: NavController,
     private userService: UserService,
     private termsAcceptance: TermsAcceptanceService,
+    private sharedData: SharedDataService,
     
   ) {
 
@@ -64,6 +66,7 @@ export class AddOutfitPage implements OnInit {
     this.resetOutfit();
 
     if (this.isEditMode) {
+      this.setBottomBarVisibility(true);
       this.outfit = this.outfitData;
       this.imgUrl = this.outfit.imageUrl
       this.tags = this.outfit.tags
@@ -72,6 +75,21 @@ export class AddOutfitPage implements OnInit {
     }
 
     this.openModal = await this.modalController.getTop();
+  }
+
+  ngOnDestroy() {
+    if (this.isEditMode) {
+      this.setBottomBarVisibility(false);
+    }
+  }
+
+  private setBottomBarVisibility(hide: boolean) {
+    this.sharedData.setData({
+      componentName: 'LayoutTabsComponent',
+      data: {
+        hideBottomBar: hide
+      }
+    });
   }
 
   /* ionViewWillEnter() {

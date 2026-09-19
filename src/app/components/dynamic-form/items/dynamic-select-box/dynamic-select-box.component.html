@@ -10,7 +10,7 @@
         [interface]="selectOptions.multiple ? 'modal' : 'action-sheet'"
         [interfaceOptions]="selectOptions.multiple ? multiSelectInterfaceOptions : undefined"
         (ionChange)="onValueChange($event)" 
-        placeholder="Seleziona"
+        [placeholder]="config.placeholder || 'Seleziona'"
         [disabled]="disabled"> <!-- Disabilita la selectbox se necessario -->
         <ion-select-option *ngFor="let option of availableOptions" [value]="option[valueExp]">
           {{ option[displayExp] }}
@@ -26,5 +26,5 @@
 <ion-item *ngIf="!noCustom" (click)="openCustomSelect()" [disabled]="disabled" class="cstomselectbox" [class.form-field-invalid]="invalid">
   <ion-label [position]="labelPlacement">{{config.label}}</ion-label>
 
-  <ion-text>{{ noCustomOptions.length ? noCustomOptions.join(', ') : "Seleziona un'opzione" }}</ion-text>
+  <ion-text>{{ noCustomOptions.length ? noCustomOptions.join(', ') : (config.placeholder || "Seleziona un'opzione") }}</ion-text>
 </ion-item>

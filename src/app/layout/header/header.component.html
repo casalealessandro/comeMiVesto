@@ -18,7 +18,15 @@
       class="outfit-header-title profile-header-title"
       *ngIf="showTitleText"
     >
-      <span class="profile-name"> {{ titleText }} </span>
+      <div class="header-title-wrapper">
+        <span class="profile-name"> {{ titleText }} </span>
+        <span
+          *ngIf="showSubtitleText && subtitleText"
+          class="header-subtitle"
+        >
+          {{ subtitleText }}
+        </span>
+      </div>
     </ion-title>
     <ion-title class="profile-header-title" *ngIf="showUserInfo">
       <div *ngIf="userProfile">

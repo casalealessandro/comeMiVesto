@@ -306,7 +306,7 @@ app-dynamic-form.outfit-form {
 
     .form-footer {
         margin-top: 14px;
-        padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     }
 
     .form-footer ion-item {
