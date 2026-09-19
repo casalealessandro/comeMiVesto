@@ -356,8 +356,13 @@ export class MyOutFitPage implements OnDestroy {
           name: item.name,
           outfitCategory: category,
           outfitSubCategory: subCategory,
-          brend: '',
-          images: []
+          brend: item.brend || '',
+          color: item.color,
+          images: Array.isArray(item.images) ? item.images : item.imageUrl ? [item.imageUrl] : [],
+          imageUrl: item.imageUrl,
+          prezzo: item.prezzo ?? item.price,
+          link: item.link,
+          catalogProductId: item.catalogProductId
 
         }
         let res = await this.appService.createWardrobe(data)
