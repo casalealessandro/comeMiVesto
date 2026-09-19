@@ -328,6 +328,7 @@ export class AddOutfitPage implements OnInit, OnDestroy {
     this.tags[indexTag] =
     {
       id: tag.id,
+      catalogProductId: tag.catalogProductId,
       name: data.name,
       x: tag.x,
       y: tag.y,

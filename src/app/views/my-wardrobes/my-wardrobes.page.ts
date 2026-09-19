@@ -194,6 +194,7 @@ export class MyWardrobesPage implements OnInit {
     const id = this.generateGUID();
 
     let saveData = {
+      catalogProductId: dataP.id,
       brend: dataP.brend,
       images: Array.isArray(dataP.images) ? dataP.images : dataP.imageUrl ? [dataP.imageUrl] : [],
       imageUrl: dataP.imageUrl,

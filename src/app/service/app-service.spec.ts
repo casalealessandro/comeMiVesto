@@ -47,7 +47,25 @@ describe('AppService REST contracts', () => {
     request.flush({ message: 'Success', data: [] });
   });
 
-  it('does not add images to a name-only wardrobe update', async () => {
+  it('keeps catalogProductId when filtering outfits by an exact catalog product', () => {
+    service.getFilteredOutfits('gender=U', {
+      categories: [],
+      season: '',
+      style: '',
+      catalogProductId: 'catalog-1'
+    }).subscribe();
+
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/filter-outfits?gender=U`);
+    expect(request.request.body).toEqual({
+      categories: [],
+      season: '',
+      style: '',
+      catalogProductId: 'catalog-1'
+    });
+    request.flush({ message: 'Success', data: [] });
+  });
+
+    it('does not add images to a name-only wardrobe update', async () => {
     const result = service.updateWardrobe('wardrobe-id', { name: 'Nuovo nome' });
     const request = http.expectOne(`${environment.BASE_API_URL}/gen/wardrobes/wardrobe-id`);
     expect(request.request.body).toEqual({ name: 'Nuovo nome' });
@@ -106,6 +124,8 @@ describe('AppService REST contracts', () => {
   it('posts catalog filters and returns data with pagination', async () => {
     const filters = {
       outfitCategory: ['category-1'],
+      color: ['N'],
+      brend: ['Z'],
       gender: 'U',
       limit: 20,
       cursor: 'next-page'

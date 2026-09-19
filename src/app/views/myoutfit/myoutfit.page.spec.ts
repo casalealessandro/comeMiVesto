@@ -115,4 +115,52 @@ describe('MyOutFitPage filters and search', () => {
     expect(component.refreshOutfitsFromServer).toHaveBeenCalledTimes(1);
     expect(component.ionViewWillEnter).not.toHaveBeenCalled();
   });
+
+  it('loads catalog products using saved color and brand preferences', async () => {
+    const component = page();
+    component.cUserPreference = { uid: 'user', color: ['N'], brend: ['Z'], style: ['C'] };
+    const product = { id: 'product-1', name: 'Giacca', brand: 'Zara', brend: 'Zara', imageUrl: 'image', price: 49.9 } as any;
+    const appService = {
+      filterOutfitProducts: jasmine.createSpy('filterOutfitProducts').and.resolveTo({
+        data: [product],
+        pagination: { nextCursor: null, hasMore: false }
+      }),
+      getOutfitProducts: jasmine.createSpy('getOutfitProducts')
+    };
+    Object.assign(component, { appService });
+
+    await component.loadSuggestedProducts('U');
+
+    expect(appService.filterOutfitProducts).toHaveBeenCalledOnceWith({
+      color: ['N'],
+      brend: ['Z'],
+      gender: 'U',
+      limit: 6
+    });
+    expect(component.suggestedProducts).toEqual([product]);
+    expect(component.isSuggestedProductsLoading).toBeFalse();
+  });
+
+  it('falls back to the gender catalog when preferences return no products', async () => {
+    const component = page();
+    component.cUserPreference = { uid: 'user', color: ['N'], brend: [], style: [] };
+    const product = { id: 'product-1', name: 'Giacca' } as any;
+    const appService = {
+      filterOutfitProducts: jasmine.createSpy('filterOutfitProducts').and.resolveTo({
+        data: [],
+        pagination: { nextCursor: null, hasMore: false }
+      }),
+      getOutfitProducts: jasmine.createSpy('getOutfitProducts').and.resolveTo({
+        data: [product],
+        pagination: { nextCursor: null, hasMore: false }
+      })
+    };
+    Object.assign(component, { appService });
+
+    await component.loadSuggestedProducts('D');
+
+    expect(appService.getOutfitProducts).toHaveBeenCalledOnceWith({ gender: 'D', limit: 6 });
+    expect(component.suggestedProducts).toEqual([product]);
+  });
+
 });

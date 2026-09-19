@@ -248,6 +248,7 @@ export class FotoOutfitPage implements OnInit {
       this.tags.push(
         {
           id: id,
+          catalogProductId: result.catalogProductId,
           name: result.name,
           x: x,
           y: y,

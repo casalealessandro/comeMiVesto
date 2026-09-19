@@ -45,6 +45,8 @@ export interface CatalogProductsFilters {
   ids?: string[];
   outfitCategory?: string[];
   outfitSubCategory?: string[];
+  color?: string[];
+  brend?: string[];
   gender?: string;
   limit?: number;
   cursor?: string;
@@ -189,7 +191,8 @@ export class AppService {
       }).filter(category => Object.keys(category).length > 0),
       season: conditions.season ?? '',
       style: conditions.style ?? '',
-      ...(conditions.search?.trim() ? { search: conditions.search.trim() } : {})
+      ...(conditions.search?.trim() ? { search: conditions.search.trim() } : {}),
+      ...(conditions.catalogProductId ? { catalogProductId: conditions.catalogProductId } : {})
     };
     return this.http.post<ApiResponse<outfit[]>>(completeApi,payload).pipe(
       tap(() => console.info('Richiesta all’API effettuata con successo')),
@@ -265,7 +268,7 @@ export class AppService {
   }
 
   private wardrobePayload(data: Partial<WardrobePayload>, normalizeMissingImages: boolean): Partial<WardrobePayload> {
-    const allowed = ['name', 'outfitCategory', 'outfitSubCategory', 'brend', 'color', 'images', 'imageUrl', 'ImageUrl', 'prezzo', 'link'] as const;
+    const allowed = ['name', 'outfitCategory', 'outfitSubCategory', 'brend', 'color', 'images', 'imageUrl', 'ImageUrl', 'prezzo', 'link', 'catalogProductId'] as const;
     const payload: any = {};
     allowed.forEach(field => {
       if (Object.prototype.hasOwnProperty.call(data, field) && data[field] !== undefined) payload[field] = data[field];
