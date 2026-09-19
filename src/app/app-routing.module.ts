@@ -53,6 +53,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'notifications',
+        loadChildren: () =>
+          import('./views/notifications/notifications.module').then(
+            (m) => m.NotificationsPageModule
+          ),
+      },
+      {
         path: 'user-profile/:uid',
         loadChildren: () =>
           import('./views/user-profile/user-profile.module').then(
