@@ -1,9 +1,9 @@
-import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, ViewChild } from '@angular/core';
 import { FirebaseService } from 'src/app/service/firebase.service';
 import { Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
-import { ModalController, NavController } from '@ionic/angular';
-import { AppService } from 'src/app/service/app-service';
+import { InfiniteScrollCustomEvent, IonInfiniteScroll, ModalController, NavController } from '@ionic/angular';
+import { AppCatalogProduct, AppService, CatalogProductsResponse } from 'src/app/service/app-service';
 import { CategoryService } from 'src/app/service/category.service';
 import { outfitCategories } from 'src/app/service/interface/outfit-all-interface';
 import { UserProfile } from 'src/app/service/interface/user-interface';
@@ -20,6 +20,7 @@ import { take } from 'rxjs/operators';
 })
 export class ProdottiOnlinePage implements OnInit {
   @Input() showHeader:boolean = false;
+  @ViewChild(IonInfiniteScroll) infiniteScroll?: IonInfiniteScroll;
   constructor(
     private modalController: ModalController,
     private categoryService:CategoryService,
@@ -36,10 +37,12 @@ export class ProdottiOnlinePage implements OnInit {
   // Store selezionato
   userProfile$ = this.userProfileService.gUserProfile();
   
-  public products: any[] = []; // Array di prodotti
+  public products: AppCatalogProduct[] = []; // Array di prodotti
   public filteredproducts: any[] = []; // Array di prodotti
   public categories?: outfitCategories[]
-  public currentPage: number = 1;
+  nextCursor: string | null = null;
+  hasMore = true;
+  isLoading = false;
   userID: any;
   gender=""
   outfitCategory = "";
@@ -58,6 +61,7 @@ export class ProdottiOnlinePage implements OnInit {
 
           this.categories =categories
         })
+        this.resetProducts();
         this.loadProducts(this.outfitCategory, this.outfitSubCategory);
          
       }else{
@@ -73,18 +77,42 @@ export class ProdottiOnlinePage implements OnInit {
     
   }
 
-  async loadProducts(outfitCategory?: any, outfitSubCategory?: any) {
-    const filters = {
-      ...(outfitCategory ? { outfitCategory: [String(outfitCategory)] } : {}),
-      ...(outfitSubCategory ? { outfitSubCategory: [String(outfitSubCategory)] } : {})
-    };
-    const products = outfitCategory || outfitSubCategory
-      ? await this.appService.filterOutfitProducts(filters)
-      : await this.appService.getData('outfit-products', '');
-    this.products = products.filter((product: any) => !this.gender || product.gender === this.gender)
+  async loadProducts(outfitCategory?: string, outfitSubCategory?: string, append = false) {
+    if (this.isLoading || (append && !this.hasMore)) return;
 
+    this.isLoading = true;
+    try {
+      const cursor = append && this.nextCursor ? this.nextCursor : undefined;
+      const response: CatalogProductsResponse = outfitCategory || outfitSubCategory
+        ? await this.appService.filterOutfitProducts({
+            ...(outfitCategory ? { outfitCategory: [String(outfitCategory)] } : {}),
+            ...(outfitSubCategory ? { outfitSubCategory: [String(outfitSubCategory)] } : {}),
+            ...(this.gender ? { gender: this.gender } : {}),
+            limit: 20,
+            ...(cursor ? { cursor } : {})
+          })
+        : await this.appService.getOutfitProducts({
+            ...(this.gender ? { gender: this.gender } : {}),
+            limit: 20,
+            ...(cursor ? { cursor } : {})
+          });
 
+      const products = append ? [...this.products, ...response.data] : response.data;
+      this.products = products.filter((product, index, allProducts) =>
+        allProducts.findIndex(candidate => String(candidate.id) === String(product.id)) === index
+      );
+      this.nextCursor = response.pagination.nextCursor;
+      this.hasMore = response.pagination.hasMore;
+    } finally {
+      this.isLoading = false;
+    }
+  }
 
+  private resetProducts() {
+    this.products = [];
+    this.nextCursor = null;
+    this.hasMore = true;
+    if (this.infiniteScroll) this.infiniteScroll.disabled = false;
   }
 
 
@@ -119,23 +147,31 @@ export class ProdottiOnlinePage implements OnInit {
 
     if (!category) {
       this.selectedCategoryName = 'Tutti i prodotti'
+      this.outfitCategory = '';
+      this.outfitSubCategory = '';
       await this.loadCategories();
-      await this.loadProducts();
+      this.resetProducts();
+      await this.loadProducts(this.outfitCategory, this.outfitSubCategory);
       return
     }
     this.selectedCategoryName = category.categoryName;
 
     if (!category.parentCategory) {
       //this.selectedFilterStyleIndex = indexCategory;
-      await this.loadProducts(category.id);
+      this.outfitCategory = String(category.id);
+      this.outfitSubCategory = '';
+      this.resetProducts();
+      await this.loadProducts(this.outfitCategory, this.outfitSubCategory);
       await this.loadCategories(category.id)
       return
     }
 
     if (category.parentCategory) {
       this.selectedFilterStyleIndex = indexCategory;
-      
-      this.loadProducts(category.parentCategory, category.id);
+      this.outfitCategory = String(category.parentCategory);
+      this.outfitSubCategory = String(category.id);
+      this.resetProducts();
+      await this.loadProducts(this.outfitCategory, this.outfitSubCategory);
     }
   }
   // Funzione link allo store
@@ -148,9 +184,15 @@ export class ProdottiOnlinePage implements OnInit {
   }
 
   // Carica più prodotti (paginazione)
-  loadMoreProducts() {
-    this.currentPage++;
-    this.loadProducts();
+  async loadMoreProducts(event: InfiniteScrollCustomEvent) {
+    try {
+      if (!this.isLoading && this.hasMore) {
+        await this.loadProducts(this.outfitCategory, this.outfitSubCategory, true);
+      }
+    } finally {
+      await event.target.complete();
+      if (!this.hasMore) event.target.disabled = true;
+    }
   }
 
 
@@ -169,7 +211,7 @@ export class ProdottiOnlinePage implements OnInit {
           outfitCategory: categoryID,
           outfitSubCategory: subCategoryID,
           color:data.color,
-          prezzo:parseInt(data.price, 10),
+          prezzo:data.prezzo ?? data.price,
           link:link
         }
     

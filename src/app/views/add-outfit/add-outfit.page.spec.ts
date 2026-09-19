@@ -15,7 +15,7 @@ describe('AddOutfitPage gender and Terms errors', () => {
     };
     return new AddOutfitPage(
       {} as any, {} as any, {} as any, {} as any,
-      {} as any, alerts, {} as any, userService as any, terms
+      {} as any, alerts, {} as any, userService as any, terms, {} as any
     );
   }
 
