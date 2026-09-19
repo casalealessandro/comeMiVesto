@@ -15,6 +15,17 @@ export interface UserProfile {
 
 }
 
+export interface PublicUserProfile {
+  uid: string;
+  displayName: string;
+  photoURL: string;
+  bio?: string;
+}
+
+export interface FollowStatus {
+  following: boolean;
+}
+
 export type EditableUserProfile = Partial<Pick<UserProfile,
   'displayName' | 'nome' | 'cognome' | 'bio' | 'photoURL' | 'gender'>>;
 

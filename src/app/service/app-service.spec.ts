@@ -1,5 +1,6 @@
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ApiRequestError, AppService } from './app-service';
 import { FirebaseService } from './firebase.service';
@@ -68,6 +69,14 @@ describe('AppService REST contracts', () => {
     expect(request.request.body).toEqual({ outFitId: 'outfit-id', typeSegnaletion: 'segnalaUtente', reason: 'odioMolestie' });
     request.flush({ message: 'Success', data: {} });
     await result;
+  });
+
+  it('gets public user outfits without using authenticated user state', async () => {
+    const result = firstValueFrom(service.getPublicUserOutfits('user/id'));
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/public-user-outfits/user%2Fid`);
+    expect(request.request.method).toBe('GET');
+    request.flush({ message: 'Success', data: [{ id: 'outfit-id' }] });
+    expect((await result)[0].id).toBe('outfit-id');
   });
 
   it('blocks a user through the dedicated endpoint', async () => {

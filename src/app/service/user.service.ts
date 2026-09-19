@@ -1,7 +1,7 @@
 import { effect, Injectable, signal } from '@angular/core';
 import { firstValueFrom, forkJoin, lastValueFrom, Observable, of, throwError } from 'rxjs';
 import { catchError, map, retry, switchMap, tap } from 'rxjs/operators';
-import { EditableUserProfile, OutfitPreferencePayload, TermsAcceptanceResult, TermsStatus, UserPreference, UserProfile } from './interface/user-interface';
+import { EditableUserProfile, FollowStatus, OutfitPreferencePayload, TermsAcceptanceResult, TermsStatus, UserPreference, UserProfile } from './interface/user-interface';
 import { ApiRequestError, ApiResponse, AppService } from './app-service';
 import { signOut } from 'firebase/auth';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
@@ -114,6 +114,18 @@ export class UserService {
 
       catchError(this.handleError)
     );
+  }
+
+  getFollowStatus(uid: string): Observable<FollowStatus> {
+    return this.httpClient.get<ApiResponse<FollowStatus>>(`${this.apiFire}/gen/user-follows/${encodeURIComponent(uid)}/status`).pipe(map(response => response.data), catchError(this.handleError));
+  }
+
+  followUser(uid: string): Observable<void> {
+    return this.httpClient.post<ApiResponse<unknown>>(`${this.apiFire}/gen/user-follows/${encodeURIComponent(uid)}`, {}).pipe(map(() => undefined), catchError(this.handleError));
+  }
+
+  unfollowUser(uid: string): Observable<void> {
+    return this.httpClient.delete<ApiResponse<unknown>>(`${this.apiFire}/gen/user-follows/${encodeURIComponent(uid)}`).pipe(map(() => undefined), catchError(this.handleError));
   }
 
   updateUserProfile(uid: string, profileData: EditableUserProfile): Observable<UserProfile> {

@@ -53,6 +53,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'user-profile/:uid',
+        loadChildren: () =>
+          import('./views/user-profile/user-profile.module').then(
+            (m) => m.UserProfilePageModule
+          ),
+      },
+      {
         path: 'layout-tabs',
         loadChildren: () =>
           import('./views/layout-tabs/layout-tabs.module').then(

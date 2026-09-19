@@ -9,7 +9,7 @@ import { ModalListComponent } from 'src/app/components/modal-list/modal-list.com
 import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom, lastValueFrom, Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
-import { OutfitPreferencePayload, UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
+import { OutfitPreferencePayload, PublicUserProfile, UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
 import { IonRefresherCustomEvent } from '@ionic/core';
 import { DetailOutfitPage } from '../detail-outfit/detail-outfit.page';
@@ -34,8 +34,8 @@ export class MyOutFitPage implements OnDestroy {
   cUserInfo: any  = this.userProfileService.gUserProfile();
   favorites: Set<string> = new Set();
   currentUserProfile$!: Observable<UserProfile | null>;
-  outfitUserProfile$!: Observable<UserProfile>;
-  outfitUserProfile!: UserProfile[];
+  outfitUserProfile$!: Observable<PublicUserProfile>;
+  outfitUserProfile!: PublicUserProfile[];
   cUserPreference: UserPreference | null = null;
   isOutfitCompositionOpen: boolean = false;
   filtersData: OutfitFilterPayload = { categories: [], season: '', style: '' };
@@ -143,7 +143,7 @@ export class MyOutFitPage implements OnDestroy {
 
 
       this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
-      this.outfitUserProfile$.pipe(take(1)).subscribe((outfitUserProfile: UserProfile) => {
+      this.outfitUserProfile$.pipe(take(1)).subscribe((outfitUserProfile: PublicUserProfile) => {
 
         this.outfitUserProfile[rr.userId] = outfitUserProfile
       })
@@ -383,7 +383,7 @@ export class MyOutFitPage implements OnDestroy {
     await this.heartIcon();
     this.outfits.forEach(rr => {
       this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
-      this.outfitUserProfile$.pipe(take(1)).subscribe((profile: UserProfile) => {
+      this.outfitUserProfile$.pipe(take(1)).subscribe((profile: PublicUserProfile) => {
         this.outfitUserProfile[rr.userId] = profile;
       });
     });
@@ -665,6 +665,13 @@ export class MyOutFitPage implements OnDestroy {
       }
       await this.appService.recordOutfitVisit(String(outfit.id));
     })
+  }
+
+  openUserProfile(userId: string): void {
+    const destination = userId === this.cUserID
+      ? ['/tabs/my-profile']
+      : ['/tabs/user-profile', userId];
+    void this.router.navigate(destination);
   }
 
   @HostListener('window:scroll', ['$event'])

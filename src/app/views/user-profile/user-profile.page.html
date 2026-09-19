@@ -1,0 +1,43 @@
+<ion-content class="ion-padding">
+  <div class="loading-state" *ngIf="isLoading">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <div class="status-state" *ngIf="!isLoading && profileNotFound">
+    <ion-text>Profilo non trovato</ion-text>
+  </div>
+
+  <div class="status-state" *ngIf="!isLoading && loadError">
+    <ion-text>Non è stato possibile caricare il profilo</ion-text>
+  </div>
+
+  <main class="main-content" *ngIf="!isLoading && !loadError && profile">
+    <section class="profile-content">
+      <ion-avatar class="profile-avatar">
+        <img class="profile-pic" [src]="profile.photoURL || fallbackImage" [alt]="profile.displayName" />
+      </ion-avatar>
+      <div class="profile-info">
+        <p class="profile-name">{{ profile.displayName }}</p>
+        <p class="profile-bio">{{ profile.bio }}</p>
+      </div>
+      <ion-button class="profile-btn" fill="clear" [disabled]="isFollowLoading" (click)="toggleFollow()">
+        <ion-spinner *ngIf="isFollowLoading" name="crescent"></ion-spinner>
+        <span *ngIf="!isFollowLoading">{{ isFollowing ? 'Non seguire' : 'Segui' }}</span>
+      </ion-button>
+    </section>
+
+    <section class="outfits-content">
+      <h2>Outfit creati</h2>
+      <ion-text class="empty-state" *ngIf="outfits.length === 0">Nessun outfit creato</ion-text>
+      <ion-grid *ngIf="outfits.length > 0">
+        <ion-row class="outfit-grid">
+          <ion-col class="post-col" size="6" *ngFor="let userOutfit of outfits">
+            <button class="post-image" type="button" (click)="openOutfit(userOutfit)">
+              <ion-img [src]="userOutfit.imageUrl" [alt]="userOutfit.title"></ion-img>
+            </button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </section>
+  </main>
+</ion-content>
