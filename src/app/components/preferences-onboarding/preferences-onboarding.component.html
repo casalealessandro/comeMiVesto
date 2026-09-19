@@ -1,0 +1,150 @@
+<ion-content class="preferences-onboarding-content" [fullscreen]="true">
+  <div class="preferences-onboarding">
+    <div class="onboarding-header">
+      <ion-button
+        class="header-action back-action"
+        fill="clear"
+        aria-label="Indietro"
+        [disabled]="currentStep === 1"
+        (click)="previousStep()">
+        <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+      </ion-button>
+
+      <img class="onboarding-logo" src="assets/images/Logo-nero.png" alt="ComeMiVesto">
+
+      <ion-button class="header-action skip-action" fill="clear" (click)="skip()">
+        Salta
+      </ion-button>
+    </div>
+
+    <div class="progress-container" aria-label="Avanzamento questionario">
+      <div class="progress-bars">
+        <span
+          *ngFor="let step of [1, 2, 3, 4]"
+          class="progress-bar"
+          [class.active]="step <= currentStep">
+        </span>
+      </div>
+      <span class="progress-text">{{ currentStep }} di {{ totalSteps }}</span>
+    </div>
+
+    <div class="step-container" *ngIf="currentStep === 1">
+      <div class="step-heading">
+        <h1>Conosciamoci meglio</h1>
+        <p>Ci aiuta a proporti outfit più adatti a te.</p>
+      </div>
+
+      <div class="intro-image">
+        <img src="assets/step1.jpg" alt="">
+      </div>
+
+      <div class="age-section">
+        <h2>Quanti anni hai?</h2>
+        <ion-input
+          class="age-input"
+          type="number"
+          inputmode="numeric"
+          min="1"
+          max="120"
+          placeholder="Es. 40"
+          [(ngModel)]="age">
+        </ion-input>
+        <p class="step-note">Useremo questa informazione solo per rendere più pertinenti i suggerimenti.</p>
+      </div>
+    </div>
+
+    <div class="step-container" *ngIf="currentStep === 2">
+      <div class="step-heading">
+        <h1>Che stile ti piace?</h1>
+        <p>Puoi scegliere più di uno stile.</p>
+      </div>
+
+      <div class="style-grid">
+        <button
+          *ngFor="let item of styleOptions; trackBy: trackById"
+          type="button"
+          class="style-card"
+          [class.selected]="isSelected(selectedStyles, item.id)"
+          [attr.aria-pressed]="isSelected(selectedStyles, item.id)"
+          (click)="toggleStyle(item.id)">
+          <img [src]="item.image" [alt]="item.value">
+          <span class="option-label">{{ item.value }}</span>
+          <span class="selection-check" *ngIf="isSelected(selectedStyles, item.id)">
+            <ion-icon name="checkmark-outline"></ion-icon>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class="step-container" *ngIf="currentStep === 3">
+      <div class="step-heading">
+        <h1>Quali colori indossi spesso?</h1>
+        <p>Scegli i colori che senti più tuoi.</p>
+      </div>
+
+      <div class="color-grid">
+        <button
+          *ngFor="let item of colorOptions; trackBy: trackById"
+          type="button"
+          class="color-option"
+          [class.selected]="isSelected(selectedColors, item.id)"
+          [attr.aria-pressed]="isSelected(selectedColors, item.id)"
+          (click)="toggleColor(item.id)">
+          <span class="color-circle" [style.background]="item.hex">
+            <ion-icon *ngIf="isSelected(selectedColors, item.id)" name="checkmark-outline"></ion-icon>
+          </span>
+          <span class="option-label">{{ item.value }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="step-container" *ngIf="currentStep === 4">
+      <div class="step-heading">
+        <h1>Hai dei brand preferiti?</h1>
+        <p>Scegli quelli che indossi o cerchi più spesso. Puoi anche non selezionarne nessuno.</p>
+      </div>
+
+      <div class="brand-grid">
+        <button
+          *ngFor="let item of brandOptions; trackBy: trackById"
+          type="button"
+          class="brand-card"
+          [class.selected]="isSelected(selectedBrands, item.id)"
+          [attr.aria-pressed]="isSelected(selectedBrands, item.id)"
+          (click)="toggleBrand(item.id)">
+          <span>{{ item.value }}</span>
+          <span class="selection-check" *ngIf="isSelected(selectedBrands, item.id)">
+            <ion-icon name="checkmark-outline"></ion-icon>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class="onboarding-footer">
+      <ion-button
+        *ngIf="currentStep > 1"
+        class="secondary-button"
+        fill="clear"
+        (click)="previousStep()">
+        Indietro
+      </ion-button>
+
+      <ion-button
+        *ngIf="currentStep < totalSteps"
+        class="btn outfit-button primary-button"
+        [disabled]="!canContinue"
+        (click)="nextStep()">
+        Continua
+      </ion-button>
+
+      <ion-button
+        *ngIf="currentStep === totalSteps"
+        class="btn outfit-button primary-button"
+        [disabled]="saving"
+        (click)="save()">
+        <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
+        <span *ngIf="!saving">Salva le mie preferenze</span>
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
