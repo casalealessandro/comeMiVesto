@@ -86,7 +86,7 @@
                 <div class="suggested-product-info">
                   <span class="suggested-product-brand">{{ product.brend || product.brand }}</span>
                   <strong>{{ product.name }}</strong>
-                  <span class="suggested-product-price">{{ product.price | currencyFormat }}</span>
+                  <span class="suggested-product-price">{{ product.price | number:'1.2-2' }} €</span>
                 </div>
               </button>
             </div>
