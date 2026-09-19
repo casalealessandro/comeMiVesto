@@ -3,7 +3,7 @@ import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.com
 import { AlertController, ModalController, NavController, RefresherEventDetail } from '@ionic/angular';
 
 
-import { AppService } from 'src/app/service/app-service';
+import { AppCatalogProduct, AppService, CatalogProductsResponse } from 'src/app/service/app-service';
 import { buttons, filterItmClothing, outfit, OutfitFilterPayload, ReportReason, ReportType, seasons, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
@@ -16,6 +16,7 @@ import { DetailOutfitPage } from '../detail-outfit/detail-outfit.page';
 import { Router } from '@angular/router';
 import { SocialSharing } from 'src/app/service/social-sharing.service';
 import { CategoryService } from 'src/app/service/category.service';
+import { Browser } from '@capacitor/browser';
 
 @Component({
   standalone: false,
@@ -40,6 +41,8 @@ export class MyOutFitPage implements OnDestroy {
   isOutfitCompositionOpen: boolean = false;
   filtersData: OutfitFilterPayload = { categories: [], season: '', style: '' };
   searchText = '';
+  suggestedProducts: AppCatalogProduct[] = [];
+  isSuggestedProductsLoading = false;
   private searchDebounce?: ReturnType<typeof setTimeout>;
 
   isFiltersSel: boolean = false
@@ -57,7 +60,7 @@ export class MyOutFitPage implements OnDestroy {
       value: 'suggeriti',
       contentId: 'suggeriti',
       icon: 'fi fi-rs-rocket-lunch',
-      label: 'Suggeriti',
+      label: 'Per te',
 
     },
 
@@ -416,21 +419,68 @@ export class MyOutFitPage implements OnDestroy {
     const profile = await this.getReadyUserProfile();
     if (!profile?.gender) {
       this.filteredOutfits = [];
+      this.suggestedProducts = [];
       return;
     }
     const payload: OutfitPreferencePayload = this.userProfileService.toOutfitPreferencePayload(this.cUserPreference);
     this.isLoading = true;
     try {
       const queryString = `gender=${encodeURIComponent(profile.gender)}`;
-      this.filteredOutfits = await firstValueFrom(this.appService.getSuggestOutfits(queryString, payload)) ?? [];
+      const [outfits] = await Promise.all([
+        firstValueFrom(this.appService.getSuggestOutfits(queryString, payload)),
+        this.loadSuggestedProducts(profile.gender)
+      ]);
+      this.filteredOutfits = outfits ?? [];
     } catch (error) {
-      console.error('Impossibile caricare gli outfit suggeriti:', error);
+      console.error('Impossibile caricare i contenuti suggeriti:', error);
       this.filteredOutfits = [];
     } finally {
       this.isLoading = false;
     }
+  }
 
+  async loadSuggestedProducts(gender: string): Promise<void> {
+    this.isSuggestedProductsLoading = true;
+    try {
+      const color = (this.cUserPreference?.color ?? []).slice(0, 10);
+      const brend = (this.cUserPreference?.brend ?? []).slice(0, 10);
+      let response: CatalogProductsResponse;
 
+      if (color.length || brend.length) {
+        response = await this.appService.filterOutfitProducts({
+          ...(color.length ? { color } : {}),
+          ...(brend.length ? { brend } : {}),
+          gender,
+          limit: 6
+        });
+
+        if (!response.data.length && color.length && brend.length) {
+          response = await this.appService.filterOutfitProducts({ color, gender, limit: 6 });
+        }
+
+        if (!response.data.length && brend.length) {
+          response = await this.appService.filterOutfitProducts({ brend, gender, limit: 6 });
+        }
+      } else {
+        response = await this.appService.getOutfitProducts({ gender, limit: 6 });
+      }
+
+      if (!response.data.length) {
+        response = await this.appService.getOutfitProducts({ gender, limit: 6 });
+      }
+
+      this.suggestedProducts = response.data.slice(0, 6);
+    } catch (error) {
+      console.error('Impossibile caricare i prodotti suggeriti:', error);
+      this.suggestedProducts = [];
+    } finally {
+      this.isSuggestedProductsLoading = false;
+    }
+  }
+
+  async openSuggestedProduct(product: AppCatalogProduct): Promise<void> {
+    if (!product.link) return;
+    await Browser.open({ url: product.link });
   }
 
   async outfitMenu(outfit: outfit) {
