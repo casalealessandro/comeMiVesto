@@ -1,0 +1,62 @@
+<app-header
+  [canGoBack]="true"
+  [showLogo]="false"
+  [showTitleText]="true"
+  [titleText]="'Notifiche'"
+  [showMenuBtn]="false">
+</app-header>
+
+<ion-content class="ion-padding">
+  <div class="notifications-content">
+    <div class="notifications-intro">
+      <i class="fi fi-rr-bell"></i>
+      <div>
+        <h1>Notifiche</h1>
+        <p>Scegli quali notifiche vuoi ricevere da ComeMiVesto.</p>
+      </div>
+    </div>
+
+    <ion-list lines="full" class="notifications-list">
+      <ion-item>
+        <ion-label>
+          <h2>Ricevi notifiche</h2>
+          <p>Ricevi aggiornamenti e suggerimenti da ComeMiVesto.</p>
+        </ion-label>
+        <ion-toggle
+          slot="end"
+          [checked]="preferences.enabled"
+          [disabled]="loading || saving"
+          (ionChange)="onNotificationsChange($event)">
+        </ion-toggle>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>
+          <h2>Promemoria giornaliero</h2>
+          <p>Un suggerimento al giorno per aiutarti a scegliere cosa indossare.</p>
+        </ion-label>
+        <ion-toggle
+          slot="end"
+          [checked]="preferences.dailyEnabled"
+          [disabled]="loading || saving || !preferences.enabled"
+          (ionChange)="onDailyChange($event)">
+        </ion-toggle>
+      </ion-item>
+    </ion-list>
+
+    <div class="device-status">
+      <span class="device-status-label">Notifiche del dispositivo</span>
+      <span class="device-status-value" [class.disabled]="permissionStatus !== 'granted'">
+        {{ permissionLabel }}
+      </span>
+    </div>
+
+    <p class="device-message" *ngIf="permissionStatus === 'denied'">
+      Le notifiche sono disattivate nelle impostazioni del dispositivo.
+    </p>
+
+    <p class="device-message" *ngIf="permissionStatus === 'prompt'">
+      Il dispositivo non ha ancora autorizzato le notifiche.
+    </p>
+  </div>
+</ion-content>
