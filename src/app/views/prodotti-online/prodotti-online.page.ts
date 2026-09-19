@@ -1,16 +1,14 @@
-import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
-import { FirebaseService } from 'src/app/service/firebase.service';
-import { Router } from '@angular/router';
+import { Component, DestroyRef, inject, Input, OnInit, ViewChild } from '@angular/core';
 import { Browser } from '@capacitor/browser';
-import { ModalController, NavController } from '@ionic/angular';
-import { AppService } from 'src/app/service/app-service';
-import { CategoryService } from 'src/app/service/category.service';
-import { outfitCategories } from 'src/app/service/interface/outfit-all-interface';
-import { UserProfile } from 'src/app/service/interface/user-interface';
-import { ProdottiOnlineService } from 'src/app/service/prodotti-online.service';
-import { UserService } from 'src/app/service/user.service';
+import { InfiniteScrollCustomEvent, IonInfiniteScroll, ModalController, NavController } from '@ionic/angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs/operators';
+
+import { AppService } from 'src/app/service/app-service';
+import { CategoryService } from 'src/app/service/category.service';
+import { AppCatalogProduct, CatalogProductFilters, outfitCategories } from 'src/app/service/interface/outfit-all-interface';
+import { FirebaseService } from 'src/app/service/firebase.service';
+import { UserService } from 'src/app/service/user.service';
 
 @Component({
   standalone: false,
@@ -19,190 +17,240 @@ import { take } from 'rxjs/operators';
   styleUrls: ['./prodotti-online.page.scss'],
 })
 export class ProdottiOnlinePage implements OnInit {
-  @Input() showHeader:boolean = false;
+  @Input() showHeader: boolean = false;
+  @ViewChild(IonInfiniteScroll) infiniteScroll?: IonInfiniteScroll;
+
   constructor(
     private modalController: ModalController,
-    private categoryService:CategoryService,
+    private categoryService: CategoryService,
     private navController: NavController,
     private firebase: FirebaseService,
     private userProfileService: UserService,
-
   ) { }
 
   private appService = inject(AppService);
   private destroyRef = inject(DestroyRef);
+  private readonly productsLimit = 20;
 
-
-  // Store selezionato
   userProfile$ = this.userProfileService.gUserProfile();
-  
-  public products: any[] = []; // Array di prodotti
-  public filteredproducts: any[] = []; // Array di prodotti
-  public categories?: outfitCategories[]
-  public currentPage: number = 1;
+
+  public products: AppCatalogProduct[] = [];
+  public categories?: outfitCategories[];
+  nextCursor: string | null = null;
+  hasMore = true;
+  isLoading = false;
   userID: any;
-  gender=""
-  outfitCategory = "";
-  outfitSubCategory = "";
-  selectedCategoryName = "Tutti i prodotti";
-  selectedFilterStyleIndex?:number;
-  isModal:boolean = true
+  gender = '';
+  outfitCategory = '';
+  outfitSubCategory = '';
+  selectedCategoryName = 'Tutti i prodotti';
+  selectedFilterStyleIndex?: number;
+  isModal: boolean = true;
+
   ngOnInit() {
     this.firebase.authState.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async user => {
       if (user) {
-       
-        this.userID =  this.userProfile$()?.uid; 
+        this.userID = this.userProfile$()?.uid;
         this.gender = this.userProfile$()?.gender || '';
-        //this.gender = outfitUserProfile.gender;
-        this.categoryService.categoriesSubject.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((categories: outfitCategories[]) => {
 
-          this.categories =categories
-        })
-        this.loadProducts(this.outfitCategory, this.outfitSubCategory);
-         
-      }else{
-        this.handleBackButton()
+        this.categoryService.categoriesSubject
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((categories: outfitCategories[]) => {
+            this.categories = categories;
+          });
+
+        this.resetPagination();
+        await this.loadProducts();
+      } else {
+        this.handleBackButton();
       }
-    })    
+    });
+
     setTimeout(async () => {
       const modal = await this.modalController.getTop();
-        if(!modal){
-          this.isModal = false
-        }  
+      if (!modal) {
+        this.isModal = false;
+      }
     }, 500);
-    
   }
 
-  async loadProducts(outfitCategory?: any, outfitSubCategory?: any) {
-    const filters = {
-      ...(outfitCategory ? { outfitCategory: [String(outfitCategory)] } : {}),
-      ...(outfitSubCategory ? { outfitSubCategory: [String(outfitSubCategory)] } : {})
-    };
-    const products = outfitCategory || outfitSubCategory
-      ? await this.appService.filterOutfitProducts(filters)
-      : await this.appService.getData('outfit-products', '');
-    this.products = products.filter((product: any) => !this.gender || product.gender === this.gender)
+  async loadProducts(
+    outfitCategory: string = this.outfitCategory,
+    outfitSubCategory: string = this.outfitSubCategory,
+    append = false,
+  ): Promise<void> {
+    if (this.isLoading || (append && !this.hasMore)) {
+      return;
+    }
 
+    this.isLoading = true;
 
+    try {
+      const gender = this.catalogGender();
+      const cursor = append ? this.nextCursor ?? undefined : undefined;
 
+      let response;
+      if (outfitCategory || outfitSubCategory) {
+        const filters: CatalogProductFilters = {
+          ...(outfitCategory ? { outfitCategory: [outfitCategory] } : {}),
+          ...(outfitSubCategory ? { outfitSubCategory: [outfitSubCategory] } : {}),
+          ...(gender ? { gender } : {}),
+          limit: this.productsLimit,
+          ...(cursor ? { cursor } : {}),
+        };
+        response = await this.appService.filterOutfitProducts(filters);
+      } else {
+        response = await this.appService.getOutfitProducts({
+          ...(gender ? { gender } : {}),
+          limit: this.productsLimit,
+          ...(cursor ? { cursor } : {}),
+        });
+      }
+
+      this.products = append
+        ? this.mergeProducts(this.products, response.data)
+        : response.data;
+      this.nextCursor = response.pagination.nextCursor;
+      this.hasMore = response.pagination.hasMore;
+
+      if (this.infiniteScroll) {
+        this.infiniteScroll.disabled = !this.hasMore;
+      }
+    } catch (error) {
+      console.error('Errore durante il caricamento dei prodotti', error);
+    } finally {
+      this.isLoading = false;
+    }
   }
-
-
-  //Metodo caricaCategorie
 
   async loadCategories(parent?: any) {
-
-    
     if (!parent) {
-      parent = "";
-      this.categoryService.categoriesSubject.pipe(take(1)).subscribe((categories: outfitCategories[]) => {
-
-        this.categories =categories
-       })
-       return 
+      this.categoryService.categoriesSubject
+        .pipe(take(1))
+        .subscribe((categories: outfitCategories[]) => {
+          this.categories = categories;
+        });
+      return;
     }
-    
 
-    this.categories = await this.categoryService.categoriesByParent(parent, this.gender) 
-    console.log('categories', this.categories)
+    this.categories = await this.categoryService.categoriesByParent(parent, this.gender);
+    console.log('categories', this.categories);
   }
 
-  async filterCategory(indexCategory?:number,category?: outfitCategories) {
-    
-    
-      
-      this.selectedFilterStyleIndex = undefined;
-    
-    
-    
-    
+  async filterCategory(indexCategory?: number, category?: outfitCategories) {
+    this.selectedFilterStyleIndex = undefined;
 
     if (!category) {
-      this.selectedCategoryName = 'Tutti i prodotti'
+      this.selectedCategoryName = 'Tutti i prodotti';
+      this.outfitCategory = '';
+      this.outfitSubCategory = '';
+      this.resetPagination();
       await this.loadCategories();
       await this.loadProducts();
-      return
+      return;
     }
+
     this.selectedCategoryName = category.categoryName;
 
     if (!category.parentCategory) {
-      //this.selectedFilterStyleIndex = indexCategory;
-      await this.loadProducts(category.id);
-      await this.loadCategories(category.id)
-      return
+      this.outfitCategory = String(category.id);
+      this.outfitSubCategory = '';
+      this.resetPagination();
+      await this.loadProducts();
+      await this.loadCategories(category.id);
+      return;
     }
 
-    if (category.parentCategory) {
-      this.selectedFilterStyleIndex = indexCategory;
-      
-      this.loadProducts(category.parentCategory, category.id);
-    }
+    this.selectedFilterStyleIndex = indexCategory;
+    this.outfitCategory = String(category.parentCategory);
+    this.outfitSubCategory = String(category.id);
+    this.resetPagination();
+    await this.loadProducts();
   }
-  // Funzione link allo store
-  async buyToStore(itm: any) {
-    let link = !itm.link ? '#' : itm.link
 
-    if (link != '#') {
+  async buyToStore(itm: AppCatalogProduct) {
+    const link = !itm.link ? '#' : itm.link;
+
+    if (link !== '#') {
       await Browser.open({ url: link });
     }
   }
 
-  // Carica più prodotti (paginazione)
-  loadMoreProducts() {
-    this.currentPage++;
-    this.loadProducts();
+  async loadMoreProducts(event: InfiniteScrollCustomEvent): Promise<void> {
+    if (this.isLoading || !this.hasMore) {
+      await event.target.complete();
+      if (!this.hasMore) {
+        event.target.disabled = true;
+      }
+      return;
+    }
+
+    try {
+      await this.loadProducts(this.outfitCategory, this.outfitSubCategory, true);
+    } finally {
+      await event.target.complete();
+      event.target.disabled = !this.hasMore;
+    }
   }
 
-
-  // Salva il prodotto nel guardaroba
   async saveToWardrobe(dataProduct: any) {
-     const data = dataProduct.data
-        const categoryID = data.outfitCategory;
-        const subCategoryID = data.outfitSubCategory;
-        const link = !data.link ? '#' : data.link
-       
-        const saveData = {
-          brend: data.brend,
-          images: Array.isArray(data.images) ? data.images : data.imageUrl ? [data.imageUrl] : [],
-          imageUrl: data.imageUrl,
-          name: data.name,
-          outfitCategory: categoryID,
-          outfitSubCategory: subCategoryID,
-          color:data.color,
-          prezzo:parseInt(data.price, 10),
-          link:link
-        }
-    
-        const resSave = await this.appService.createWardrobe(saveData)
-        if(resSave)
-          alert('Elemento aggiunto alla tua wardrobe con successo!')
+    const data = dataProduct.data as AppCatalogProduct;
+    const link = !data.link ? '#' : data.link;
+
+    const saveData = {
+      brend: data.brend,
+      images: Array.isArray(data.images) ? data.images : data.imageUrl ? [data.imageUrl] : [],
+      imageUrl: data.imageUrl,
+      name: data.name,
+      outfitCategory: data.outfitCategory,
+      outfitSubCategory: data.outfitSubCategory,
+      color: data.color,
+      prezzo: data.prezzo ?? data.price,
+      link,
+    };
+
+    const resSave = await this.appService.createWardrobe(saveData);
+    if (resSave) {
+      alert('Elemento aggiunto alla tua wardrobe con successo!');
+    }
   }
 
   async handleBackButton() {
-
-    // Altrimenti, esegui il comportamento predefinito del back button
     const modal = await this.modalController.getTop();
     if (modal) {
-      // Se c'è un modale aperto, chiudi il modale
       modal.dismiss();
     } else {
-      // Altrimenti, esegui il comportamento predefinito del back button
       this.navController.back();
     }
-
   }
 
   genderReveral(gen: string): string {
     switch (gen) {
       case 'D':
-        return ' Donna '
-
-
+        return ' Donna ';
       case 'U':
-        return ' Uomo '
-
+        return ' Uomo ';
       default:
-        return ''
+        return '';
     }
+  }
+
+  private resetPagination(): void {
+    this.products = [];
+    this.nextCursor = null;
+    this.hasMore = true;
+    if (this.infiniteScroll) {
+      this.infiniteScroll.disabled = false;
+    }
+  }
+
+  private catalogGender(): 'U' | 'D' | undefined {
+    return this.gender === 'U' || this.gender === 'D' ? this.gender : undefined;
+  }
+
+  private mergeProducts(current: AppCatalogProduct[], incoming: AppCatalogProduct[]): AppCatalogProduct[] {
+    const products = new Map<string, AppCatalogProduct>();
+    [...current, ...incoming].forEach(product => products.set(product.id, product));
+    return [...products.values()];
   }
 }
