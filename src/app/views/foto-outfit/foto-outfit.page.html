@@ -8,8 +8,11 @@
 
   <img *ngIf="image" #imageElement [src]="image" class="outfit-pin-image" [ngClass]="{'darken': showTag}"
     (click)="addTag($event)" />
-  <!-- Tooltip di onboarding -->
-  <div class="tooltip" *ngIf="showTooltip()">Tocca la foto per aggiungere tag</div>
+  <!-- Suggerimento per il tagging -->
+  <div class="tag-helper" *ngIf="showTooltip()">
+    <ion-icon name="pricetag-outline" aria-hidden="true"></ion-icon>
+    <span>Tocca un punto della foto per taggare un capo</span>
+  </div>
   
   <ng-container *ngIf="showTag">
     <div *ngFor="let tag of tags" class="tag" [ngStyle]="tagStyle[tag.id]" (click)="openItmClothing(tag)">
