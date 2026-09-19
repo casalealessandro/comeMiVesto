@@ -102,7 +102,6 @@ export class FotoOutfitPage implements OnInit {
     if (image && image.dataUrl) {  // Aggiungi un controllo per verificare che dataUrl non sia undefined
       const maxWidth = 1080; // Larghezza massima per i post verticali tipo Instagram
       const maxHeight = 1350; // Altezza massima per i post verticali tipo Instagram
-      this.showTagHelper();
       // Ridimensionamento dell'immagine
       const resizedImage = await this.resizeImage(image.dataUrl, maxWidth, maxHeight);
   
@@ -121,6 +120,7 @@ export class FotoOutfitPage implements OnInit {
       });
       */
       this.image = resizedImage.dataUrl;
+      this.showTagHelper();
   
       let eventToEmit = {
         img: this.dataURLtoBlob(this.image),
