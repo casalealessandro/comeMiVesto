@@ -73,7 +73,7 @@ describe('UserService REST contracts', () => {
           password: '', photoURL: '', gender: 'U', createAt: 1
         },
         terms: { accepted: true, acceptedVersion: '1', currentVersion: '1' },
-        preferences: { uid: 'user-id', color: ['Nero'], brend: ['Adidas'], style: ['Casual'] },
+        preferences: { uid: 'user-id', color: ['N'], brend: ['Z'], style: ['C'], age: 40 },
         preferencesConfigured: true
       }
     });
@@ -81,9 +81,37 @@ describe('UserService REST contracts', () => {
     const bootstrap = await bootstrapPromise;
     expect(bootstrap.preferencesConfigured).toBeTrue();
     expect(service.gUserProfile()()?.uid).toBe('user-id');
-    expect(service.gUserPreference()()?.style).toEqual(['Casual']);
+    expect(service.gUserPreference()()?.style).toEqual(['C']);
+    expect(service.gUserPreference()()?.age).toBe(40);
+    expect(service.gPreferencesConfigured()()).toBeTrue();
     expect(service.gTermsStatus()()?.accepted).toBeTrue();
     expect(service.isBootstrapReady('user-id')).toBeTrue();
+  });
+
+  it('saves onboarding preferences using the existing endpoint', async () => {
+    const result = service.setUserPreference({
+      uid: 'user-id',
+      color: ['N'],
+      brend: ['Z'],
+      style: ['C'],
+      age: 40
+    });
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/user-preferences`);
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({
+      color: ['N'],
+      brend: ['Z'],
+      style: ['C'],
+      age: 40
+    });
+    request.flush({
+      message: 'Success',
+      data: { uid: 'user-id', color: ['N'], brend: ['Z'], style: ['C'], age: 40 }
+    });
+
+    expect(await result).toBeTrue();
+    expect(service.gPreferencesConfigured()()).toBeTrue();
+    expect(service.gUserPreference()()?.age).toBe(40);
   });
 
   it('gets the versioned terms status', async () => {
