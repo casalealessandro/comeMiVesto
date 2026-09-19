@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
 import { IonModal, ModalController, NavController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
-import { Tag } from 'src/app/service/interface/outfit-all-interface';
+import { AppCatalogProduct, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 
 @Component({
@@ -47,17 +47,19 @@ export class DetailOutfitPage implements OnInit {
           console.log(this.tags)
         }
         
-        let products: any[] = await this.appService.filterOutfitProducts({
+        const response = await this.appService.filterOutfitProducts({
           outfitSubCategory: selectedOutfit.outfitSubCategory,
+          ...(selectedOutfit.gender === 'U' || selectedOutfit.gender === 'D'
+            ? { gender: selectedOutfit.gender }
+            : {}),
+          limit: 20,
         });
-        products = products.filter(product => !selectedOutfit.gender || product.gender === selectedOutfit.gender);
-       
+        const products: AppCatalogProduct[] = response.data;
+
         if (this.tags.length > 0 && this.isOpen) {
-          const tags =this.tags
-          this.relatedProducts = products.filter(prod => 
-            !this.tags.some(tag => String(tag.id) === String(prod.id)) // Confronta gli ID come stringhe
-        );
-          
+          this.relatedProducts = products.filter(prod =>
+            !this.tags.some(tag => String(tag.id) === String(prod.id))
+          );
         }
       }
     });
