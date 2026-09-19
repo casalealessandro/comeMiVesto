@@ -2,6 +2,7 @@
 
 export interface Tag {
   id: any;
+  catalogProductId?: string;
   name: string;
   x: number;
   y: number;
@@ -40,6 +41,7 @@ export interface outfit {
   editedAt?: any;
   outfitCategory?: any;
   outfitSubCategory?: any;
+  catalogProductIds?: string[];
   status: OutfitStatus;
   moderationStatus?: ModerationStatus;
   moderationProvider?: string;
@@ -52,6 +54,7 @@ export interface outfit {
 export interface wardrobesItem {
   id: string | number;
   userId?: string;
+  catalogProductId?: string;
   name: string;
   outfitCategory: string;
   outfitSubCategory: string;
@@ -101,6 +104,7 @@ export interface OutfitFilterPayload {
   season?: string;
   style?: string;
   search?: string;
+  catalogProductId?: string;
 }
 export interface buttons {
   icon: string;
