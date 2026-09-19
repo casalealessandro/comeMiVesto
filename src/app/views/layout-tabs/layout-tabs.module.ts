@@ -8,6 +8,7 @@ import { LayoutTabsPageRoutingModule } from './layout-tabs-routing.module';
 
 import { LayoutTabsPage } from './layout-tabs.page';
 import { ComponentsModule } from "../../components/components.module";
+import { PreferencesOnboardingComponent } from "../../components/preferences-onboarding/preferences-onboarding.component";
 
 
 @NgModule({
@@ -16,6 +17,7 @@ import { ComponentsModule } from "../../components/components.module";
     IonicModule,
     LayoutTabsPageRoutingModule,
     ComponentsModule,
+    PreferencesOnboardingComponent,
     
 ],
   declarations: [LayoutTabsPage]
