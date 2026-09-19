@@ -173,6 +173,31 @@ describe('ProdottiOnlinePage', () => {
     });
   });
 
+  it('keeps the latest category when an older product request finishes later', async () => {
+    let resolveOldRequest!: (value: any) => void;
+    appServiceMock.getOutfitProducts.and.returnValue(new Promise(resolve => {
+      resolveOldRequest = resolve;
+    }));
+    appServiceMock.filterOutfitProducts.and.resolveTo({
+      data: [{ id: 'filtered' }],
+      pagination: { nextCursor: 'filtered-cursor', hasMore: true }
+    });
+    categoryServiceMock.categoriesByParent.and.resolveTo([]);
+
+    const oldLoad = component.loadProducts();
+    await component.filterCategory(0, { id: 'category-1', categoryName: 'Categoria' } as any);
+
+    resolveOldRequest({
+      data: [{ id: 'stale' }],
+      pagination: { nextCursor: 'stale-cursor', hasMore: true }
+    });
+    await oldLoad;
+
+    expect(component.products.map(product => product.id)).toEqual(['filtered']);
+    expect(component.nextCursor).toBe('filtered-cursor');
+    expect(component.outfitCategory).toBe('category-1');
+  });
+
   it('keeps wardrobe saving compatible with catalog prezzo', async () => {
     appServiceMock.createWardrobe.and.resolveTo({ id: 'saved' });
     spyOn(window, 'alert');
