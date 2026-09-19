@@ -7,6 +7,8 @@ import { ApiRequestError } from 'src/app/service/app-service';
 import { UserService } from 'src/app/service/user.service';
 import { finalize } from 'rxjs';
 import { DynamicFormComponent } from 'src/app/components/dynamic-form/dynamic-form.component';
+import { browserLocalPersistence, setPersistence, signInWithEmailAndPassword } from 'firebase/auth';
+import { FirebaseService } from 'src/app/service/firebase.service';
 
 @Component({
   standalone: false,
@@ -29,7 +31,9 @@ export class RegisterPage {
   constructor(
     private userService: UserService,
     private navController: NavController,
-    private alert:AlertController) {}
+    private alert:AlertController,
+    private firebase: FirebaseService,
+    private router: Router) {}
 
   
   register(registerData:any) {
@@ -63,21 +67,8 @@ export class RegisterPage {
     this.userService.registerUser('/user/register',userProfile)
     .pipe(finalize(() => this.submitting = false))
     .subscribe({
-      next: (data) => {
-        this.alert.create(
-          {
-            header:'Complimenti!',
-            message:'Registrazione completata con successo. Ora puoi accedere a ComeMiVesto.',
-            buttons: ['Ok'],
-            }
-          ).then(
-            alert => {
-              alert.present();
-              setTimeout(() => {
-                this.handleBackButton()
-              }, 500);
-
-        });
+      next: () => {
+        void this.completeRegistrationSession(email, password);
       },
       error: (error: ApiRequestError) => {
         const message = error.code === 'CONTENT_FLAGGED'
@@ -89,6 +80,32 @@ export class RegisterPage {
       }
     })
     
+  }
+
+  private async completeRegistrationSession(email: string, password: string): Promise<void> {
+    try {
+      await setPersistence(this.firebase.auth, browserLocalPersistence);
+      const userCredential = await signInWithEmailAndPassword(this.firebase.auth, email, password);
+      await userCredential.user.getIdToken(true);
+      const bootstrap = await this.userService.loadBootstrap();
+      sessionStorage.setItem('userProfile', JSON.stringify(bootstrap.profile));
+
+      const successAlert = await this.alert.create({
+        header: 'Complimenti!',
+        message: 'Registrazione completata con successo.',
+        buttons: ['Ok'],
+      });
+      await successAlert.present();
+      await successAlert.onDidDismiss();
+      await this.router.navigateByUrl('/tabs/myoutfit', { replaceUrl: true });
+    } catch (error) {
+      console.error('Registrazione completata ma avvio sessione non riuscito:', error);
+      await this.showAlert(
+        'Registrazione completata',
+        'Account creato correttamente, ma non è stato possibile avviare la sessione. Accedi con le credenziali appena create.'
+      );
+      await this.router.navigateByUrl('/login', { replaceUrl: true });
+    }
   }
 
   async functionalCheckBox(evt:any){
