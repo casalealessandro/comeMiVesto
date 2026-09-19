@@ -1,7 +1,6 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { UserService } from './service/user.service';
-import { firstValueFrom } from 'rxjs';
 import { TermsAcceptanceService } from './service/terms-acceptance.service';
 import { FirebaseService } from './service/firebase.service';
 
@@ -28,19 +27,17 @@ export const authGuard: CanActivateFn = async (route, state) => {
       return loginRedirect();
     }
 
-    // Recuperiamo il profilo utente solo se non è già caricato
-    const currentProfile = userService.gUserProfile()();
-    if (currentProfile?.uid !== user.uid) {
+    // Inizializziamo una sola volta lo stato applicativo dell'utente
+    if (!userService.isBootstrapReady(user.uid)) {
       try {
-        const profile = await firstValueFrom(userService.getUserProfile(user.uid));
-        userService.setUserInfo(profile); // Salviamo il profilo nel service
+        await userService.loadBootstrap();
       } catch (error) {
-        console.error('Errore nel recupero del profilo utente:', error);
+        console.error('Errore nel bootstrap della sessione utente:', error);
         return false;
       }
     }
 
-    const decision = await termsAcceptance.allowAppAccess(user.uid);
+    const decision = await termsAcceptance.allowAppAccess(user.uid, userService.gTermsStatus()() ?? undefined);
     return decision === 'accepted' ? true : decision === 'declined' ? loginRedirect() : false;
   } catch (error) {
     console.error('Errore nella verifica dello stato di autenticazione:', error);
