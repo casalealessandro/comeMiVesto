@@ -40,5 +40,15 @@
 >
 
   <app-products-grid [products]="products" (productsEvent)="saveToWardrobe($event)"></app-products-grid>
+
+  <ion-infinite-scroll
+    threshold="100px"
+    [disabled]="!hasMore"
+    (ionInfinite)="loadMoreProducts($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Caricamento prodotti...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
 </ion-content>
 
