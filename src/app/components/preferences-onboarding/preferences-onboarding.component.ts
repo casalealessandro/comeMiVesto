@@ -73,6 +73,15 @@ export class PreferencesOnboardingComponent implements OnInit {
     return true;
   }
 
+  setAge(value: string | number | null | undefined): void {
+    if (value === null || value === undefined || value === '') {
+      this.age = undefined;
+      return;
+    }
+    const parsed = Number(value);
+    this.age = Number.isInteger(parsed) ? parsed : undefined;
+  }
+
   previousStep(): void {
     if (this.currentStep > 1) this.currentStep--;
   }
