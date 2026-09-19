@@ -57,6 +57,47 @@
           </ion-segment-button>
         </ion-segment>
 
+        <section class="suggested-discovery" *ngIf="selectedSegment === 'suggeriti'">
+          <div class="suggested-intro">
+            <span class="suggested-kicker">PER TE</span>
+            <h2>Scelti in base ai tuoi gusti</h2>
+            <p>Outfit e prodotti selezionati usando le tue preferenze.</p>
+          </div>
+
+          <div class="suggested-products" *ngIf="isSuggestedProductsLoading || suggestedProducts.length > 0">
+            <div class="suggested-section-title">
+              <div>
+                <h3>Prodotti che potrebbero piacerti</h3>
+                <span>Dal catalogo ComeMiVesto</span>
+              </div>
+            </div>
+
+            <div class="suggested-products-loading" *ngIf="isSuggestedProductsLoading">
+              <ion-spinner name="crescent"></ion-spinner>
+            </div>
+
+            <div class="suggested-products-scroll" *ngIf="!isSuggestedProductsLoading && suggestedProducts.length > 0">
+              <button type="button" class="suggested-product-card" *ngFor="let product of suggestedProducts"
+                (click)="openSuggestedProduct(product)">
+                <div class="suggested-product-image">
+                  <img [src]="product.imageUrl || 'assets/images/fallback-image.jpg'" [alt]="product.name"
+                    (error)="$any($event.target).src='assets/images/fallback-image.jpg'" />
+                </div>
+                <div class="suggested-product-info">
+                  <span class="suggested-product-brand">{{ product.brend || product.brand }}</span>
+                  <strong>{{ product.name }}</strong>
+                  <span class="suggested-product-price">{{ product.price | currencyFormat }}</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="suggested-outfit-title" *ngIf="filteredOutfits.length > 0">
+            <h3>Outfit per te</h3>
+            <span>In base alle tue preferenze</span>
+          </div>
+        </section>
+
         <ion-row class="style">
           <ion-col class="style-col" size="12" *ngFor="let outfit of filteredOutfits">
 
