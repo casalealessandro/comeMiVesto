@@ -17,6 +17,43 @@ export interface Tag {
 }[]
 
 export type Gender = '' | 'U' | 'D';
+
+export interface AppCatalogProduct {
+  id: string;
+  name: string;
+  brand: string;
+  brend: string;
+  outfitCategory: string;
+  outfitSubCategory: string;
+  color: string;
+  genderTargets: Array<Exclude<Gender, ''>>;
+  images: string[];
+  imageUrl: string;
+  price: number;
+  prezzo: number;
+  currency: string;
+  link: string;
+  affiliateProgramId: string;
+}
+
+export interface CatalogPagination {
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+export interface CatalogProductsResponse {
+  data: AppCatalogProduct[];
+  pagination: CatalogPagination;
+}
+
+export interface CatalogProductFilters {
+  ids?: string[];
+  outfitCategory?: string[];
+  outfitSubCategory?: string[];
+  gender?: Exclude<Gender, ''>;
+  limit?: number;
+  cursor?: string;
+}
 export type OutfitStyle = '' | 'C' | 'B' | 'SP' | 'SC' | 'E' | 'AT' | 'FES' | 'CL' | 'TR' | 'SE';
 export type OutfitSeason = '' | 'E' | 'P' | 'A' | 'I';
 export type OutfitStatus = 'pending' | 'approved' | 'rifiutato';
