@@ -62,9 +62,8 @@
 
             <ion-card class="outfit-card">
               <div class="outfit-header">
-                <div class="outfit-header-wrapper-title" *ngIf="outfitUserProfile[outfit.userId]"
-                  role="button" tabindex="0" (click)="openUserProfile(outfit.userId)"
-                  (keydown.enter)="openUserProfile(outfit.userId)">
+                <button type="button" class="outfit-header-wrapper-title" *ngIf="outfitUserProfile[outfit.userId]"
+                  (click)="openUserProfile(outfit.userId)">
                   <ion-avatar slot="start" class="outfit-card-avatar">
                     <img *ngIf="outfitUserProfile[outfit.userId]" [src]="outfitUserProfile[outfit.userId].photoURL" />
                   </ion-avatar>
@@ -72,7 +71,7 @@
 
                     {{ outfitUserProfile[outfit.userId].displayName }}
                   </ion-card-title>
-                </div>
+                </button>
                 <div class="outfit-header-wrapper-info">
                   <ion-button size="small" fill="clear" (click)="outfitMenu(outfit)">
                     <i class="fi fi-rr-menu-dots-vertical"></i>
