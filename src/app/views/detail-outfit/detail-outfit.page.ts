@@ -119,6 +119,7 @@ export class DetailOutfitPage implements OnInit {
     const link = !data.link ? '#' : data.link
    
     const saveData = {
+      catalogProductId: data.id,
       brend: data.brend,
       images: Array.isArray(data.images) ? data.images : data.imageUrl ? [data.imageUrl] : [],
       imageUrl: data.imageUrl,
