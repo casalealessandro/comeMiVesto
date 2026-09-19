@@ -12,14 +12,14 @@ ion-card-subtitle {
 }
 
 .form-group {
-    row-gap: 24px;
+    row-gap: var(--dynamic-form-row-gap, 24px);
     display: flex;
     flex-direction: column;
 
     
 }
 .form-footer {
-    margin-top: 24px;
+    margin-top: var(--dynamic-form-footer-margin-top, 24px);
 }
 
 .textbox,.selectbox {
@@ -263,9 +263,11 @@ ion-checkbox {
 
 /* Add outfit: compact density scoped only to this DynamicForm instance. */
 app-dynamic-form.outfit-form {
+    --dynamic-form-row-gap: 8px;
+    --dynamic-form-footer-margin-top: 10px;
+
     .form-group {
-        row-gap: 12px;
-        padding-top: 14px;
+        padding-top: 8px;
     }
 
     .form-group > ng-container,
@@ -281,32 +283,31 @@ app-dynamic-form.outfit-form {
     }
 
     ion-input.textbox {
-        min-height: 56px;
-        --padding-top: 8px;
-        --padding-bottom: 8px;
+        min-height: 50px;
+        --padding-top: 6px;
+        --padding-bottom: 6px;
     }
 
     ion-textarea.textbox {
-        min-height: 116px;
-        --padding-top: 8px;
-        --padding-bottom: 8px;
+        min-height: 96px;
+        --padding-top: 6px;
+        --padding-bottom: 6px;
     }
 
     .selectbox {
         .native-wrapper {
-            margin-top: 6px;
-            min-height: 46px;
+            margin-top: 4px;
+            min-height: 44px;
         }
 
         .native-wrapper ion-select::part(container) {
-            min-height: 46px;
+            min-height: 44px;
             padding: 0 12px;
         }
     }
 
     .form-footer {
-        margin-top: 14px;
-        padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     }
 
     .form-footer ion-item {
