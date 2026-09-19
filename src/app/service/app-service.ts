@@ -4,8 +4,8 @@ import { lastValueFrom, Observable, throwError } from 'rxjs';
 import { catchError, map, retry, tap } from 'rxjs/operators';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { BlockedUser, OutfitPreferencePayload, UserProfile } from './interface/user-interface';
-import { EditableOutfit, OutfitFilterPayload, ReportPayload, WardrobePayload, outfit, wardrobesItem } from './interface/outfit-all-interface';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { CatalogProductFilters, CatalogProductsResponse, EditableOutfit, OutfitFilterPayload, ReportPayload, WardrobePayload, outfit, wardrobesItem } from './interface/outfit-all-interface';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { FirebaseService } from './firebase.service';
 export interface ApiResponse<T> {
@@ -121,7 +121,26 @@ export class AppService {
   updateOutfit(id: string, payload: EditableOutfit): Promise<outfit> { return lastValueFrom(this.http.put<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`, this.editableOutfitPayload(payload)).pipe(map(r => r.data), catchError(this.handleError))); }
   deleteOutfit(id: string): Promise<boolean> { return lastValueFrom(this.http.delete<ApiResponse<unknown>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`).pipe(map(() => true), catchError(this.handleError))); }
   recordOutfitVisit(id: string): Promise<outfit> { return lastValueFrom(this.http.post<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}/visit`, {}).pipe(map(r => r.data), catchError(this.handleError))); }
-  filterOutfitProducts(filters: { ids?: string[]; outfitCategory?: string[]; outfitSubCategory?: string[] }): Promise<any[]> { return lastValueFrom(this.http.post<ApiResponse<any[]>>(`${this.apiFire}filter-outfit-products`, filters).pipe(map(r => r.data), catchError(this.handleError))); }
+  getOutfitProducts(params: Pick<CatalogProductFilters, 'limit' | 'cursor' | 'gender'> = {}): Promise<CatalogProductsResponse> {
+    let httpParams = new HttpParams();
+    if (params.limit !== undefined) httpParams = httpParams.set('limit', String(params.limit));
+    if (params.cursor) httpParams = httpParams.set('cursor', params.cursor);
+    if (params.gender) httpParams = httpParams.set('gender', params.gender);
+
+    return lastValueFrom(
+      this.http.get<CatalogProductsResponse>(`${this.apiFire}outfit-products`, { params: httpParams }).pipe(
+        catchError(this.handleError)
+      )
+    );
+  }
+
+  filterOutfitProducts(filters: CatalogProductFilters): Promise<CatalogProductsResponse> {
+    return lastValueFrom(
+      this.http.post<CatalogProductsResponse>(`${this.apiFire}filter-outfit-products`, filters).pipe(
+        catchError(this.handleError)
+      )
+    );
+  }
   getWardrobes(): Observable<wardrobesItem[]> { return this.getAll<wardrobesItem>('wardrobes'); }
   getWardrobe(id: string): Promise<wardrobesItem> { return lastValueFrom(this.http.get<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes/${encodeURIComponent(id)}`).pipe(map(r => r.data), catchError(this.handleError))); }
   createWardrobe(data: WardrobePayload): Promise<wardrobesItem> { return lastValueFrom(this.http.post<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes`, this.wardrobePayload(data, true)).pipe(map(r => r.data), catchError(this.handleError))); }
