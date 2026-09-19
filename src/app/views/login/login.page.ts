@@ -3,7 +3,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { browserLocalPersistence, browserSessionPersistence, sendPasswordResetEmail, setPersistence, signInWithEmailAndPassword } from 'firebase/auth';
 import { UserService } from 'src/app/service/user.service';
-import { firstValueFrom } from 'rxjs';
 import { FirebaseService } from 'src/app/service/firebase.service';
 
 export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
@@ -44,10 +43,9 @@ export class LoginPage {
         return;
       }
 
-      const uid = userCredential.user.uid;
-      const userData = await firstValueFrom(this.userService.getUserProfile(uid));
-      this.userService.setUserInfo(userData);
-      sessionStorage.setItem('userProfile',JSON.stringify(userData));
+      await userCredential.user.getIdToken(true);
+      const bootstrap = await this.userService.loadBootstrap();
+      sessionStorage.setItem('userProfile', JSON.stringify(bootstrap.profile));
       await this.router.navigateByUrl(getSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')));
     } catch (error) {
       console.error(error)

@@ -36,6 +36,13 @@ export interface UserPreference {
   style: string[];
 }
 
+export interface UserBootstrap {
+  profile: UserProfile;
+  terms: TermsStatus;
+  preferences: UserPreference | null;
+  preferencesConfigured: boolean;
+}
+
 export type OutfitPreferencePayload = Omit<UserPreference, 'uid'>;
 
 export interface RegisterPayload {

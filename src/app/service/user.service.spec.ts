@@ -61,6 +61,31 @@ describe('UserService REST contracts', () => {
     await expectAsync(unfollow).toBeResolvedTo(undefined);
   });
 
+  it('bootstraps profile, Terms and preferences with one request', async () => {
+    const bootstrapPromise = service.loadBootstrap();
+    const request = http.expectOne(`${environment.BASE_API_URL}/user/bootstrap`);
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      message: 'Success',
+      data: {
+        profile: {
+          uid: 'user-id', displayName: 'User', cognome: '', name: '', email: 'user@example.com',
+          password: '', photoURL: '', gender: 'U', createAt: 1
+        },
+        terms: { accepted: true, acceptedVersion: '1', currentVersion: '1' },
+        preferences: { uid: 'user-id', color: ['Nero'], brend: ['Adidas'], style: ['Casual'] },
+        preferencesConfigured: true
+      }
+    });
+
+    const bootstrap = await bootstrapPromise;
+    expect(bootstrap.preferencesConfigured).toBeTrue();
+    expect(service.gUserProfile()()?.uid).toBe('user-id');
+    expect(service.gUserPreference()()?.style).toEqual(['Casual']);
+    expect(service.gTermsStatus()()?.accepted).toBeTrue();
+    expect(service.isBootstrapReady('user-id')).toBeTrue();
+  });
+
   it('gets the versioned terms status', async () => {
     const result = firstValueFrom(service.getTermsStatus());
     const request = http.expectOne(`${environment.BASE_API_URL}/user/terms-status`);

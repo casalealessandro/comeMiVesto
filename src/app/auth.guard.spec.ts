@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { of } from 'rxjs';
 import { routes } from './app-routing.module';
 import { authGuard } from './auth.guard';
 import { TermsAcceptanceService } from './service/terms-acceptance.service';
@@ -17,9 +16,16 @@ describe('protected routing', () => {
   beforeEach(() => {
     auth = { waitForAuthState: jasmine.createSpy().and.resolveTo(null) };
     users = {
-      getUserProfile: jasmine.createSpy().and.returnValue(of({ uid: 'user' })),
-      setUserInfo: jasmine.createSpy(),
-      gUserProfile: jasmine.createSpy().and.returnValue(() => ({ uid: '' }))
+      loadBootstrap: jasmine.createSpy().and.resolveTo({
+        profile: { uid: 'user' },
+        terms: { accepted: true, acceptedVersion: '1', currentVersion: '1' },
+        preferences: null,
+        preferencesConfigured: false
+      }),
+      isBootstrapReady: jasmine.createSpy().and.returnValue(false),
+      gTermsStatus: jasmine.createSpy().and.returnValue(() => ({
+        accepted: true, acceptedVersion: '1', currentVersion: '1'
+      }))
     };
     terms = { allowAppAccess: jasmine.createSpy().and.resolveTo('accepted') };
     TestBed.configureTestingModule({ imports: [RouterTestingModule], providers: [
@@ -43,25 +49,25 @@ describe('protected routing', () => {
     auth.waitForAuthState.and.returnValue(new Promise(resolve => restoreSession = resolve));
 
     const decision = run('/tabs/myoutfit');
-    expect(users.getUserProfile).not.toHaveBeenCalled();
+    expect(users.loadBootstrap).not.toHaveBeenCalled();
     restoreSession({ uid: 'user', getIdToken: () => Promise.resolve('token') });
 
     expect(await decision).toBeTrue();
-    expect(users.getUserProfile).toHaveBeenCalledWith('user');
+    expect(users.loadBootstrap).toHaveBeenCalled();
   });
 
   it('does not reload the profile when the current user is already loaded', async () => {
     auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
-    users.gUserProfile.and.returnValue(() => ({ uid: 'user' }));
+    users.isBootstrapReady.and.returnValue(true);
 
     expect(await run('/tabs/my-profile')).toBeTrue();
-    expect(users.getUserProfile).not.toHaveBeenCalled();
+    expect(users.loadBootstrap).not.toHaveBeenCalled();
   });
 
   it('allows the original protected route when signed in with current Terms', async () => {
     auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
     expect(await run('/tabs/detail-outfit/abc')).toBeTrue();
-    expect(terms.allowAppAccess).toHaveBeenCalledOnceWith('user');
+    expect(terms.allowAppAccess).toHaveBeenCalledOnceWith('user', { accepted: true, acceptedVersion: '1', currentVersion: '1' });
   });
 
   it('continues the original navigation after Terms acceptance without a home redirect', async () => {

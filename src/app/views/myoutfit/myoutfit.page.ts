@@ -385,7 +385,7 @@ export class MyOutFitPage implements OnDestroy {
 
 
   async loadOutfits(): Promise<void> {
-    this.cUserPreference = await this.userProfileService.getUserPreference();
+    this.cUserPreference = this.userProfileService.gUserPreference()();
     this.filteredOutfits = JSON.parse(JSON.stringify(this.outfits));
     this.outfitUserProfile = [];
     await this.heartIcon();
