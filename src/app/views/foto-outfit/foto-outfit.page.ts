@@ -37,6 +37,7 @@ export class FotoOutfitPage implements OnInit {
   format: string = '';
   openFullScreen:boolean=false
   showTooltip = signal(false);
+  private tagHelperTimeout:any;
   constructor(private modalController: ModalController,private alert:AlertController) { }
 
 
@@ -101,7 +102,7 @@ export class FotoOutfitPage implements OnInit {
     if (image && image.dataUrl) {  // Aggiungi un controllo per verificare che dataUrl non sia undefined
       const maxWidth = 1080; // Larghezza massima per i post verticali tipo Instagram
       const maxHeight = 1350; // Altezza massima per i post verticali tipo Instagram
-      this.showTooltip.set(true);
+      this.showTagHelper();
       // Ridimensionamento dell'immagine
       const resizedImage = await this.resizeImage(image.dataUrl, maxWidth, maxHeight);
   
@@ -128,11 +129,18 @@ export class FotoOutfitPage implements OnInit {
       };
       this.eventFotoCaptured.emit(eventToEmit);
 
-     
-
-      // Nasconde il tooltip dopo 3 secondi
-      setTimeout(() => this.showTooltip.set(false), 5500)
     }
+  }
+
+  showTagHelper() {
+    if (this.tagHelperTimeout) {
+      clearTimeout(this.tagHelperTimeout);
+    }
+
+    this.showTooltip.set(true);
+    this.tagHelperTimeout = setTimeout(() => {
+      this.showTooltip.set(false);
+    }, 30000);
   }
   
   
@@ -216,6 +224,11 @@ export class FotoOutfitPage implements OnInit {
       this.eventImageShowFull.emit()
       return
     }
+
+    if (this.tagHelperTimeout) {
+      clearTimeout(this.tagHelperTimeout);
+    }
+    this.showTooltip.set(false);
 
     let name = ''
     let link = ''
