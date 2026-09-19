@@ -85,7 +85,7 @@ export class MyProfilePage implements OnInit {
   async ngOnInit() {
 
     //this.userProfile$ = this.userProfileService.getUserProfile();
-    this.userPreference = await this.userProfileService.getUserPreference();
+    this.userPreference = this.userProfileService.gUserPreference()();
 
 
 
@@ -218,6 +218,7 @@ export class MyProfilePage implements OnInit {
     }
     let isOk = await this.userProfileService.setUserPreference(profilePrefData)
     if (isOk) {
+      this.userPreference = this.userProfileService.gUserPreference()();
 
       this.alert.create({
         header: 'Attenzione!',
