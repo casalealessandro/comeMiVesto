@@ -43,6 +43,7 @@ export class ProdottiOnlinePage implements OnInit {
   nextCursor: string | null = null;
   hasMore = true;
   isLoading = false;
+  private loadVersion = 0;
   userID: any;
   gender=""
   outfitCategory = "";
@@ -80,6 +81,7 @@ export class ProdottiOnlinePage implements OnInit {
   async loadProducts(outfitCategory?: string, outfitSubCategory?: string, append = false) {
     if (this.isLoading || (append && !this.hasMore)) return;
 
+    const requestVersion = this.loadVersion;
     this.isLoading = true;
     try {
       const cursor = append && this.nextCursor ? this.nextCursor : undefined;
@@ -97,6 +99,8 @@ export class ProdottiOnlinePage implements OnInit {
             ...(cursor ? { cursor } : {})
           });
 
+      if (requestVersion !== this.loadVersion) return;
+
       const products = append ? [...this.products, ...response.data] : response.data;
       this.products = products.filter((product, index, allProducts) =>
         allProducts.findIndex(candidate => String(candidate.id) === String(product.id)) === index
@@ -104,11 +108,13 @@ export class ProdottiOnlinePage implements OnInit {
       this.nextCursor = response.pagination.nextCursor;
       this.hasMore = response.pagination.hasMore;
     } finally {
-      this.isLoading = false;
+      if (requestVersion === this.loadVersion) this.isLoading = false;
     }
   }
 
   private resetProducts() {
+    this.loadVersion += 1;
+    this.isLoading = false;
     this.products = [];
     this.nextCursor = null;
     this.hasMore = true;
