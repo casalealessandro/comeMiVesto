@@ -3,8 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AlertController, IonicModule, ModalController } from '@ionic/angular';
 import { finalize } from 'rxjs/operators';
-import { AppService } from 'src/app/service/app-service';
-import { brend, colors } from 'src/app/service/interface/outfit-all-interface';
+import { AppService, OutfitBrand, OutfitColor } from 'src/app/service/app-service';
 import { OutfitStyle, OutfitStyleGender } from 'src/app/service/interface/outfit-style-interface';
 import { AgeRange } from 'src/app/service/interface/user-interface';
 import { UserService } from 'src/app/service/user.service';
@@ -33,6 +32,10 @@ export class PreferencesOnboardingComponent implements OnInit {
   saving = false;
   stylesLoading = true;
   stylesLoadError = false;
+  colorsLoading = true;
+  colorsLoadError = false;
+  brandsLoading = true;
+  brandsLoadError = false;
   brandSearchQuery = '';
   selectedAgeRange: AgeRange | null = null;
 
@@ -51,10 +54,10 @@ export class PreferencesOnboardingComponent implements OnInit {
   selectedBrands = new Set<string>();
 
   styleOptions: OutfitStyle[] = [];
-  colorOptions = colors;
-  brandOptions = brend;
+  colorOptions: OutfitColor[] = [];
+  brandOptions: OutfitBrand[] = [];
 
-  get filteredBrandOptions(): PreferenceOption[] {
+  get filteredBrandOptions(): OutfitBrand[] {
     const query = this.brandSearchQuery.trim().toLocaleLowerCase();
     if (!query) return this.brandOptions;
 
@@ -75,6 +78,8 @@ export class PreferencesOnboardingComponent implements OnInit {
     this.selectedColors = new Set(preference?.color ?? []);
     this.selectedBrands = new Set(preference?.brend ?? []);
     this.loadStyles();
+    this.loadColors();
+    this.loadBrands();
   }
 
   get canContinue(): boolean {
@@ -152,7 +157,7 @@ export class PreferencesOnboardingComponent implements OnInit {
     await this.modalController.dismiss({ saved: true }, 'complete');
   }
 
-  trackById(_index: number, item: PreferenceOption | AgeRangeOption): string {
+  trackById(_index: number, item: { id: string }): string {
     return item.id;
   }
 
@@ -192,6 +197,40 @@ export class PreferencesOnboardingComponent implements OnInit {
       error: () => {
         this.styleOptions = [];
         this.stylesLoadError = true;
+      },
+    });
+  }
+
+  private loadColors(): void {
+    this.colorsLoading = true;
+    this.colorsLoadError = false;
+    this.appService.getOutfitColors().pipe(
+      finalize(() => this.colorsLoading = false),
+    ).subscribe({
+      next: colors => {
+        this.colorOptions = colors;
+        this.colorsLoadError = colors.length === 0;
+      },
+      error: () => {
+        this.colorOptions = [];
+        this.colorsLoadError = true;
+      },
+    });
+  }
+
+  private loadBrands(): void {
+    this.brandsLoading = true;
+    this.brandsLoadError = false;
+    this.appService.getOutfitBrands().pipe(
+      finalize(() => this.brandsLoading = false),
+    ).subscribe({
+      next: brands => {
+        this.brandOptions = brands;
+        this.brandsLoadError = brands.length === 0;
+      },
+      error: () => {
+        this.brandOptions = [];
+        this.brandsLoadError = true;
       },
     });
   }
