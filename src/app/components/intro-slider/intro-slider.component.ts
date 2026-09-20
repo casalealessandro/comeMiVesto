@@ -5,7 +5,7 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { defineCustomElements } from '@ionic/core/loader';
 import { register } from 'swiper/element/bundle';
 import { FirebaseService } from 'src/app/service/firebase.service';
@@ -24,7 +24,11 @@ register();
 export class IntroSliderComponent implements OnInit, AfterViewInit {
   INTRO_STORAGE_KEY = 'hasSeenIntro';
 
-  constructor(private router: Router, private firebase: FirebaseService) {
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private firebase: FirebaseService
+  ) {
     defineCustomElements(window);
   }
 
@@ -39,6 +43,7 @@ export class IntroSliderComponent implements OnInit, AfterViewInit {
       const swiperParams = {
         slidesPerView: 1,
         spaceBetween: 0,
+        initialSlide: 0,
         loop: false,
         speed: 400,
         pagination: {
@@ -52,6 +57,7 @@ export class IntroSliderComponent implements OnInit, AfterViewInit {
 
       Object.assign(swiperEl, swiperParams);
       swiperEl.initialize();
+      swiperEl.swiper?.slideTo(0, 0);
     }
   }
 
@@ -70,20 +76,29 @@ export class IntroSliderComponent implements OnInit, AfterViewInit {
 
       const hasSeenIntro = localStorage.getItem(this.INTRO_STORAGE_KEY);
       if (hasSeenIntro === 'true') {
-        await this.router.navigateByUrl('/login', { replaceUrl: true });
+        await this.goToLogin();
       }
     } catch (error) {
       console.error('Error checking first-time user status:', error);
     }
   }
 
+  private async goToLogin(): Promise<void> {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+
+    await this.router.navigate(['/login'], {
+      queryParams: returnUrl ? { returnUrl } : undefined,
+      replaceUrl: true,
+    });
+  }
+
   finish(): void {
     try {
       localStorage.setItem(this.INTRO_STORAGE_KEY, 'true');
-      this.router.navigateByUrl('/login');
+      void this.goToLogin();
     } catch (error) {
       console.error('Error saving intro status:', error);
-      this.router.navigateByUrl('/login');
+      void this.goToLogin();
     }
   }
 }
