@@ -90,3 +90,68 @@ describe('PreferencesOnboardingComponent dynamic styles', () => {
     expect(component.selectedStyles.has('saved-style')).toBeTrue();
   });
 });
+
+describe('PreferencesOnboardingComponent brand search', () => {
+  function createComponent(): PreferencesOnboardingComponent {
+    const userService = {
+      gUserProfile: () => () => ({ uid: 'user-id', gender: 'U' }),
+      gUserPreference: () => () => ({ style: [], color: [], brend: [] }),
+    } as unknown as UserService;
+    const appService = { getOutfitStyles: () => of([]) } as unknown as AppService;
+    const component = new PreferencesOnboardingComponent(userService, appService, {} as never, {} as never);
+    component.brandOptions = [
+      { id: 'A', value: 'Armani', parent: null },
+      { id: 'G', value: 'Gucci', parent: null },
+      { id: 'MK', value: 'Michael Kors', parent: null },
+    ];
+    return component;
+  }
+
+  it('filters brands by value while the search text changes', () => {
+    const component = createComponent();
+
+    component.brandSearchQuery = 'Kors';
+
+    expect(component.filteredBrandOptions.map(brand => brand.id)).toEqual(['MK']);
+  });
+
+  it('filters brands case-insensitively', () => {
+    const component = createComponent();
+
+    component.brandSearchQuery = 'gUcCi';
+
+    expect(component.filteredBrandOptions.map(brand => brand.id)).toEqual(['G']);
+  });
+
+  it('shows all brands again when the search is reset', () => {
+    const component = createComponent();
+    component.brandSearchQuery = 'Armani';
+    expect(component.filteredBrandOptions.length).toBe(1);
+
+    component.brandSearchQuery = '';
+
+    expect(component.filteredBrandOptions).toBe(component.brandOptions);
+  });
+
+  it('returns no brands when the search has no results', () => {
+    const component = createComponent();
+
+    component.brandSearchQuery = 'Nike';
+
+    expect(component.filteredBrandOptions).toEqual([]);
+  });
+
+  it('keeps a selected brand while it is hidden and shown again', () => {
+    const component = createComponent();
+    component.toggleBrand('A');
+
+    component.brandSearchQuery = 'Gucci';
+    expect(component.filteredBrandOptions.map(brand => brand.id)).toEqual(['G']);
+    expect(component.selectedBrands.has('A')).toBeTrue();
+
+    component.brandSearchQuery = '';
+    const selectedBrand = component.filteredBrandOptions.find(brand => brand.id === 'A');
+    expect(selectedBrand).toBeDefined();
+    expect(component.isSelected(component.selectedBrands, selectedBrand!.id)).toBeTrue();
+  });
+});

@@ -293,6 +293,24 @@
   text-align: left;
 }
 
+.brand-search {
+  padding: 0 0 14px;
+  --background: #f5f5f5;
+  --border-radius: 5px;
+  --box-shadow: none;
+  --color: var(--outfit-primary-text-color);
+  --placeholder-color: var(--outfit-secondary-color);
+  --icon-color: var(--outfit-secondary-color);
+}
+
+.brand-empty {
+  margin: 0;
+  padding: 32px 16px;
+  color: var(--outfit-secondary-color);
+  font-size: 13px;
+  text-align: center;
+}
+
 .onboarding-footer {
   position: sticky;
   bottom: 0;
