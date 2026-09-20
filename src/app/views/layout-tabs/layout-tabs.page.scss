@@ -47,13 +47,13 @@
 
 .outfit-bottom-bar {
 
-    --background: transparent;
+    --background: #fff;
     height: 121px;
     align-items: flex-end;
     background: linear-gradient(
         to bottom,
-        transparent 0,
-        transparent calc(100% - var(--ion-safe-area-bottom, 0px)),
+        #fff 0,
+        #fff calc(100% - var(--ion-safe-area-bottom, 0px)),
         #F1F1F1 calc(100% - var(--ion-safe-area-bottom, 0px)),
         #F1F1F1 100%
     );
@@ -68,7 +68,7 @@
 
     .toolbar-container {
 
-        //background-color: #F1F1F1;
+        background-color: #fff;
         background-image: url('../../../assets/toolbarbottom-frame.png');
 
 
