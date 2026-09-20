@@ -200,6 +200,13 @@ export class AppService {
   updateOutfit(id: string, payload: EditableOutfit): Promise<outfit> { return lastValueFrom(this.http.put<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`, this.editableOutfitPayload(payload)).pipe(map(r => r.data), catchError(this.handleError))); }
   deleteOutfit(id: string): Promise<boolean> { return lastValueFrom(this.http.delete<ApiResponse<unknown>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`).pipe(map(() => true), catchError(this.handleError))); }
   recordOutfitVisit(id: string): Promise<outfit> { return lastValueFrom(this.http.post<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}/visit`, {}).pipe(map(r => r.data), catchError(this.handleError))); }
+  getOutfitProduct(id: string): Promise<AppCatalogProduct> {
+    return lastValueFrom(this.http.get<ApiResponse<AppCatalogProduct>>(`${this.apiFire}outfit-products/${encodeURIComponent(id)}`).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    ));
+  }
+
   getOutfitProducts(params: { limit?: number; cursor?: string; gender?: string } = {}): Promise<CatalogProductsResponse> {
     let httpParams = new HttpParams();
     Object.entries(params).forEach(([key, value]) => {
