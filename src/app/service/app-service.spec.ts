@@ -169,6 +169,18 @@ describe('AppService REST contracts', () => {
     await result;
   });
 
+  it('gets one catalog product detail by id', async () => {
+    const result = service.getOutfitProduct('product/id');
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/outfit-products/product%2Fid`);
+    expect(request.request.method).toBe('GET');
+    request.flush({ message: 'Success', data: { id: 'product/id', name: 'T-shirt' } });
+
+    await expectAsync(result).toBeResolvedTo(jasmine.objectContaining({
+      id: 'product/id',
+      name: 'T-shirt'
+    }));
+  });
+
   it('gets catalog products with gender, limit and cursor and preserves pagination', async () => {
     const result = service.getOutfitProducts({ gender: 'D', limit: 20, cursor: 'next-page' });
     const request = http.expectOne(req => req.url === `${environment.BASE_API_URL}/gen/outfit-products`);
