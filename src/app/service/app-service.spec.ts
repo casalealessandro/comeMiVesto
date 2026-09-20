@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ApiRequestError, AppService } from './app-service';
 import { FirebaseService } from './firebase.service';
+import { OutfitStyle } from './interface/outfit-style-interface';
 
 describe('AppService REST contracts', () => {
   let service: AppService;
@@ -19,6 +20,23 @@ describe('AppService REST contracts', () => {
   });
 
   afterEach(() => http.verify());
+
+  it('gets outfit styles from the dedicated endpoint', async () => {
+    const styles: OutfitStyle[] = [{
+      id: 'casual',
+      value: 'Casual',
+      parent: null,
+      order: 1,
+      gender: ['U', 'D'],
+      images: {},
+    }];
+    const result = firstValueFrom(service.getOutfitStyles());
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/outfitStyles`);
+
+    expect(request.request.method).toBe('GET');
+    request.flush({ message: 'Success', data: styles });
+    await expectAsync(result).toBeResolvedTo(styles);
+  });
 
   it('keeps categories with any meaningful field and removes empty/UI-only fields', () => {
     service.getFilteredOutfits('gender=U', {

@@ -2,17 +2,16 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AlertController, IonicModule, ModalController } from '@ionic/angular';
-import { brend, colors, style } from 'src/app/service/interface/outfit-all-interface';
+import { finalize } from 'rxjs/operators';
+import { AppService } from 'src/app/service/app-service';
+import { brend, colors } from 'src/app/service/interface/outfit-all-interface';
+import { OutfitStyle, OutfitStyleGender } from 'src/app/service/interface/outfit-style-interface';
 import { UserService } from 'src/app/service/user.service';
 
 interface PreferenceOption {
   id: string;
   value: string;
   parent: null;
-}
-
-interface StylePreferenceOption extends PreferenceOption {
-  image: string;
 }
 
 @Component({
@@ -27,33 +26,20 @@ export class PreferencesOnboardingComponent implements OnInit {
   readonly totalSteps = 4;
   age?: number;
   saving = false;
+  stylesLoading = true;
+  stylesLoadError = false;
 
   selectedStyles = new Set<string>();
   selectedColors = new Set<string>();
   selectedBrands = new Set<string>();
 
-  private readonly styleImages: Record<string, string> = {
-    C: 'casual.svg',
-    B: 'business.svg',
-    SP: 'sportivo.svg',
-    SC: 'smart-casual.svg',
-    E: 'elegante.svg',
-    AT: 'alternativo.svg',
-    FES: 'festival.svg',
-    CL: 'classico.svg',
-    TR: 'trendy.svg',
-    SE: 'serata.svg',
-  };
-
-  styleOptions: StylePreferenceOption[] = style.map(item => ({
-    ...item,
-    image: 'assets/preferences/styles/' + (this.styleImages[item.id] ?? 'casual.svg'),
-  }));
+  styleOptions: OutfitStyle[] = [];
   colorOptions = colors;
   brandOptions = brend;
 
   constructor(
     private userService: UserService,
+    private appService: AppService,
     private modalController: ModalController,
     private alertController: AlertController,
   ) {}
@@ -64,6 +50,7 @@ export class PreferencesOnboardingComponent implements OnInit {
     this.selectedStyles = new Set(preference?.style ?? []);
     this.selectedColors = new Set(preference?.color ?? []);
     this.selectedBrands = new Set(preference?.brend ?? []);
+    this.loadStyles();
   }
 
   get canContinue(): boolean {
@@ -104,6 +91,16 @@ export class PreferencesOnboardingComponent implements OnInit {
 
   isSelected(values: Set<string>, id: string): boolean {
     return values.has(id);
+  }
+
+  getStyleImage(style: OutfitStyle): string | null {
+    const gender = this.userGender;
+    if (!gender) return null;
+
+    const image = style.images?.[gender];
+    if (!image?.imageBase64 || !image.imageMimeType) return null;
+
+    return `data:${image.imageMimeType};base64,${image.imageBase64}`;
   }
 
   async skip(): Promise<void> {
@@ -147,5 +144,29 @@ export class PreferencesOnboardingComponent implements OnInit {
     if (values === this.selectedStyles) this.selectedStyles = updated;
     if (values === this.selectedColors) this.selectedColors = updated;
     if (values === this.selectedBrands) this.selectedBrands = updated;
+  }
+
+  private loadStyles(): void {
+    this.stylesLoading = true;
+    this.stylesLoadError = false;
+    this.appService.getOutfitStyles().pipe(
+      finalize(() => this.stylesLoading = false),
+    ).subscribe({
+      next: styles => {
+        const gender = this.userGender;
+        this.styleOptions = gender
+          ? styles.filter(style => style.gender.includes(gender))
+          : [];
+      },
+      error: () => {
+        this.styleOptions = [];
+        this.stylesLoadError = true;
+      },
+    });
+  }
+
+  private get userGender(): OutfitStyleGender | null {
+    const gender = this.userService.gUserProfile()()?.gender;
+    return gender === 'U' || gender === 'D' ? gender : null;
   }
 }
