@@ -4,13 +4,13 @@
    <div class="details-wrapper">
     <div class="outfit-detail">
 
-      <app-products-grid [products]="tags" (productsEvent)="saveItem($event)"></app-products-grid>
+      <app-products-grid [products]="tags" [openProductDetail]="true" (productsEvent)="saveItem($event)"></app-products-grid>
     </div>
     <div class="products-related">
       <div class="related-title">
         <ion-label class="related-title-text">Potrebbe interessarti</ion-label>
       </div>
-      <app-products-grid [products]="relatedProducts" (productsEvent)="saveItem($event)"></app-products-grid>
+      <app-products-grid [products]="relatedProducts" [openProductDetail]="true" (productsEvent)="saveItem($event)"></app-products-grid>
     </div>
    </div>
 

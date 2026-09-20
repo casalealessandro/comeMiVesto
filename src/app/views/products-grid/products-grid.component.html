@@ -1,6 +1,6 @@
 <!-- Griglia dei prodotti -->
 <div class="product-grid main-content">
-  <ion-card class="product-cards" *ngFor="let product of products" (click)="saveToWardrobe($event,product)">
+  <ion-card class="product-cards" *ngFor="let product of products" (click)="openProduct($event,product)">
     <div class="product-card">
       <div class="product-card-header">
         
@@ -30,7 +30,7 @@
                 <ion-card-subtitle class="product-price">{{ product.price | currencyFormat }}</ion-card-subtitle>
 
                 <div class="product-card-action">
-                 <ion-button size="small" slot="icon-only"  fill="clear" (click)="buyToStore(product)">
+                 <ion-button size="small" slot="icon-only"  fill="clear" (click)="buyToStore($event,product)">
                   <i class="fi fi-rr-shopping-cart"></i>
                  </ion-button>
                  <ion-button size="small" *ngIf="showSaveBtn" slot="icon-only" fill="clear" (click)="saveToWardrobe($event,product)">

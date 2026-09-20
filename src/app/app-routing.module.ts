@@ -25,6 +25,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'product/:id',
+        loadChildren: () =>
+          import('./views/product-detail/product-detail.module').then(
+            (m) => m.ProductDetailPageModule
+          ),
+      },
+      {
         path: 'add-outfit',
         loadChildren: () =>
           import('./views/add-outfit/add-outfit.module').then(

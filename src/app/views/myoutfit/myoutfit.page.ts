@@ -13,10 +13,9 @@ import { OutfitPreferencePayload, PublicUserProfile, UserPreference, UserProfile
 import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
 import { IonRefresherCustomEvent } from '@ionic/core';
 import { DetailOutfitPage } from '../detail-outfit/detail-outfit.page';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SocialSharing } from 'src/app/service/social-sharing.service';
 import { CategoryService } from 'src/app/service/category.service';
-import { Browser } from '@capacitor/browser';
 
 @Component({
   standalone: false,
@@ -69,6 +68,7 @@ export class MyOutFitPage implements OnDestroy {
   selectedSegment = 'outfit'; // Valore predefinito
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private appService: AppService,
     private userProfileService: UserService,
     private modalController: ModalController,
@@ -101,6 +101,7 @@ export class MyOutFitPage implements OnDestroy {
       const outfits = await firstValueFrom(this.appService.getAll<outfit>('outfitsList', queryString));
       this.outfits = outfits ?? [];
       await this.loadOutfits();
+      await this.applyProductFilterFromRoute();
     } catch (err) {
       console.error('Errore durante il caricamento degli outfit:', err);
       this.filteredOutfits = [];
@@ -109,6 +110,25 @@ export class MyOutFitPage implements OnDestroy {
       requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
     }
 
+  }
+
+  private async applyProductFilterFromRoute(): Promise<void> {
+    const queryParams = this.route.snapshot.queryParamMap;
+    if (queryParams.get('source') !== 'product') return;
+
+    const outfitCategory = queryParams.get('outfitCategory') || undefined;
+    const outfitSubCategory = queryParams.get('outfitSubCategory') || undefined;
+    const color = queryParams.get('color') || undefined;
+
+    if (!outfitCategory && !outfitSubCategory && !color) return;
+
+    this.filtersData = {
+      categories: [{ outfitCategory, outfitSubCategory, color }],
+      season: '',
+      style: ''
+    };
+    this.searchText = '';
+    await this.applyOutfitFilters();
   }
 
   private async getReadyUserProfile(): Promise<UserProfile | null> {
@@ -484,8 +504,7 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async openSuggestedProduct(product: AppCatalogProduct): Promise<void> {
-    if (!product.link) return;
-    await Browser.open({ url: product.link });
+    await this.router.navigate(['/tabs/product', product.id]);
   }
 
   async outfitMenu(outfit: outfit) {

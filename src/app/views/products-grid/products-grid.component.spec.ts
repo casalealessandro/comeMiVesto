@@ -4,6 +4,7 @@ import { IonicModule } from '@ionic/angular';
 import { ProductsGridComponent } from './products-grid.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 
 describe('ProductsGridComponent', () => {
   let component: ProductsGridComponent;
@@ -13,7 +14,8 @@ describe('ProductsGridComponent', () => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideRouter([])
       ],
       declarations: [ ProductsGridComponent ],
       imports: [IonicModule.forRoot()]

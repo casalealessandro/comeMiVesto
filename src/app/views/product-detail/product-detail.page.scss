@@ -1,0 +1,284 @@
+.product-detail-page {
+  --background: #fff;
+}
+
+.product-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 630px;
+  margin: 0 auto;
+  padding-bottom: 24px;
+}
+
+.product-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.product-main-image {
+  width: 100%;
+  min-height: 360px;
+  background: var(--ion-color-light);
+  overflow: hidden;
+
+  ion-img {
+    width: 100%;
+    min-height: 360px;
+    object-fit: cover;
+  }
+}
+
+.product-thumbnails {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.product-thumbnail {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 76px;
+  padding: 0;
+  border: 1px solid #d9d9d9;
+  background: #fff;
+  overflow: hidden;
+
+  &.selected {
+    border-color: var(--primary-color);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  .product-brand {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--outfit-secondary-color);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #000;
+  }
+
+  .product-price {
+    font-size: 18px;
+    font-weight: 600;
+    color: #000;
+  }
+}
+
+.product-taxonomy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
+
+  span {
+    border: 0.5px solid var(--input-border-color);
+    border-radius: 3px;
+    padding: 4px 7px;
+    font-size: 10px;
+    color: #000;
+  }
+}
+
+.product-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  ion-button {
+    min-height: 44px;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: none;
+    --border-radius: 3px;
+
+    .fi {
+      margin-right: 8px;
+      font-size: 15px;
+    }
+  }
+
+  .match-button {
+    --background: var(--primary-color);
+    --color: #fff;
+  }
+
+  .save-button,
+  .buy-button {
+    --border-color: var(--primary-color);
+    --color: var(--primary-color);
+    --background: #fff;
+  }
+}
+
+.related-section {
+  padding-top: 18px;
+  border-top: 0.5px solid #d9d9d9;
+}
+
+.section-heading {
+  margin-bottom: 12px;
+
+  h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #000;
+  }
+
+  span {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--outfit-secondary-color);
+  }
+}
+
+.related-group {
+  margin-top: 18px;
+
+  h3 {
+    margin: 0 0 9px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+  }
+}
+
+.product-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.related-product-card {
+  flex: 0 0 138px;
+  width: 138px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  scroll-snap-align: start;
+}
+
+.related-product-image {
+  width: 138px;
+  height: 172px;
+  background: var(--ion-color-light);
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+}
+
+.related-product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 6px;
+
+  span {
+    font-size: 10px;
+    color: var(--outfit-secondary-color);
+  }
+
+  strong {
+    min-height: 30px;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 15px;
+    color: #000;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  ion-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #000;
+  }
+}
+
+.related-loading,
+.detail-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-state {
+  min-height: 55vh;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+  color: var(--outfit-secondary-color);
+
+  .fi {
+    font-size: 24px;
+  }
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    font-size: 17px;
+    color: #000;
+  }
+
+  p {
+    max-width: 280px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+}
+
+.similar-section {
+  margin-top: 2px;
+}
+
+@media screen and (max-width: 480px) {
+  .product-main-image,
+  .product-main-image ion-img {
+    min-height: 320px;
+  }
+}

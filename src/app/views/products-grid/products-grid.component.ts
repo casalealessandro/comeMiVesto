@@ -3,6 +3,7 @@ import { Browser } from '@capacitor/browser';
 import { AppCatalogProduct } from 'src/app/service/app-service';
 import { CategoryService } from 'src/app/service/category.service';
 import { Tag } from 'src/app/service/interface/outfit-all-interface';
+import { Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -14,8 +15,9 @@ export class ProductsGridComponent implements  OnChanges {
   @Input() products: Array<Tag | AppCatalogProduct> = [];
   @Input() showRemoveBtn: boolean = false;
   @Input() showSaveBtn: boolean = true;
+  @Input() openProductDetail: boolean = false;
   @Output() productsEvent = new EventEmitter<any>();
-  constructor(private categoryService:CategoryService) { }
+  constructor(private categoryService:CategoryService, private router: Router) { }
   
   categoryNames = new Map<any, string>();
 
@@ -45,12 +47,37 @@ export class ProductsGridComponent implements  OnChanges {
 
 
 
-  async buyToStore(itm: any) {
+  async buyToStore(evt: MouseEvent, itm: any) {
+    evt.stopImmediatePropagation();
+    evt.preventDefault();
     let link = !itm.link ? '#' : itm.link
 
     if (link != '#') {
       await Browser.open({ url: link });
     }
+  }
+
+  openProduct(evt: MouseEvent, product: Tag | AppCatalogProduct) {
+    if (!this.openProductDetail) {
+      this.saveToWardrobe(evt, product);
+      return;
+    }
+
+    evt.stopImmediatePropagation();
+    evt.preventDefault();
+
+    const catalogProductId = 'catalogProductId' in product && product.catalogProductId
+      ? product.catalogProductId
+      : 'affiliateProgramId' in product
+        ? String(product.id)
+        : '';
+
+    if (!catalogProductId) {
+      this.saveToWardrobe(evt, product);
+      return;
+    }
+
+    void this.router.navigate(['/tabs/product', catalogProductId]);
   }
 
     /**
