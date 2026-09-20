@@ -43,6 +43,8 @@ export class MyOutFitPage implements OnDestroy {
   searchText = '';
   suggestedProducts: AppCatalogProduct[] = [];
   isSuggestedProductsLoading = false;
+  recommendedOutfitForTomorrow: outfit | null = null;
+  tomorrowRecommendationText = '';
   private searchDebounce?: ReturnType<typeof setTimeout>;
   private productFilterFromDetailActive = false;
 
@@ -464,6 +466,7 @@ export class MyOutFitPage implements OnDestroy {
     if (!profile?.gender) {
       this.filteredOutfits = [];
       this.suggestedProducts = [];
+      this.recommendedOutfitForTomorrow = null;
       return;
     }
     const payload: OutfitPreferencePayload = this.userProfileService.toOutfitPreferencePayload(this.cUserPreference);
@@ -472,14 +475,76 @@ export class MyOutFitPage implements OnDestroy {
       const queryString = `gender=${encodeURIComponent(profile.gender)}`;
       const [outfits] = await Promise.all([
         firstValueFrom(this.appService.getSuggestOutfits(queryString, payload)),
-        this.loadSuggestedProducts(profile.gender)
+        this.loadSuggestedProducts(profile.gender),
+        this.loadTomorrowRecommendedOutfit(profile.gender, payload)
       ]);
       this.filteredOutfits = outfits ?? [];
+
+      if (!this.recommendedOutfitForTomorrow && this.filteredOutfits.length > 0) {
+        this.recommendedOutfitForTomorrow = this.filteredOutfits[0];
+        this.tomorrowRecommendationText = 'Scelto in base ai tuoi gusti';
+      }
     } catch (error) {
       console.error('Impossibile caricare i contenuti suggeriti:', error);
       this.filteredOutfits = [];
+      this.recommendedOutfitForTomorrow = null;
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  get suggestedOutfitsForGrid(): outfit[] {
+    if (!this.recommendedOutfitForTomorrow) {
+      return this.filteredOutfits;
+    }
+
+    const recommendedId = String(this.recommendedOutfitForTomorrow.id);
+    return this.filteredOutfits.filter(item => String(item.id) !== recommendedId);
+  }
+
+  private async loadTomorrowRecommendedOutfit(
+    gender: string,
+    payload: OutfitPreferencePayload
+  ): Promise<void> {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const isWorkday = tomorrow.getDay() >= 1 && tomorrow.getDay() <= 5;
+    const styles = isWorkday
+      ? ['B', 'SC', 'CL', 'E']
+      : ['C', 'SP', 'SC'];
+
+    this.tomorrowRecommendationText = isWorkday
+      ? 'Per una giornata di lavoro'
+      : 'Per un weekend rilassato';
+
+    const queryString = `gender=${encodeURIComponent(gender)}`;
+
+    try {
+      let recommendations = await firstValueFrom(
+        this.appService.getSuggestOutfits(queryString, {
+          ...payload,
+          style: styles
+        })
+      );
+
+      if (
+        !recommendations?.length &&
+        ((payload.color?.length ?? 0) > 0 || (payload.brend?.length ?? 0) > 0)
+      ) {
+        recommendations = await firstValueFrom(
+          this.appService.getSuggestOutfits(queryString, {
+            color: [],
+            brend: [],
+            style: styles
+          })
+        );
+      }
+
+      this.recommendedOutfitForTomorrow = recommendations?.[0] ?? null;
+    } catch (error) {
+      console.error('Impossibile caricare l\'outfit consigliato per domani:', error);
+      this.recommendedOutfitForTomorrow = null;
     }
   }
 
