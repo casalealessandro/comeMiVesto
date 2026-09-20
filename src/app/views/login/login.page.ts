@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { browserLocalPersistence, browserSessionPersistence, sendPasswordResetEmail, setPersistence, signInWithEmailAndPassword } from 'firebase/auth';
@@ -16,7 +16,7 @@ export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
   email: string = '';
   password: string = '';
   showLogin:boolean=true;
@@ -31,6 +31,22 @@ export class LoginPage {
     private router :Router,
     private route: ActivatedRoute
   ) {}
+
+  ngOnInit(): void {
+    try {
+      const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+      if (hasSeenIntro !== 'true') {
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+
+        void this.router.navigate(['/intro'], {
+          queryParams: returnUrl ? { returnUrl } : undefined,
+          replaceUrl: true,
+        });
+      }
+    } catch (error) {
+      console.error('Error checking intro status:', error);
+    }
+  }
 
   async login() {
     try {
