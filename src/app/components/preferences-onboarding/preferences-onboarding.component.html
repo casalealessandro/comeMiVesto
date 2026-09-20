@@ -60,7 +60,16 @@
         <p>Puoi scegliere più di uno stile.</p>
       </div>
 
-      <div class="style-grid">
+      <div class="style-loading" *ngIf="stylesLoading" role="status">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Caricamento degli stili...</span>
+      </div>
+
+      <div class="style-error" *ngIf="!stylesLoading && stylesLoadError" role="alert">
+        Non è stato possibile caricare gli stili. Puoi tornare indietro o saltare il questionario.
+      </div>
+
+      <div class="style-grid" *ngIf="!stylesLoading && !stylesLoadError">
         <button
           *ngFor="let item of styleOptions; trackBy: trackById"
           type="button"
@@ -68,7 +77,14 @@
           [class.selected]="isSelected(selectedStyles, item.id)"
           [attr.aria-pressed]="isSelected(selectedStyles, item.id)"
           (click)="toggleStyle(item.id)">
-          <img [src]="item.image" [alt]="item.value">
+          <ng-container *ngIf="getStyleImage(item) as image; else imageFallback">
+            <img [src]="image" [alt]="item.value">
+          </ng-container>
+          <ng-template #imageFallback>
+            <span class="style-image-fallback" aria-hidden="true">
+              <ion-icon name="shirt-outline"></ion-icon>
+            </span>
+          </ng-template>
           <span class="option-label">{{ item.value }}</span>
           <span class="selection-check" *ngIf="isSelected(selectedStyles, item.id)">
             <ion-icon name="checkmark-outline"></ion-icon>

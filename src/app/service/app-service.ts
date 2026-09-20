@@ -8,6 +8,7 @@ import { EditableOutfit, OutfitFilterPayload, ReportPayload, WardrobePayload, ou
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { FirebaseService } from './firebase.service';
+import { OutfitStyle } from './interface/outfit-style-interface';
 export interface ApiResponse<T> {
   message: string;
   data: T;
@@ -156,6 +157,7 @@ export class AppService {
   }
 
   getUserOutfits(): Observable<outfit[]> { return this.getAll<outfit>('user-outfits'); }
+  getOutfitStyles(): Observable<OutfitStyle[]> { return this.getAll<OutfitStyle>('outfitStyles'); }
   createOutfit(payload: EditableOutfit): Promise<outfit> { return lastValueFrom(this.http.post<ApiResponse<outfit>>(`${this.apiFire}outfits`, this.editableOutfitPayload(payload)).pipe(map(r => r.data), catchError(this.handleError))); }
   updateOutfit(id: string, payload: EditableOutfit): Promise<outfit> { return lastValueFrom(this.http.put<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`, this.editableOutfitPayload(payload)).pipe(map(r => r.data), catchError(this.handleError))); }
   deleteOutfit(id: string): Promise<boolean> { return lastValueFrom(this.http.delete<ApiResponse<unknown>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`).pipe(map(() => true), catchError(this.handleError))); }
