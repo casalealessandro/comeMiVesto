@@ -479,6 +479,11 @@ export class MyOutFitPage implements OnDestroy {
         this.loadTomorrowRecommendedOutfit(profile.gender, payload)
       ]);
       this.filteredOutfits = outfits ?? [];
+
+      if (!this.recommendedOutfitForTomorrow && this.filteredOutfits.length > 0) {
+        this.recommendedOutfitForTomorrow = this.filteredOutfits[0];
+        this.tomorrowRecommendationText = 'Scelto in base ai tuoi gusti';
+      }
     } catch (error) {
       console.error('Impossibile caricare i contenuti suggeriti:', error);
       this.filteredOutfits = [];
