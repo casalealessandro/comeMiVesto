@@ -1,4 +1,3 @@
-# Firebase Hosting preview channel for develop
 name: Deploy develop to Firebase Hosting
 
 on:
@@ -9,6 +8,7 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -20,19 +20,35 @@ jobs:
       - run: npm ci
       - run: npm run build -- --configuration=dev
 
-      - name: Deploy Firebase Hosting develop
-        id: firebase_hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_COMEMIVESTO_5E5F9 }}
-          channelId: develop-web
-          expires: 30d
-          projectId: comemivesto-5e5f9
-          firebaseToolsVersion: 13.35.1
-
-      - name: Smoke test develop URL
+      - name: Configure Firebase credentials
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_COMEMIVESTO_5E5F9 }}
         run: |
-          echo "Testing ${{ steps.firebase_hosting.outputs.details_url }}"
-          curl --fail --location --retry 5 --retry-delay 5 "${{ steps.firebase_hosting.outputs.details_url }}" -o /tmp/develop.html
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
+
+      - name: Ensure develop Hosting site exists
+        run: |
+          set +e
+          OUTPUT=$(npx firebase-tools@15.22.1 hosting:sites:create comemivesto-5e5f9-develop --project comemivesto-5e5f9 2>&1)
+          STATUS=$?
+          set -e
+          echo "$OUTPUT"
+          if [ $STATUS -ne 0 ]; then
+            echo "$OUTPUT" | grep -Eiq "already exists|409|duplicate" || exit $STATUS
+          fi
+
+      - name: Deploy develop site
+        run: |
+          npx firebase-tools@15.22.1 deploy \
+            --only hosting \
+            --config firebase.develop.json \
+            --project comemivesto-5e5f9 \
+            --non-interactive
+
+      - name: Smoke test develop site
+        run: |
+          URL="https://comemivesto-5e5f9-develop.web.app"
+          echo "Testing $URL"
+          curl --fail --location --retry 5 --retry-delay 5 "$URL" -o /tmp/develop.html
           grep -q "<app-root" /tmp/develop.html
