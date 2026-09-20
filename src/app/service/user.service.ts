@@ -202,13 +202,15 @@ export class UserService {
         color: profilePreferData.color ?? [],
         brend: profilePreferData.brend ?? [],
         style: profilePreferData.style ?? [],
-        ...(Number.isInteger(profilePreferData.age) ? { age: profilePreferData.age } : {})
+        ...(Number.isInteger(profilePreferData.age) ? { age: profilePreferData.age } : {}),
+        ...(profilePreferData.ageRange ? { ageRange: profilePreferData.ageRange } : {})
       };
       const response = await lastValueFrom(this.httpClient.put<ApiResponse<UserPreference>>(this.apiFire + '/gen/user-preferences', payload));
       this._userPreference.set({
         ...this._userPreference(),
         ...response.data,
-        age: response.data.age ?? profilePreferData.age ?? this._userPreference()?.age ?? null
+        age: response.data.age ?? profilePreferData.age ?? this._userPreference()?.age ?? null,
+        ageRange: response.data.ageRange ?? profilePreferData.ageRange ?? this._userPreference()?.ageRange ?? null
       });
       this._preferencesConfigured.set(true);
       return true;
