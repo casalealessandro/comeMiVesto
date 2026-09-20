@@ -43,8 +43,9 @@ export class MyOutFitPage implements OnDestroy {
   searchText = '';
   suggestedProducts: AppCatalogProduct[] = [];
   isSuggestedProductsLoading = false;
-  recommendedOutfitForTomorrow: outfit | null = null;
-  tomorrowRecommendationText = '';
+  recommendedOutfits: outfit[] = [];
+  recommendationTitle = '';
+  recommendationContext = '';
   private searchDebounce?: ReturnType<typeof setTimeout>;
   private productFilterFromDetailActive = false;
 
@@ -466,7 +467,7 @@ export class MyOutFitPage implements OnDestroy {
     if (!profile?.gender) {
       this.filteredOutfits = [];
       this.suggestedProducts = [];
-      this.recommendedOutfitForTomorrow = null;
+      this.recommendedOutfits = [];
       return;
     }
     const payload: OutfitPreferencePayload = this.userProfileService.toOutfitPreferencePayload(this.cUserPreference);
@@ -476,75 +477,38 @@ export class MyOutFitPage implements OnDestroy {
       const [outfits] = await Promise.all([
         firstValueFrom(this.appService.getSuggestOutfits(queryString, payload)),
         this.loadSuggestedProducts(profile.gender),
-        this.loadTomorrowRecommendedOutfit(profile.gender, payload)
+        this.loadOutfitRecommendations(profile.gender)
       ]);
       this.filteredOutfits = outfits ?? [];
-
-      if (!this.recommendedOutfitForTomorrow && this.filteredOutfits.length > 0) {
-        this.recommendedOutfitForTomorrow = this.filteredOutfits[0];
-        this.tomorrowRecommendationText = 'Scelto in base ai tuoi gusti';
-      }
     } catch (error) {
       console.error('Impossibile caricare i contenuti suggeriti:', error);
       this.filteredOutfits = [];
-      this.recommendedOutfitForTomorrow = null;
+      this.recommendedOutfits = [];
     } finally {
       this.isLoading = false;
     }
   }
 
   get suggestedOutfitsForGrid(): outfit[] {
-    if (!this.recommendedOutfitForTomorrow) {
+    if (!this.recommendedOutfits.length) {
       return this.filteredOutfits;
     }
 
-    const recommendedId = String(this.recommendedOutfitForTomorrow.id);
-    return this.filteredOutfits.filter(item => String(item.id) !== recommendedId);
+    const recommendedIds = new Set(this.recommendedOutfits.map(item => String(item.id)));
+    return this.filteredOutfits.filter(item => !recommendedIds.has(String(item.id)));
   }
 
-  private async loadTomorrowRecommendedOutfit(
-    gender: string,
-    payload: OutfitPreferencePayload
-  ): Promise<void> {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const isWorkday = tomorrow.getDay() >= 1 && tomorrow.getDay() <= 5;
-    const styles = isWorkday
-      ? ['B', 'SC', 'CL', 'E']
-      : ['C', 'SP', 'SC'];
-
-    this.tomorrowRecommendationText = isWorkday
-      ? 'Per una giornata di lavoro'
-      : 'Per un weekend rilassato';
-
-    const queryString = `gender=${encodeURIComponent(gender)}`;
-
+  private async loadOutfitRecommendations(gender: string): Promise<void> {
     try {
-      let recommendations = await firstValueFrom(
-        this.appService.getSuggestOutfits(queryString, {
-          ...payload,
-          style: styles
-        })
-      );
-
-      if (
-        !recommendations?.length &&
-        ((payload.color?.length ?? 0) > 0 || (payload.brend?.length ?? 0) > 0)
-      ) {
-        recommendations = await firstValueFrom(
-          this.appService.getSuggestOutfits(queryString, {
-            color: [],
-            brend: [],
-            style: styles
-          })
-        );
-      }
-
-      this.recommendedOutfitForTomorrow = recommendations?.[0] ?? null;
+      const recommendation = await firstValueFrom(this.appService.getOutfitRecommendations(gender));
+      this.recommendedOutfits = recommendation.outfits ?? [];
+      this.recommendationTitle = recommendation.title;
+      this.recommendationContext = recommendation.context;
     } catch (error) {
-      console.error('Impossibile caricare l\'outfit consigliato per domani:', error);
-      this.recommendedOutfitForTomorrow = null;
+      console.error('Impossibile caricare gli outfit consigliati:', error);
+      this.recommendedOutfits = [];
+      this.recommendationTitle = '';
+      this.recommendationContext = '';
     }
   }
 
