@@ -113,7 +113,7 @@ describe('MyOutFitPage filters and search', () => {
     };
     spyOn(component, 'filterUserOutFit').and.resolveTo();
 
-    component.onSegmentChange({ detail: { value: 'suggeriti' } } as CustomEvent);
+    component.onSegmentChange({ detail: { value: 'suggeriti' } } as unknown as CustomEvent);
 
     expect(component.filtersData).toEqual({ categories: [], season: '', style: '' });
     expect((component as any).productFilterFromDetailActive).toBeFalse();
