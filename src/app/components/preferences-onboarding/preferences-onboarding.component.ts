@@ -8,12 +8,6 @@ import { OutfitStyle, OutfitStyleGender } from 'src/app/service/interface/outfit
 import { AgeRange } from 'src/app/service/interface/user-interface';
 import { UserService } from 'src/app/service/user.service';
 
-interface PreferenceOption {
-  id: string;
-  value: string;
-  parent: null;
-}
-
 interface AgeRangeOption {
   id: AgeRange;
   label: string;
