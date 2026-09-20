@@ -14,6 +14,19 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface OutfitColor {
+  id: string;
+  value: string;
+  parent: null;
+  hex: string;
+}
+
+export interface OutfitBrand {
+  id: string;
+  value: string;
+  parent: null;
+}
+
 export interface AppCatalogProduct {
   id: string;
   name: string;
@@ -160,6 +173,24 @@ export class AppService {
   getOutfitStyles(): Observable<OutfitStyle[]> {
     return this.http
       .get<OutfitStyle[] | ApiResponse<OutfitStyle[]>>(`${this.apiFire}outfitStyles`)
+      .pipe(
+        map(response => Array.isArray(response) ? response : response.data),
+        catchError(this.handleError)
+      );
+  }
+
+  getOutfitColors(): Observable<OutfitColor[]> {
+    return this.http
+      .get<OutfitColor[] | ApiResponse<OutfitColor[]>>(`${this.apiFire}outfitColors`)
+      .pipe(
+        map(response => Array.isArray(response) ? response : response.data),
+        catchError(this.handleError)
+      );
+  }
+
+  getOutfitBrands(): Observable<OutfitBrand[]> {
+    return this.http
+      .get<OutfitBrand[] | ApiResponse<OutfitBrand[]>>(`${this.apiFire}outfitBrands`)
       .pipe(
         map(response => Array.isArray(response) ? response : response.data),
         catchError(this.handleError)
