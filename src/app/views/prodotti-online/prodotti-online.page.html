@@ -39,7 +39,7 @@
 <ion-content  class="ion-padding scroll-y"
 >
 
-  <app-products-grid [products]="products" [openProductDetail]="!isModal" (productsEvent)="saveToWardrobe($event)"></app-products-grid>
+  <app-products-grid [products]="products" [openProductDetail]="!showHeader" (productsEvent)="saveToWardrobe($event)"></app-products-grid>
   <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreProducts($event)">
     <ion-infinite-scroll-content
       loadingSpinner="bubbles"
