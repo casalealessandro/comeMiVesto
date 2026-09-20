@@ -100,7 +100,16 @@
         <p>Scegli i colori che senti più tuoi.</p>
       </div>
 
-      <div class="color-grid">
+      <div class="style-loading" *ngIf="colorsLoading" role="status">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Caricamento dei colori...</span>
+      </div>
+
+      <div class="style-error" *ngIf="!colorsLoading && colorsLoadError" role="alert">
+        Non è stato possibile caricare i colori. Puoi tornare indietro o saltare il questionario.
+      </div>
+
+      <div class="color-grid" *ngIf="!colorsLoading && !colorsLoadError">
         <button
           *ngFor="let item of colorOptions; trackBy: trackById"
           type="button"
@@ -122,32 +131,43 @@
         <p>Scegli quelli che indossi o cerchi più spesso. Puoi anche non selezionarne nessuno.</p>
       </div>
 
-      <ion-searchbar
-        class="brand-search"
-        placeholder="Cerca brand"
-        aria-label="Cerca brand"
-        [debounce]="0"
-        [(ngModel)]="brandSearchQuery">
-      </ion-searchbar>
-
-      <div class="brand-grid" *ngIf="filteredBrandOptions.length; else noBrandsFound">
-        <button
-          *ngFor="let item of filteredBrandOptions; trackBy: trackById"
-          type="button"
-          class="brand-card"
-          [class.selected]="isSelected(selectedBrands, item.id)"
-          [attr.aria-pressed]="isSelected(selectedBrands, item.id)"
-          (click)="toggleBrand(item.id)">
-          <span>{{ item.value }}</span>
-          <span class="selection-check" *ngIf="isSelected(selectedBrands, item.id)">
-            <ion-icon name="checkmark-outline"></ion-icon>
-          </span>
-        </button>
+      <div class="style-loading" *ngIf="brandsLoading" role="status">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Caricamento dei brand...</span>
       </div>
 
-      <ng-template #noBrandsFound>
-        <p class="brand-empty" role="status">Nessun brand trovato</p>
-      </ng-template>
+      <div class="style-error" *ngIf="!brandsLoading && brandsLoadError" role="alert">
+        Non è stato possibile caricare i brand. Puoi comunque salvare le altre preferenze.
+      </div>
+
+      <ng-container *ngIf="!brandsLoading && !brandsLoadError">
+        <ion-searchbar
+          class="brand-search"
+          placeholder="Cerca brand"
+          aria-label="Cerca brand"
+          [debounce]="0"
+          [(ngModel)]="brandSearchQuery">
+        </ion-searchbar>
+
+        <div class="brand-grid" *ngIf="filteredBrandOptions.length; else noBrandsFound">
+          <button
+            *ngFor="let item of filteredBrandOptions; trackBy: trackById"
+            type="button"
+            class="brand-card"
+            [class.selected]="isSelected(selectedBrands, item.id)"
+            [attr.aria-pressed]="isSelected(selectedBrands, item.id)"
+            (click)="toggleBrand(item.id)">
+            <span>{{ item.value }}</span>
+            <span class="selection-check" *ngIf="isSelected(selectedBrands, item.id)">
+              <ion-icon name="checkmark-outline"></ion-icon>
+            </span>
+          </button>
+        </div>
+
+        <ng-template #noBrandsFound>
+          <p class="brand-empty" role="status">Nessun brand trovato</p>
+        </ng-template>
+      </ng-container>
     </div>
 
     <div class="onboarding-footer">
