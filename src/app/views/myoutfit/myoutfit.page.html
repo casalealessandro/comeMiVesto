@@ -58,10 +58,48 @@
         </ion-segment>
 
         <section class="suggested-discovery" *ngIf="selectedSegment === 'suggeriti'">
-          <div class="suggested-intro">
-            <span class="suggested-kicker">PER TE</span>
-            <h2>Scelti in base ai tuoi gusti</h2>
-            <p>Outfit e prodotti selezionati usando le tue preferenze.</p>
+          <ion-card class="tomorrow-outfit-card" *ngIf="recommendedOutfitForTomorrow as recommendedOutfit">
+            <button type="button" class="tomorrow-outfit-image" (click)="hasOutfitVisitFull(recommendedOutfit)">
+              <img [src]="recommendedOutfit.imageUrl || 'assets/images/fallback-image.jpg'" [alt]="recommendedOutfit.title"
+                (error)="$any($event.target).src='assets/images/fallback-image.jpg'" />
+            </button>
+
+            <ion-card-content class="tomorrow-outfit-content">
+              <span class="suggested-kicker">OUTFIT CONSIGLIATO PER DOMANI</span>
+              <div class="tomorrow-outfit-info">
+                <div>
+                  <h2>{{ recommendedOutfit.title }}</h2>
+                  <p>{{ tomorrowRecommendationText }}</p>
+                </div>
+                <ion-button size="small" slot="icon-only" fill="clear" class="tomorrow-outfit-favorite"
+                  (click)="addFavoriteOutfit(recommendedOutfit)">
+                  <i class="fi" [ngClass]="isFavorite(recommendedOutfit.id) ? 'fi-sr-heart' : 'fi-rs-heart'"></i>
+                </ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <div class="suggested-outfit-title" *ngIf="suggestedOutfitsForGrid.length > 0">
+            <div>
+              <h3>Outfit che potrebbero piacerti</h3>
+              <span>In base alle tue preferenze</span>
+            </div>
+          </div>
+
+          <div class="suggested-outfit-grid" *ngIf="suggestedOutfitsForGrid.length > 0">
+            <article class="suggested-outfit-card" *ngFor="let outfit of suggestedOutfitsForGrid">
+              <button type="button" class="suggested-outfit-image" (click)="hasOutfitVisitFull(outfit)">
+                <img [src]="outfit.imageUrl || 'assets/images/fallback-image.jpg'" [alt]="outfit.title"
+                  (error)="$any($event.target).src='assets/images/fallback-image.jpg'" />
+              </button>
+              <div class="suggested-outfit-info">
+                <strong>{{ outfit.title }}</strong>
+                <button type="button" class="suggested-outfit-favorite" (click)="addFavoriteOutfit(outfit)"
+                  [attr.aria-label]="isFavorite(outfit.id) ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'">
+                  <i class="fi" [ngClass]="isFavorite(outfit.id) ? 'fi-sr-heart' : 'fi-rs-heart'"></i>
+                </button>
+              </div>
+            </article>
           </div>
 
           <div class="suggested-products" *ngIf="isSuggestedProductsLoading || suggestedProducts.length > 0">
@@ -91,14 +129,9 @@
               </button>
             </div>
           </div>
-
-          <div class="suggested-outfit-title" *ngIf="filteredOutfits.length > 0">
-            <h3>Outfit per te</h3>
-            <span>In base alle tue preferenze</span>
-          </div>
         </section>
 
-        <ion-row class="style">
+        <ion-row class="style" *ngIf="selectedSegment !== 'suggeriti'">
           <ion-col class="style-col" size="12" *ngFor="let outfit of filteredOutfits">
 
             <ion-card class="outfit-card">
