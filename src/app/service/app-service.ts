@@ -157,7 +157,14 @@ export class AppService {
   }
 
   getUserOutfits(): Observable<outfit[]> { return this.getAll<outfit>('user-outfits'); }
-  getOutfitStyles(): Observable<OutfitStyle[]> { return this.getAll<OutfitStyle>('outfitStyles'); }
+  getOutfitStyles(): Observable<OutfitStyle[]> {
+    return this.http
+      .get<OutfitStyle[] | ApiResponse<OutfitStyle[]>>(`${this.apiFire}outfitStyles`)
+      .pipe(
+        map(response => Array.isArray(response) ? response : response.data),
+        catchError(this.handleError)
+      );
+  }
   createOutfit(payload: EditableOutfit): Promise<outfit> { return lastValueFrom(this.http.post<ApiResponse<outfit>>(`${this.apiFire}outfits`, this.editableOutfitPayload(payload)).pipe(map(r => r.data), catchError(this.handleError))); }
   updateOutfit(id: string, payload: EditableOutfit): Promise<outfit> { return lastValueFrom(this.http.put<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`, this.editableOutfitPayload(payload)).pipe(map(r => r.data), catchError(this.handleError))); }
   deleteOutfit(id: string): Promise<boolean> { return lastValueFrom(this.http.delete<ApiResponse<unknown>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`).pipe(map(() => true), catchError(this.handleError))); }
