@@ -2,7 +2,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { ApiRequestError, AppService } from './app-service';
+import { ApiRequestError, AppService, OutfitBrand, OutfitColor } from './app-service';
 import { FirebaseService } from './firebase.service';
 import { OutfitStyle } from './interface/outfit-style-interface';
 
@@ -52,6 +52,35 @@ describe('AppService REST contracts', () => {
 
     request.flush({ message: 'Success', data: styles });
     await expectAsync(result).toBeResolvedTo(styles);
+  });
+
+  it('gets colors from the Firestore taxonomy endpoint', async () => {
+    const colors: OutfitColor[] = [{
+      id: 'N',
+      value: 'Nero',
+      parent: null,
+      hex: '#000000',
+    }];
+    const result = firstValueFrom(service.getOutfitColors());
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/outfitColors`);
+
+    expect(request.request.method).toBe('GET');
+    request.flush(colors);
+    await expectAsync(result).toBeResolvedTo(colors);
+  });
+
+  it('gets brands from the catalog taxonomy endpoint', async () => {
+    const brands: OutfitBrand[] = [{
+      id: 'Zara',
+      value: 'Zara',
+      parent: null,
+    }];
+    const result = firstValueFrom(service.getOutfitBrands());
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/outfitBrands`);
+
+    expect(request.request.method).toBe('GET');
+    request.flush({ message: 'Success', data: brands });
+    await expectAsync(result).toBeResolvedTo(brands);
   });
 
   it('keeps categories with any meaningful field and removes empty/UI-only fields', () => {
