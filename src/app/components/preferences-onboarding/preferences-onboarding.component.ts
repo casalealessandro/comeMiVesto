@@ -28,6 +28,7 @@ export class PreferencesOnboardingComponent implements OnInit {
   saving = false;
   stylesLoading = true;
   stylesLoadError = false;
+  brandSearchQuery = '';
 
   selectedStyles = new Set<string>();
   selectedColors = new Set<string>();
@@ -36,6 +37,13 @@ export class PreferencesOnboardingComponent implements OnInit {
   styleOptions: OutfitStyle[] = [];
   colorOptions = colors;
   brandOptions = brend;
+
+  get filteredBrandOptions(): PreferenceOption[] {
+    const query = this.brandSearchQuery.trim().toLocaleLowerCase();
+    if (!query) return this.brandOptions;
+
+    return this.brandOptions.filter(brand => brand.value.toLocaleLowerCase().includes(query));
+  }
 
   constructor(
     private userService: UserService,
