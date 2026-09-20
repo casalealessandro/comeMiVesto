@@ -187,6 +187,7 @@ export class PreferencesOnboardingComponent implements OnInit {
         this.styleOptions = gender
           ? styles.filter(style => style.gender.includes(gender))
           : [];
+        this.stylesLoadError = this.styleOptions.length === 0;
       },
       error: () => {
         this.styleOptions = [];
