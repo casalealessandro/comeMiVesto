@@ -6,6 +6,7 @@ import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.com
 import { AlertController, ModalController } from '@ionic/angular';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { MyWardrobesPage } from '../my-wardrobes/my-wardrobes.page';
+import { Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -38,7 +39,7 @@ export class FotoOutfitPage implements OnInit {
   openFullScreen:boolean=false
   showTooltip = signal(false);
   private tagHelperTimeout:any;
-  constructor(private modalController: ModalController,private alert:AlertController) { }
+  constructor(private modalController: ModalController, private alert:AlertController, private router: Router) { }
 
 
   ngOnInit(): void {
@@ -322,6 +323,10 @@ export class FotoOutfitPage implements OnInit {
   }
 
   async openItmClothing(tag: Tag) {
+    if (tag.catalogProductId) {
+      await this.router.navigate(['/tabs/product', tag.catalogProductId]);
+      return;
+    }
 
     let link = !tag.link ? '#' : tag.link
 
