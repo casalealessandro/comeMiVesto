@@ -72,6 +72,53 @@ describe('MyOutFitPage filters and search', () => {
     jasmine.clock().uninstall();
   });
 
+  it('consumes the product detail filter and removes it from the URL', async () => {
+    const component = page();
+    const route = {
+      snapshot: {
+        queryParamMap: {
+          get: (key: string) => ({
+            source: 'product',
+            outfitCategory: 'M',
+            outfitSubCategory: 'TS',
+            color: 'N'
+          } as Record<string, string>)[key] ?? null
+        }
+      }
+    };
+    const router = { url: '/tabs/myoutfit?source=product&outfitCategory=M&outfitSubCategory=TS&color=N' };
+    const location = { replaceState: jasmine.createSpy('replaceState') };
+
+    Object.assign(component, { route, router, location });
+    spyOn(component, 'applyOutfitFilters').and.resolveTo();
+
+    await (component as any).applyProductFilterFromRoute();
+
+    expect(component.filtersData).toEqual({
+      categories: [{ outfitCategory: 'M', outfitSubCategory: 'TS', color: 'N' }],
+      season: '',
+      style: ''
+    });
+    expect(component.applyOutfitFilters).toHaveBeenCalledTimes(1);
+    expect(location.replaceState).toHaveBeenCalledOnceWith('/tabs/myoutfit');
+  });
+
+  it('clears the product detail filter when leaving the outfit segment', () => {
+    const component = page();
+    (component as any).productFilterFromDetailActive = true;
+    component.filtersData = {
+      categories: [{ outfitCategory: 'M', outfitSubCategory: 'TS', color: 'N' }],
+      season: '',
+      style: ''
+    };
+    spyOn(component, 'filterUserOutFit').and.resolveTo();
+
+    component.onSegmentChange({ detail: { value: 'suggeriti' } } as CustomEvent);
+
+    expect(component.filtersData).toEqual({ categories: [], season: '', style: '' });
+    expect((component as any).productFilterFromDetailActive).toBeFalse();
+  });
+
   it('switches suggestions back to outfits when applying manual filters', async () => {
     const component = page();
     component.selectedSegment = 'suggeriti';
