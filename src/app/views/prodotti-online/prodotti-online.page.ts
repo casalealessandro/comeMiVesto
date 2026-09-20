@@ -50,7 +50,6 @@ export class ProdottiOnlinePage implements OnInit {
   outfitSubCategory = "";
   selectedCategoryName = "Tutti i prodotti";
   selectedFilterStyleIndex?:number;
-  isModal:boolean = true
   ngOnInit() {
     this.firebase.authState.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async user => {
       if (user) {
@@ -69,13 +68,6 @@ export class ProdottiOnlinePage implements OnInit {
         this.handleBackButton()
       }
     })    
-    setTimeout(async () => {
-      const modal = await this.modalController.getTop();
-        if(!modal){
-          this.isModal = false
-        }  
-    }, 500);
-    
   }
 
   async loadProducts(outfitCategory?: string, outfitSubCategory?: string, append = false) {
