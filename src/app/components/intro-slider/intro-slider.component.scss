@@ -28,11 +28,6 @@ swiper-container {
     object-fit: contain;
   }
 
-  .suggested-image {
-    clip-path: inset(0 0 7% 0);
-    margin-bottom: 0.75rem;
-  }
-
   h2 {
     font-size: 30px;
     line-height: 1.1;
@@ -98,10 +93,6 @@ swiper-container {
     img {
       max-height: 40vh;
       margin-bottom: 1rem;
-    }
-
-    .suggested-image {
-      margin-bottom: 0.5rem;
     }
 
     h2 {
