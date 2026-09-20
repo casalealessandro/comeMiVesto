@@ -21,7 +21,7 @@ describe('AppService REST contracts', () => {
 
   afterEach(() => http.verify());
 
-  it('gets outfit styles from the dedicated endpoint', async () => {
+  it('gets outfit styles from the dedicated endpoint when backend returns the raw array', async () => {
     const styles: OutfitStyle[] = [{
       id: 'casual',
       value: 'Casual',
@@ -34,6 +34,22 @@ describe('AppService REST contracts', () => {
     const request = http.expectOne(`${environment.BASE_API_URL}/gen/outfitStyles`);
 
     expect(request.request.method).toBe('GET');
+    request.flush(styles);
+    await expectAsync(result).toBeResolvedTo(styles);
+  });
+
+  it('also accepts the standard API response wrapper for outfit styles', async () => {
+    const styles: OutfitStyle[] = [{
+      id: 'business',
+      value: 'Business',
+      parent: null,
+      order: 2,
+      gender: ['U', 'D'],
+      images: {},
+    }];
+    const result = firstValueFrom(service.getOutfitStyles());
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/outfitStyles`);
+
     request.flush({ message: 'Success', data: styles });
     await expectAsync(result).toBeResolvedTo(styles);
   });
