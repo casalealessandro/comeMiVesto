@@ -73,7 +73,7 @@ describe('UserService REST contracts', () => {
           password: '', photoURL: '', gender: 'U', createAt: 1
         },
         terms: { accepted: true, acceptedVersion: '1', currentVersion: '1' },
-        preferences: { uid: 'user-id', color: ['N'], brend: ['Z'], style: ['C'], age: 40 },
+        preferences: { uid: 'user-id', color: ['N'], brend: ['Z'], style: ['C'], ageRange: '35_44' },
         preferencesConfigured: true
       }
     });
@@ -82,7 +82,7 @@ describe('UserService REST contracts', () => {
     expect(bootstrap.preferencesConfigured).toBeTrue();
     expect(service.gUserProfile()()?.uid).toBe('user-id');
     expect(service.gUserPreference()()?.style).toEqual(['C']);
-    expect(service.gUserPreference()()?.age).toBe(40);
+    expect(service.gUserPreference()()?.ageRange).toBe('35_44');
     expect(service.gPreferencesConfigured()()).toBeTrue();
     expect(service.gTermsStatus()()?.accepted).toBeTrue();
     expect(service.isBootstrapReady('user-id')).toBeTrue();
@@ -94,7 +94,7 @@ describe('UserService REST contracts', () => {
       color: ['N'],
       brend: ['Z'],
       style: ['C'],
-      age: 40
+      ageRange: '35_44'
     });
     const request = http.expectOne(`${environment.BASE_API_URL}/gen/user-preferences`);
     expect(request.request.method).toBe('PUT');
@@ -102,16 +102,16 @@ describe('UserService REST contracts', () => {
       color: ['N'],
       brend: ['Z'],
       style: ['C'],
-      age: 40
+      ageRange: '35_44'
     });
     request.flush({
       message: 'Success',
-      data: { uid: 'user-id', color: ['N'], brend: ['Z'], style: ['C'], age: 40 }
+      data: { uid: 'user-id', color: ['N'], brend: ['Z'], style: ['C'], ageRange: '35_44' }
     });
 
     expect(await result).toBeTrue();
     expect(service.gPreferencesConfigured()()).toBeTrue();
-    expect(service.gUserPreference()()?.age).toBe(40);
+    expect(service.gUserPreference()()?.ageRange).toBe('35_44');
   });
 
   it('gets the versioned terms status', async () => {

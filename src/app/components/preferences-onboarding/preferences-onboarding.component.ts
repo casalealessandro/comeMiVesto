@@ -6,12 +6,18 @@ import { finalize } from 'rxjs/operators';
 import { AppService } from 'src/app/service/app-service';
 import { brend, colors } from 'src/app/service/interface/outfit-all-interface';
 import { OutfitStyle, OutfitStyleGender } from 'src/app/service/interface/outfit-style-interface';
+import { AgeRange } from 'src/app/service/interface/user-interface';
 import { UserService } from 'src/app/service/user.service';
 
 interface PreferenceOption {
   id: string;
   value: string;
   parent: null;
+}
+
+interface AgeRangeOption {
+  id: AgeRange;
+  label: string;
 }
 
 @Component({
@@ -24,11 +30,21 @@ interface PreferenceOption {
 export class PreferencesOnboardingComponent implements OnInit {
   currentStep = 1;
   readonly totalSteps = 4;
-  age?: number;
   saving = false;
   stylesLoading = true;
   stylesLoadError = false;
   brandSearchQuery = '';
+  selectedAgeRange: AgeRange | null = null;
+
+  readonly ageRangeOptions: AgeRangeOption[] = [
+    { id: 'under_18', label: 'Meno di 18' },
+    { id: '18_24', label: '18 - 24' },
+    { id: '25_34', label: '25 - 34' },
+    { id: '35_44', label: '35 - 44' },
+    { id: '45_54', label: '45 - 54' },
+    { id: '55_64', label: '55 - 64' },
+    { id: '65_plus', label: '65+' },
+  ];
 
   selectedStyles = new Set<string>();
   selectedColors = new Set<string>();
@@ -54,7 +70,7 @@ export class PreferencesOnboardingComponent implements OnInit {
 
   ngOnInit(): void {
     const preference = this.userService.gUserPreference()();
-    this.age = Number.isInteger(preference?.age) ? preference?.age ?? undefined : undefined;
+    this.selectedAgeRange = preference?.ageRange ?? this.ageToRange(preference?.age);
     this.selectedStyles = new Set(preference?.style ?? []);
     this.selectedColors = new Set(preference?.color ?? []);
     this.selectedBrands = new Set(preference?.brend ?? []);
@@ -62,19 +78,14 @@ export class PreferencesOnboardingComponent implements OnInit {
   }
 
   get canContinue(): boolean {
-    if (this.currentStep === 1) return Number.isInteger(this.age) && Number(this.age) >= 1 && Number(this.age) <= 120;
+    if (this.currentStep === 1) return this.selectedAgeRange !== null;
     if (this.currentStep === 2) return this.selectedStyles.size > 0;
     if (this.currentStep === 3) return this.selectedColors.size > 0;
     return true;
   }
 
-  setAge(value: string | number | null | undefined): void {
-    if (value === null || value === undefined || value === '') {
-      this.age = undefined;
-      return;
-    }
-    const parsed = Number(value);
-    this.age = Number.isInteger(parsed) ? parsed : undefined;
+  selectAgeRange(ageRange: AgeRange): void {
+    this.selectedAgeRange = ageRange;
   }
 
   previousStep(): void {
@@ -116,12 +127,12 @@ export class PreferencesOnboardingComponent implements OnInit {
   }
 
   async save(): Promise<void> {
-    if (this.saving) return;
+    if (this.saving || !this.selectedAgeRange) return;
 
     this.saving = true;
     const saved = await this.userService.setUserPreference({
       uid: this.userService.gUserProfile()()?.uid ?? '',
-      age: this.age,
+      ageRange: this.selectedAgeRange,
       color: Array.from(this.selectedColors),
       brend: Array.from(this.selectedBrands),
       style: Array.from(this.selectedStyles),
@@ -141,8 +152,19 @@ export class PreferencesOnboardingComponent implements OnInit {
     await this.modalController.dismiss({ saved: true }, 'complete');
   }
 
-  trackById(_index: number, item: PreferenceOption): string {
+  trackById(_index: number, item: PreferenceOption | AgeRangeOption): string {
     return item.id;
+  }
+
+  private ageToRange(age?: number | null): AgeRange | null {
+    if (!Number.isInteger(age)) return null;
+    if ((age as number) < 18) return 'under_18';
+    if ((age as number) <= 24) return '18_24';
+    if ((age as number) <= 34) return '25_34';
+    if ((age as number) <= 44) return '35_44';
+    if ((age as number) <= 54) return '45_54';
+    if ((age as number) <= 64) return '55_64';
+    return '65_plus';
   }
 
   private toggleSelection(values: Set<string>, id: string): void {

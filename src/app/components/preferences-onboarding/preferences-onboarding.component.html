@@ -39,18 +39,19 @@
       </div>
 
       <div class="age-section">
-        <h2>Quanti anni hai?</h2>
-        <ion-input
-          class="age-input"
-          type="number"
-          inputmode="numeric"
-          min="1"
-          max="120"
-          placeholder="Es. 40"
-          [value]="age"
-          (ionInput)="setAge($event.detail.value)">
-        </ion-input>
-        <p class="step-note">Questa informazione verrà salvata insieme alle tue preferenze.</p>
+        <h2>Qual è la tua fascia di età?</h2>
+        <div class="age-range-grid">
+          <button
+            *ngFor="let item of ageRangeOptions; trackBy: trackById"
+            type="button"
+            class="age-range-card"
+            [class.selected]="selectedAgeRange === item.id"
+            [attr.aria-pressed]="selectedAgeRange === item.id"
+            (click)="selectAgeRange(item.id)">
+            {{ item.label }}
+          </button>
+        </div>
+        <p class="step-note">Ci aiuta a personalizzare meglio i suggerimenti senza chiederti l'età esatta.</p>
       </div>
     </div>
 
