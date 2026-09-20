@@ -1,5 +1,5 @@
 import { of, Subject, throwError } from 'rxjs';
-import { AppService } from 'src/app/service/app-service';
+import { AppService, OutfitBrand, OutfitColor } from 'src/app/service/app-service';
 import { OutfitStyle } from 'src/app/service/interface/outfit-style-interface';
 import { UserService } from 'src/app/service/user.service';
 import { PreferencesOnboardingComponent } from './preferences-onboarding.component';
@@ -21,6 +21,16 @@ describe('PreferencesOnboardingComponent dynamic styles', () => {
     { id: 'd-only', value: 'Donna', parent: null, order: 3, gender: ['D'], images: {} },
   ];
 
+  const colors: OutfitColor[] = [
+    { id: 'N', value: 'Nero', parent: null, hex: '#000000' },
+    { id: 'B', value: 'Bianco', parent: null, hex: '#FFFFFF' },
+  ];
+
+  const brands: OutfitBrand[] = [
+    { id: 'Armani', value: 'Armani', parent: null },
+    { id: 'Gucci', value: 'Gucci', parent: null },
+  ];
+
   function createComponent(
     gender: 'U' | 'D',
     getOutfitStyles = jasmine.createSpy('getOutfitStyles').and.returnValue(of(styles)),
@@ -30,7 +40,11 @@ describe('PreferencesOnboardingComponent dynamic styles', () => {
       gUserProfile: () => () => ({ uid: 'user-id', gender }),
       gUserPreference: () => () => ({ style: selectedStyles, color: [], brend: [] }),
     } as unknown as UserService;
-    const appService = { getOutfitStyles } as unknown as AppService;
+    const appService = {
+      getOutfitStyles,
+      getOutfitColors: () => of(colors),
+      getOutfitBrands: () => of(brands),
+    } as unknown as AppService;
     return new PreferencesOnboardingComponent(userService, appService, {} as never, {} as never);
   }
 
@@ -89,6 +103,17 @@ describe('PreferencesOnboardingComponent dynamic styles', () => {
     expect(component.styleOptions).toEqual([]);
     expect(component.selectedStyles.has('saved-style')).toBeTrue();
   });
+
+  it('loads colors and brands from the backend taxonomies', () => {
+    const component = createComponent('U');
+
+    component.ngOnInit();
+
+    expect(component.colorOptions).toEqual(colors);
+    expect(component.brandOptions).toEqual(brands);
+    expect(component.colorsLoadError).toBeFalse();
+    expect(component.brandsLoadError).toBeFalse();
+  });
 });
 
 describe('PreferencesOnboardingComponent brand search', () => {
@@ -97,7 +122,11 @@ describe('PreferencesOnboardingComponent brand search', () => {
       gUserProfile: () => () => ({ uid: 'user-id', gender: 'U' }),
       gUserPreference: () => () => ({ style: [], color: [], brend: [] }),
     } as unknown as UserService;
-    const appService = { getOutfitStyles: () => of([]) } as unknown as AppService;
+    const appService = {
+      getOutfitStyles: () => of([]),
+      getOutfitColors: () => of([]),
+      getOutfitBrands: () => of([]),
+    } as unknown as AppService;
     const component = new PreferencesOnboardingComponent(userService, appService, {} as never, {} as never);
     component.brandOptions = [
       { id: 'A', value: 'Armani', parent: null },
