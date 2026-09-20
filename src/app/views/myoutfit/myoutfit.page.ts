@@ -14,6 +14,7 @@ import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
 import { IonRefresherCustomEvent } from '@ionic/core';
 import { DetailOutfitPage } from '../detail-outfit/detail-outfit.page';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { SocialSharing } from 'src/app/service/social-sharing.service';
 import { CategoryService } from 'src/app/service/category.service';
 
@@ -43,6 +44,7 @@ export class MyOutFitPage implements OnDestroy {
   suggestedProducts: AppCatalogProduct[] = [];
   isSuggestedProductsLoading = false;
   private searchDebounce?: ReturnType<typeof setTimeout>;
+  private productFilterFromDetailActive = false;
 
   isFiltersSel: boolean = false
   backgroundImage: any = "url(assets/fallback-image.jpg);";
@@ -69,6 +71,7 @@ export class MyOutFitPage implements OnDestroy {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
+    private location: Location,
     private appService: AppService,
     private userProfileService: UserService,
     private modalController: ModalController,
@@ -85,6 +88,7 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async refreshOutfitsFromServer(): Promise<void> {
+    this.clearConsumedProductFilter();
     this.isLoading = true;
     this.filteredOutfits = [];
 
@@ -128,7 +132,22 @@ export class MyOutFitPage implements OnDestroy {
       style: ''
     };
     this.searchText = '';
+    this.productFilterFromDetailActive = true;
     await this.applyOutfitFilters();
+
+    // Il filtro proveniente dal dettaglio prodotto vale solo per questa visita.
+    // Pulisco la URL senza creare una nuova navigazione, così non viene riapplicato
+    // quando l'utente lascia MyOutfit e poi ci ritorna.
+    this.location.replaceState(this.router.url.split('?')[0]);
+  }
+
+  private clearConsumedProductFilter(): void {
+    const isProductNavigation = this.route.snapshot.queryParamMap.get('source') === 'product';
+    if (isProductNavigation || !this.productFilterFromDetailActive) return;
+
+    this.filtersData = { categories: [], season: '', style: '' };
+    this.searchText = '';
+    this.productFilterFromDetailActive = false;
   }
 
   private async getReadyUserProfile(): Promise<UserProfile | null> {
@@ -767,6 +786,13 @@ export class MyOutFitPage implements OnDestroy {
   onSegmentChange(event: CustomEvent) {
     const selectedSegment = event.detail.value; // Valore del pulsante selezionato
     this.selectedSegment = event.detail.value; // Valore del pulsante selezionato
+
+    if (selectedSegment !== 'outfit' && this.productFilterFromDetailActive) {
+      this.filtersData = { categories: [], season: '', style: '' };
+      this.searchText = '';
+      this.productFilterFromDetailActive = false;
+    }
+
     switch (selectedSegment) {
       case 'outfit':
         this.loadOutfits();
