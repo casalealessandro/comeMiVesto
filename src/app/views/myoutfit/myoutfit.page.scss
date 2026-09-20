@@ -272,37 +272,82 @@
 .suggested-discovery {
   margin-top: 18px;
 
-  .suggested-intro {
-    padding: 18px 16px;
-    border: 1px solid var(--input-border-color);
-    border-radius: 12px;
-
-    .suggested-kicker {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1.4px;
-    }
-
-    h2 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 700;
-      line-height: 1.15;
-      color: #000;
-    }
-
-    p {
-      margin: 7px 0 0;
-      font-size: 13px;
-      line-height: 1.4;
-      color: var(--ion-color-medium);
-    }
+  .suggested-kicker {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
   }
 
-  .suggested-products {
-    margin-top: 22px;
+  .tomorrow-outfit-card {
+    margin: 0;
+    border: 1px solid var(--input-border-color);
+    border-radius: 12px;
+    box-shadow: none;
+    overflow: hidden;
+    background: #fff;
+
+    .tomorrow-outfit-image {
+      display: block;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: var(--ion-color-light);
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+
+      img {
+        display: block;
+        width: 100%;
+        height: 280px;
+        object-fit: cover;
+      }
+    }
+
+    .tomorrow-outfit-content {
+      padding: 14px 16px 16px;
+    }
+
+    .tomorrow-outfit-info {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+
+      h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.2;
+        color: #000;
+      }
+
+      p {
+        margin: 5px 0 0;
+        font-size: 13px;
+        line-height: 1.35;
+        color: var(--ion-color-medium);
+      }
+    }
+
+    .tomorrow-outfit-favorite {
+      flex: 0 0 auto;
+      width: 32px;
+      height: 32px;
+      min-height: 32px;
+      margin: -4px -6px 0 0;
+      --padding-start: 0;
+      --padding-end: 0;
+      --padding-top: 0;
+      --padding-bottom: 0;
+      color: #000;
+
+      .fi {
+        font-size: 17px;
+      }
+    }
   }
 
   .suggested-section-title,
@@ -325,6 +370,83 @@
       font-size: 11px;
       color: var(--ion-color-medium);
     }
+  }
+
+  .suggested-outfit-title {
+    margin-top: 22px;
+  }
+
+  .suggested-outfit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 10px;
+  }
+
+  .suggested-outfit-card {
+    min-width: 0;
+
+    .suggested-outfit-image {
+      display: block;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--ion-color-light);
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+
+      img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        object-fit: cover;
+      }
+    }
+
+    .suggested-outfit-info {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 6px;
+      padding-top: 7px;
+
+      strong {
+        min-width: 0;
+        overflow: hidden;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        color: #000;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+    }
+
+    .suggested-outfit-favorite {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #000;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+
+      .fi {
+        font-size: 15px;
+      }
+    }
+  }
+
+  .suggested-products {
+    margin-top: 26px;
+    padding-top: 18px;
+    border-top: 1px solid var(--input-border-color);
   }
 
   .suggested-products-loading {
@@ -406,11 +528,5 @@
         color: #000;
       }
     }
-  }
-
-  .suggested-outfit-title {
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 1px solid var(--input-border-color);
   }
 }
