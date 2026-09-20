@@ -11,16 +11,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
       - run: npm ci
       - run: npm run build -- --configuration=dev
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+
+      - name: Deploy Firebase Hosting develop
+        id: firebase_hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_COMEMIVESTO_5E5F9 }}
           channelId: develop
           expires: 30d
           projectId: comemivesto-5e5f9
+          firebaseToolsVersion: 13.35.1
+
+      - name: Smoke test develop URL
+        run: |
+          echo "Testing ${{ steps.firebase_hosting.outputs.details_url }}"
+          curl --fail --location --retry 5 --retry-delay 5 "${{ steps.firebase_hosting.outputs.details_url }}"
