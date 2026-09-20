@@ -14,37 +14,72 @@
     <!-- Slide 1 -->
     <swiper-slide>
       <div class="slide-content">
-        <img [src]="'assets/step1.jpg'" alt="Welcome" loading="eager" />
-        <h2>Condividi i tuoi outfit</h2>
+        <img
+          [src]="'assets/intro/intro-armadio.webp'"
+          alt="Armadio personale di ComeMiVesto"
+          loading="eager"
+        />
+        <h2>Il tuo stile parte dai tuoi capi</h2>
         <p>
-          Posta i tuoi look preferiti con un semplice tap sul + nella barra di
-          navigazione. Mostra il tuo stile e ispira gli altri!
+          Aggiungi i capi che hai già e tieni il tuo guardaroba sempre con te.
         </p>
+        <ion-button expand="block" (click)="nextSlide()">Avanti</ion-button>
+        <ion-button class="skip-button" fill="clear" (click)="finish()">
+          Salta
+        </ion-button>
       </div>
     </swiper-slide>
 
     <!-- Slide 2 -->
     <swiper-slide>
       <div class="slide-content">
-        <img [src]="'assets/step2.jpg'" alt="Features" loading="eager" />
-        <h2>Aggiungi i tag</h2>
-        <p>
-          Tagga i brand dei tuoi capi d'abbigliamento per aiutare gli altri a
-          scoprire dove trovarli.
-        </p>
+        <img
+          [src]="'assets/intro/intro-crea-outfit.webp'"
+          alt="Creazione outfit su ComeMiVesto"
+          loading="lazy"
+        />
+        <h2>Crea i tuoi abbinamenti</h2>
+        <p>Combina i tuoi capi e salva gli outfit che vuoi ricordare.</p>
+        <ion-button expand="block" (click)="nextSlide()">Avanti</ion-button>
+        <ion-button class="skip-button" fill="clear" (click)="finish()">
+          Salta
+        </ion-button>
       </div>
     </swiper-slide>
 
     <!-- Slide 3 -->
     <swiper-slide>
       <div class="slide-content">
-        <img [src]="'assets/step3.jpg'" alt="Get Started" loading="eager" />
-        <h2>Il tuo armadio virtuale</h2>
+        <img
+          [src]="'assets/intro/intro-prodotti.webp'"
+          alt="Catalogo prodotti di ComeMiVesto"
+          loading="lazy"
+        />
+        <h2>Scopri qualcosa di nuovo</h2>
         <p>
-          Salva i tuoi outfit preferiti e tieni traccia dei capi che ami. Un
-          posto unico per organizzare il tuo stile!
+          Esplora nuovi capi e aggiungi al tuo armadio quelli che fanno per te.
         </p>
-        <ion-button expand="block" (click)="finish()"> Get Started </ion-button>
+        <ion-button expand="block" (click)="nextSlide()">Avanti</ion-button>
+        <ion-button class="skip-button" fill="clear" (click)="finish()">
+          Salta
+        </ion-button>
+      </div>
+    </swiper-slide>
+
+    <!-- Slide 4 -->
+    <swiper-slide>
+      <div class="slide-content">
+        <img
+          [src]="'assets/intro/intro-suggeriti.webp'"
+          alt="Outfit suggeriti su ComeMiVesto"
+          loading="lazy"
+        />
+        <h2>Scopri outfit pensati per te</h2>
+        <p>
+          In base alle tue preferenze e con la ricerca avanzata, trova
+          ispirazioni e outfit di altre persone più vicini alle tue esigenze.
+        </p>
+        <ion-button expand="block" (click)="finish()">Inizia</ion-button>
       </div>
     </swiper-slide>
   </swiper-container>

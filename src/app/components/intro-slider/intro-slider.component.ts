@@ -55,6 +55,11 @@ export class IntroSliderComponent implements OnInit, AfterViewInit {
     }
   }
 
+  nextSlide(): void {
+    const swiperEl = document.querySelector('swiper-container');
+    swiperEl?.swiper?.slideNext();
+  }
+
   private async checkFirstTimeUser(): Promise<void> {
     try {
       const user = await this.firebase.waitForAuthState();
