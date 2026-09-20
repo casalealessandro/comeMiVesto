@@ -64,7 +64,7 @@
               <span class="recommended-outfits-context">{{ recommendationContext }}</span>
             </div>
 
-            <div class="recommended-outfits-scroll">
+            <div class="recommended-outfits-grid">
               <article class="recommended-outfit-card" *ngFor="let recommendedOutfit of recommendedOutfits">
                 <button type="button" class="recommended-outfit-image" (click)="hasOutfitVisitFull(recommendedOutfit)">
                   <img [src]="recommendedOutfit.imageUrl || 'assets/images/fallback-image.jpg'"
