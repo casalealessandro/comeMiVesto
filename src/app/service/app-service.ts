@@ -55,6 +55,15 @@ export interface CatalogProductsResponse {
   pagination: CatalogPagination;
 }
 
+export interface OutfitRecommendations {
+  mode: 'NEXT_DAY' | 'CURRENT_DAY' | 'DAYTIME_RANDOM';
+  targetDate: string;
+  targetWeekday: number;
+  title: string;
+  context: string;
+  outfits: outfit[];
+}
+
 export interface CatalogProductsFilters {
   ids?: string[];
   outfitCategory?: string[];
@@ -170,6 +179,13 @@ export class AppService {
   }
 
   getUserOutfits(): Observable<outfit[]> { return this.getAll<outfit>('user-outfits'); }
+  getOutfitRecommendations(gender: string): Observable<OutfitRecommendations> {
+    const params = new HttpParams().set('gender', gender);
+    return this.http.get<ApiResponse<OutfitRecommendations>>(`${this.apiFire}outfit-recommendations`, { params }).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    );
+  }
   getOutfitStyles(): Observable<OutfitStyle[]> {
     return this.http
       .get<OutfitStyle[] | ApiResponse<OutfitStyle[]>>(`${this.apiFire}outfitStyles`)
