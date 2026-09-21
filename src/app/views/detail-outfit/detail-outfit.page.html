@@ -1,93 +1,67 @@
-<ion-content [fullscreen]="true" class="ion-padding scroll-y ">
+<ion-content [fullscreen]="true" class="ion-padding scroll-y">
   <div class="ion-text-center ion-padding" *ngIf="isLoading">
     <ion-spinner name="crescent"></ion-spinner>
   </div>
 
   <div class="main-content" *ngIf="!isLoading">
-   <div class="details-wrapper">
-    <div class="outfit-detail">
-
-      <app-products-grid [products]="tags" [openProductDetail]="true" (productsEvent)="saveItem($event)"></app-products-grid>
-    </div>
-    <div class="products-related">
-      <div class="related-title">
-        <ion-label class="related-title-text">Potrebbe interessarti</ion-label>
+    <div class="details-wrapper">
+      <div class="outfit-hero" *ngIf="image">
+        <ion-img [src]="image"></ion-img>
       </div>
-      <app-products-grid [products]="relatedProducts" [openProductDetail]="true" (productsEvent)="saveItem($event)"></app-products-grid>
-    </div>
-   </div>
 
-    
-  <!--   <div class="modal main-content" *ngIf="isOpen">
-      <div class="banner">
-        <div class="product-grid menu">
-          <ion-card class="outfit-card" *ngFor="let product of tags">
-            <div (click)="selectItem(product)">
-              <ion-img class="product-image" [src]="product.images"></ion-img>
+      <div class="outfit-info" *ngIf="outfitComposed">
+        <ion-text class="outfit-title" *ngIf="outfitComposed.title">
+          {{ outfitComposed.title }}
+        </ion-text>
 
-              <ion-card-header class="outfit-card-header">
+        <div class="outfit-meta" *ngIf="outfitStyle || outfitSeason">
+          <ion-chip class="outfit-chip" *ngIf="outfitStyle">
+            {{ outfitStyle }}
+          </ion-chip>
+          <ion-chip class="outfit-chip" *ngIf="outfitSeason">
+            {{ outfitSeason }}
+          </ion-chip>
+        </div>
 
+        <ion-text class="outfit-description" *ngIf="outfitComposed.description">
+          {{ outfitComposed.description }}
+        </ion-text>
 
-                <div class="outfit-header-wrapper">
-                  <ion-card-subtitle class="outfit-card-subTitle">{{ product.name }}</ion-card-subtitle>
-
-
-                </div>
-
-
-
-              </ion-card-header>
-              <ion-card-content class="outfit-card-content product-card-content">
-                <ion-card-subtitle class="outfit-price">{{ product.brend }}</ion-card-subtitle>
-
-                <section class="outfit-card-action">
-                  <ion-card-subtitle class="outfit-price">{{ product.price | currencyFormat }}</ion-card-subtitle>
-                  <ion-button size="small" fill="clear" (click)="buyToStore(product)">
-                    <ion-icon name="cart"></ion-icon>
-                  </ion-button>
-                  <ion-button size="small" fill="clear" (click)="selectItem(product)">
-                    <ion-ripple-effect></ion-ripple-effect>
-                    <ion-icon name="save"></ion-icon>
-                  </ion-button>
-
-                </section>
-              </ion-card-content>
-            </div>
-
-          </ion-card>
+        <div class="outfit-stats" *ngIf="outfitComposed.likes !== undefined || outfitComposed.visits !== undefined">
+          <span *ngIf="outfitComposed.likes !== undefined">
+            {{ outfitComposed.likes || 0 }} preferiti
+          </span>
+          <span *ngIf="outfitComposed.visits !== undefined">
+            {{ outfitComposed.visits || 0 }} visualizzazioni
+          </span>
         </div>
       </div>
 
-      <h2 class="card-subTitle"> Potrebbero interessarti </h2>
+      <div class="outfit-detail" *ngIf="tags?.length">
+        <div class="section-title">
+          <ion-label class="section-title-text">Capi di questo outfit</ion-label>
+          <ion-label class="section-count">{{ tags.length }}</ion-label>
+        </div>
 
-
-
-      <app-products-grid [products]="relatedProducts" (productsEvent)="saveItem($event)"></app-products-grid>
-    </div> -->
-  </div>
-
-
-
-
-</ion-content>
-
-<!--
-<div class="img-fullscreen ">
-
-
-
-    <div class="img-fullscreen-wrapper ">
-
-      <div class="full-screen-image">
-        <img [src]="image">
+        <app-products-grid
+          [products]="tags"
+          [openProductDetail]="true"
+          (productsEvent)="saveItem($event)">
+        </app-products-grid>
       </div>
 
+      <div class="products-related" *ngIf="relatedProducts.length > 0">
+        <div class="section-title">
+          <ion-label class="section-title-text">Potrebbero piacerti</ion-label>
+        </div>
 
+        <app-products-grid
+          [products]="relatedProducts"
+          [openProductDetail]="true"
+          [horizontalScroll]="true"
+          (productsEvent)="saveItem($event)">
+        </app-products-grid>
+      </div>
     </div>
-    
   </div>
-<ion-modal [isOpen]="isOpen" [initialBreakpoint]="0.55" [breakpoints]="[0.95]" [backdropDismiss]="false"
-      [backdropBreakpoint]="0.95" [backdropBreakpoint]="0.95" (ionBreakpointDidChange)="onBreakpointChange($event)">
-
-    </ion-modal>
--->
+</ion-content>
