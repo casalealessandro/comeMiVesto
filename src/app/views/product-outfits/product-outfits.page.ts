@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController } from '@ionic/angular';
-import { firstValueFrom, Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { AppCatalogProduct, AppService } from 'src/app/service/app-service';
 import { outfit, ReportReason, ReportType } from 'src/app/service/interface/outfit-all-interface';
@@ -23,7 +22,6 @@ export class ProductOutfitsPage implements OnInit {
   isLoading = true;
   cUserID = '';
   favorites: Set<string> = new Set();
-  outfitUserProfile$!: Observable<PublicUserProfile>;
   outfitUserProfile: PublicUserProfile[] = [];
   isOutfitCompositionOpen = false;
   cUserInfo: any = this.userProfileService.gUserProfile();
@@ -88,14 +86,18 @@ export class ProductOutfitsPage implements OnInit {
         })
       ) ?? [];
 
+      if (!this.filteredOutfits.length) {
+        return;
+      }
+
       await this.heartIcon();
 
-      this.filteredOutfits.forEach(currentOutfit => {
-        this.outfitUserProfile$ = this.appService.getUserProfilebyId(currentOutfit.userId);
-        this.outfitUserProfile$.pipe(take(1)).subscribe((profile: PublicUserProfile) => {
+      await Promise.all(
+        this.filteredOutfits.map(async currentOutfit => {
+          const profile = await firstValueFrom(this.appService.getUserProfilebyId(currentOutfit.userId));
           this.outfitUserProfile[currentOutfit.userId] = profile;
-        });
-      });
+        })
+      );
     } catch (error) {
       console.error('Impossibile caricare gli outfit abbinati al prodotto:', error);
       this.filteredOutfits = [];
@@ -280,11 +282,10 @@ export class ProductOutfitsPage implements OnInit {
   }
 
   async heartIcon(): Promise<void> {
-    this.userProfileService.loadFaveUserOutfits().subscribe(async faveUserOutfits => {
-      this.favorites.clear();
-      faveUserOutfits.forEach(fUserOutfit => {
-        this.favorites.add(fUserOutfit.outfitId);
-      });
+    const faveUserOutfits = await firstValueFrom(this.userProfileService.loadFaveUserOutfits());
+    this.favorites.clear();
+    faveUserOutfits.forEach(fUserOutfit => {
+      this.favorites.add(fUserOutfit.outfitId);
     });
   }
 

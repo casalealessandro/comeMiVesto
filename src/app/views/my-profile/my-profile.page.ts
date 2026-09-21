@@ -22,6 +22,7 @@ import { TermsAcceptanceService } from 'src/app/service/terms-acceptance.service
 export class MyProfilePage implements OnInit {
 
   outfitNumber: number = 0;
+  isLoading: boolean = true;
 
   userProfile$ = this.userProfileService.gUserProfile();
   userOutfits$!: Observable<outfit[]>;
@@ -91,9 +92,13 @@ export class MyProfilePage implements OnInit {
 
     this.uid = this.userProfile$()?.uid;
 
-
-    await Promise.all([this.loadUserOutfits(), this.loadUserWardrobes(), this.loadFavoriteOutfits()]);
-    this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits();
+    this.isLoading = true;
+    try {
+      await Promise.all([this.loadUserOutfits(), this.loadUserWardrobes(), this.loadFavoriteOutfits()]);
+      this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits();
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   async loadUserOutfits(): Promise<void> {
