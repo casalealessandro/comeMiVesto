@@ -6,7 +6,7 @@ import { AppService } from 'src/app/service/app-service';
 import { categoryCloth, outfitCategories, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
 import { ProdottiOnlinePage } from '../prodotti-online/prodotti-online.page';
 import { Browser } from '@capacitor/browser';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { UserProfile } from 'firebase/auth';
 import { UserService } from 'src/app/service/user.service';
 import { Router } from '@angular/router';
@@ -70,48 +70,38 @@ export class MyWardrobesPage implements OnInit {
       value: this.userID
     }]
 
-    await new Promise<void>((resolve, reject) => {
-      this.userWardrobes$.subscribe({
-        next: dataR => {
+    const dataR = await firstValueFrom(this.userWardrobes$);
 
+    this.wardrobesGrupped = this.categoryCloth;
 
+    const groupedItems = dataR.reduce((result: any[], item: wardrobesItem) => {
+      const category = item.outfitCategory;
 
+      // Filtrare la categoria corrispondente dal tuo array `categoryCloth`
+      const filter = this.categoryCloth.find(ress => ress.id == category);
+      const subCategores = this.categoryCloth.filter(res => res.parentCategory == category);
 
-      this.wardrobesGrupped = this.categoryCloth;
+      // Trova l'oggetto della categoria esistente o crea un nuovo oggetto
+      let categoryObject = result.find(cat => cat.wardrobesCategory === (filter ? filter.categoryName : '-'));
 
-      const groupedItems = dataR.reduce((result: any[], item: wardrobesItem) => {
-        const category = item.outfitCategory;
+      if (!categoryObject) {
+        categoryObject = {
+          wardrobesCategory: filter ? filter.categoryName : '-',
+          outfitCategoryID: filter?.id,
+          wardrobesSubCategory: subCategores.map(reM => reM.categoryName).join(','),
+          items: []
+        };
+        result.push(categoryObject);
+      }
 
-        // Filtrare la categoria corrispondente dal tuo array `categoryCloth`
-        const filter = this.categoryCloth.find(ress => ress.id == category);
-        const subCategores = this.categoryCloth.filter(res => res.parentCategory == category);
+      // Aggiungere l'outfit alla categoria corretta
+      categoryObject.items.push(item);
 
-        // Trova l'oggetto della categoria esistente o crea un nuovo oggetto
-        let categoryObject = result.find(cat => cat.wardrobesCategory === (filter ? filter.categoryName : '-'));
+      return result;
+    }, []);
 
-        if (!categoryObject) {
-          categoryObject = {
-            wardrobesCategory: filter ? filter.categoryName : '-',
-            outfitCategoryID: filter?.id,
-            wardrobesSubCategory: subCategores.map(reM => reM.categoryName).join(','),
-            items: []
-          };
-          result.push(categoryObject);
-        }
-
-        // Aggiungere l'outfit alla categoria corretta
-        categoryObject.items.push(item);
-
-        return result;
-      }, []);
-
-          this.wardrobesItems.set(groupedItems); // Aggiorna il segnale con il nuovo array
-          this.userWardrobes = [...groupedItems]
-          resolve();
-        },
-        error: reject
-      });
-    });
+    this.wardrobesItems.set(groupedItems); // Aggiorna il segnale con il nuovo array
+    this.userWardrobes = [...groupedItems]
   }
 
 
