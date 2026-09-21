@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController } from '@ionic/angular';
-import { firstValueFrom, Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { AppCatalogProduct, AppService } from 'src/app/service/app-service';
 import { outfit, ReportReason, ReportType } from 'src/app/service/interface/outfit-all-interface';
@@ -23,7 +22,6 @@ export class ProductOutfitsPage implements OnInit {
   isLoading = true;
   cUserID = '';
   favorites: Set<string> = new Set();
-  outfitUserProfile$!: Observable<PublicUserProfile>;
   outfitUserProfile: PublicUserProfile[] = [];
   isOutfitCompositionOpen = false;
   cUserInfo: any = this.userProfileService.gUserProfile();
