@@ -2,7 +2,8 @@
   #imageContainer
   class="image-container"
   [class.has-image]="!!image"
-  [class.editor-mode]="enableNewImagecaptured">
+  [class.editor-mode]="enableNewImagecaptured"
+  [class.feed-mode]="displayMode === 'feed' && !showTag">
   <!-- Loader che viene mostrato durante il caricamento dell'immagine -->
   <ion-spinner *ngIf="imageLoading" name="crescent"></ion-spinner>
 
