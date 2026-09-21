@@ -32,6 +32,7 @@ export class MyWardrobesPage implements OnInit {
   categoryCloth: outfitCategories[] = [];
   subCategoryCloth: outfitCategories[] = [];
   openModal: any = null
+  isLoading: boolean = true;
   
   constructor(private appService: AppService, private firebase: FirebaseService, private modalController: ModalController, private userProfileService: UserService, private router: Router) { }
 
@@ -39,22 +40,29 @@ export class MyWardrobesPage implements OnInit {
 
 
     this.firebase.authState.subscribe(async user => {
-      if (user) {
+      if (!user) {
+        this.isLoading = false;
+        return;
+      }
+
+      this.isLoading = true;
+      try {
         console.log('user', user)
         this.userID = user.uid;
 
         this.categoryCloth = await this.appService.getData('outfitCategories', '')
         this.userWardrobes$ = this.userProfileService.getUserWardrobes();
 
-        this.groupItemsByCategory();
+        await this.groupItemsByCategory();
 
         this.openModal = await this.modalController.getTop();
-
+      } finally {
+        this.isLoading = false;
       }
     });
   }
 
-  async groupItemsByCategory() {
+  async groupItemsByCategory(): Promise<void> {
 
     let filter = [{
       field: 'userId',
@@ -62,7 +70,9 @@ export class MyWardrobesPage implements OnInit {
       value: this.userID
     }]
 
-    this.userWardrobes$.subscribe(dataR => {
+    await new Promise<void>((resolve, reject) => {
+      this.userWardrobes$.subscribe({
+        next: dataR => {
 
 
 
@@ -95,9 +105,13 @@ export class MyWardrobesPage implements OnInit {
         return result;
       }, []);
 
-      this.wardrobesItems.set(groupedItems); // Aggiorna il segnale con il nuovo array
-      this.userWardrobes = [...groupedItems]
-    })
+          this.wardrobesItems.set(groupedItems); // Aggiorna il segnale con il nuovo array
+          this.userWardrobes = [...groupedItems]
+          resolve();
+        },
+        error: reject
+      });
+    });
   }
 
 
