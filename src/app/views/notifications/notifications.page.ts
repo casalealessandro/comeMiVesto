@@ -30,8 +30,15 @@ export class NotificationsPage implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    await this.loadPreferences();
-    await this.loadPermissionStatus();
+    this.loading = true;
+    try {
+      await Promise.all([
+        this.loadPreferences(),
+        this.loadPermissionStatus(),
+      ]);
+    } finally {
+      this.loading = false;
+    }
   }
 
   async onNotificationsChange(event: CustomEvent): Promise<void> {
@@ -74,14 +81,10 @@ export class NotificationsPage implements OnInit {
   }
 
   private async loadPreferences(): Promise<void> {
-    this.loading = true;
-
     try {
       this.preferences = await firstValueFrom(this.pushNotificationService.getPreferences());
     } catch {
       await this.showError('Non è stato possibile caricare le preferenze delle notifiche.');
-    } finally {
-      this.loading = false;
     }
   }
 
