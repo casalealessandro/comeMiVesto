@@ -50,6 +50,7 @@
     --background: #fff;
     height: 64px;
     align-items: flex-end;
+    overflow: visible;
     background: linear-gradient(
         to bottom,
         #fff 0,
@@ -74,6 +75,7 @@
 
         width: 100%;
         display: flex;
+        overflow: visible;
         justify-content: space-around;
         align-items: center;
         background-repeat: no-repeat;
@@ -147,6 +149,7 @@
 
         .outfit-center-button {
             position: absolute;
+            z-index: 2;
             background-color: transparent;
             width: 84px;
             height: 34px;
