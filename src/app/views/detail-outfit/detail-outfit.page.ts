@@ -48,23 +48,23 @@ export class DetailOutfitPage implements OnInit {
         const selectedOutfit = await this.appService.getOutfit(this.outfitId);
         this.outfitComposed = selectedOutfit;
         this.image = selectedOutfit.imageUrl
-        this.tags = selectedOutfit.tags || [];
+        this.tags = Array.isArray(selectedOutfit.tags) ? selectedOutfit.tags : [];
         this.outfitStyle = style.find(item => item.id === selectedOutfit.style)?.value || '';
         this.outfitSeason = seasons.find(item => item.id === selectedOutfit.season)?.value || '';
+        this.isOpen = false;
+        this.relatedProducts = [];
 
         if (this.tags.length > 0) {
           this.isOpen = true;
           console.log(this.tags)
-        }
 
-        const response = await this.appService.filterOutfitProducts({
-          outfitSubCategory: selectedOutfit.outfitSubCategory,
-          gender: selectedOutfit.gender,
-          limit: 20
-        });
-        const products = response.data;
+          const response = await this.appService.filterOutfitProducts({
+            outfitSubCategory: selectedOutfit.outfitSubCategory,
+            gender: selectedOutfit.gender,
+            limit: 20
+          });
+          const products = response.data;
 
-        if (this.tags.length > 0 && this.isOpen) {
           this.relatedProducts = products.filter(prod =>
             !this.tags.some(tag => String(tag.id) === String(prod.id)) // Confronta gli ID come stringhe
           );
