@@ -163,7 +163,7 @@
               <div class="outfit-center-wrapper">
 
                 <app-foto-outfit [image]="outfit.imageUrl" [enableNewImagecaptured]="false" [enableSetTagsImage]="false"
-                  [tags]="outfit.tags" (eventImageShowFull)="hasOutfitVisitFull(outfit)">
+                  displayMode="feed" [tags]="outfit.tags" (eventImageShowFull)="hasOutfitVisitFull(outfit)">
                 </app-foto-outfit>
 
 
@@ -177,6 +177,7 @@
                   <div class="outfit-bottom-content-top">
                     <div class="letf-bottom-content">
                       <ion-card-subtitle class="outfit-card-subTitle">{{ outfit.title }}</ion-card-subtitle>
+                      <span class="outfit-card-meta" *ngIf="getOutfitMeta(outfit) as outfitMeta">{{ outfitMeta }}</span>
                     </div>
                     <div class="right-bottom-content">
 
