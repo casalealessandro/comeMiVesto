@@ -100,14 +100,7 @@ export class ProductDetailPage implements OnInit {
   showOutfitMatches(): void {
     if (!this.product) return;
 
-    void this.router.navigate(['/tabs/myoutfit'], {
-      queryParams: {
-        source: 'product',
-        outfitCategory: this.product.outfitCategory,
-        outfitSubCategory: this.product.outfitSubCategory,
-        color: this.product.color
-      }
-    });
+    void this.router.navigate(['/tabs/product-outfits', this.product.id]);
   }
 
   openProduct(product: AppCatalogProduct): void {
