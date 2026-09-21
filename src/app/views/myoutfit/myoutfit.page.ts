@@ -4,7 +4,7 @@ import { AlertController, ModalController, NavController, RefresherEventDetail }
 
 
 import { AppCatalogProduct, AppService, CatalogProductsResponse } from 'src/app/service/app-service';
-import { buttons, filterItmClothing, outfit, OutfitFilterPayload, ReportReason, ReportType, seasons, Tag } from 'src/app/service/interface/outfit-all-interface';
+import { buttons, filterItmClothing, outfit, OutfitFilterPayload, ReportReason, ReportType, seasons, style, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom, lastValueFrom, Observable } from 'rxjs';
@@ -57,7 +57,7 @@ export class MyOutFitPage implements OnDestroy {
       value: 'outfit',
       contentId: 'outfit',
       icon: 'fi fi-rs-hourglass-end',
-      label: 'Ultimi outifit',
+      label: 'Ultimi outfit',
 
     },
     {
@@ -242,6 +242,26 @@ export class MyOutFitPage implements OnDestroy {
       style: this.filtersData.style ?? '',
       ...(this.searchText.trim() ? { search: this.searchText.trim() } : {})
     };
+  }
+
+  getOutfitMeta(item: outfit): string {
+    const meta: string[] = [];
+
+    if (item.tags?.length) {
+      meta.push(`${item.tags.length} ${item.tags.length === 1 ? 'capo' : 'capi'}`);
+    }
+
+    const styleLabel = style.find(styleItem => styleItem.id === item.style)?.value;
+    if (styleLabel) {
+      meta.push(styleLabel);
+    }
+
+    const seasonLabel = seasons.find(seasonItem => seasonItem.id === item.season)?.value;
+    if (seasonLabel) {
+      meta.push(seasonLabel);
+    }
+
+    return meta.join(' · ');
   }
 
   async applyOutfitFilters(): Promise<void> {
