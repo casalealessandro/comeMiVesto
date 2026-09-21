@@ -9,6 +9,22 @@ describe('MyOutFitPage filters and search', () => {
     return component;
   }
 
+  it('builds compact metadata from existing outfit fields', () => {
+    const component = page();
+
+    expect(component.getOutfitMeta({
+      tags: [{}, {}, {}],
+      style: 'C',
+      season: 'A'
+    } as any)).toBe('3 capi · Casual · Autunno');
+
+    expect(component.getOutfitMeta({
+      tags: [{}],
+      style: '',
+      season: ''
+    } as any)).toBe('1 capo');
+  });
+
   it('builds search-only payloads with trim', () => {
     const component = page();
     component.searchText = '  giacca elegante  ';
