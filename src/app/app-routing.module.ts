@@ -32,6 +32,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'product-outfits/:id',
+        loadChildren: () =>
+          import('./views/product-outfits/product-outfits.module').then(
+            (m) => m.ProductOutfitsPageModule
+          ),
+      },
+      {
         path: 'add-outfit',
         loadChildren: () =>
           import('./views/add-outfit/add-outfit.module').then(
