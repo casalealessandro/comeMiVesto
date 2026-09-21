@@ -1,8 +1,8 @@
 <ion-content class="ion-padding">
   <div class="main-content">
     <div class="heading">
-      <div class="spinner" *ngIf="isLoading">
-        <ion-spinner></ion-spinner>
+      <div class="ion-text-center ion-padding" *ngIf="isLoading">
+        <ion-spinner name="crescent"></ion-spinner>
       </div>
 
       <ng-container *ngIf="!isLoading && filteredOutfits.length === 0">
