@@ -5,6 +5,19 @@
         <ion-spinner name="crescent"></ion-spinner>
       </div>
 
+      <ion-item *ngIf="!isLoading && product" lines="full">
+        <ion-thumbnail slot="start">
+          <img
+            [src]="product.imageUrl || product.images[0] || 'assets/images/fallback-image.jpg'"
+            [alt]="product.name">
+        </ion-thumbnail>
+        <ion-label>
+          <p>{{ product.brend || product.brand }}</p>
+          <h2>{{ product.name }}</h2>
+          <p *ngIf="product.color">{{ product.color }}</p>
+        </ion-label>
+      </ion-item>
+
       <ng-container *ngIf="!isLoading && filteredOutfits.length === 0">
         <ion-text color="medium">Nessun outfit disponibile per questo prodotto.</ion-text>
       </ng-container>
