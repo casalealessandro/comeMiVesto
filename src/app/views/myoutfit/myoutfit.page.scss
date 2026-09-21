@@ -156,8 +156,8 @@
 
             .outfit-card-avatar {
 
-              width: 24px;
-              height: 24px;
+              width: 30px;
+              height: 30px;
             }
 
             .outfit-card-title {
@@ -178,7 +178,7 @@
             justify-content: space-between;
             align-items: center;
             display: flex;
-            gap: 10px;
+            gap: 2px;
 
             ion-button {
               --border-radius: 0;
@@ -223,31 +223,64 @@
             flex-direction: row;
             justify-content: space-between;
             align-items: center;
-            height: 17px;
+            min-height: 44px;
+
             .letf-bottom-content {
-              align-self: start;
+              align-self: center;
+              display: flex;
+              flex-direction: column;
+              gap: 2px;
+              min-width: 0;
+            }
+
+            .outfit-card-subTitle {
+              font-size: 15px;
+              font-weight: 700;
+              line-height: 20px;
+              color: #000;
+            }
+
+            .outfit-card-meta {
+              font-size: 11px;
+              font-weight: 400;
+              line-height: 15px;
+              color: var(--outfit-secondary-color);
             }
 
             .right-bottom-content {
-              height: 17px;
+              height: 44px;
             
               display: flex;
               justify-content: center;
               align-items: center;
               .outfit-card-action{
-                height: 17px;
-                width: 17px;
-                min-height: 17px;
+                height: 44px;
+                width: 44px;
+                min-height: 44px;
                 margin-top: 0px;
                 margin-bottom: 0px;
                 --padding-top: 0px;
                 --padding-end: 0px;
                 --padding-bottom: 0px;
                 --padding-start: 0px;
+
                 .fi {
-                  font-size: 15px;
+                  font-size: 18px;
                 }
               }
+            }
+          }
+
+          .outfit-bottom-content-bottom {
+            .outfit-description {
+              margin: 0;
+              font-size: 13px;
+              line-height: 18px;
+              color: var(--outfit-secondary-color);
+              display: -webkit-box;
+              -webkit-line-clamp: 2;
+              -webkit-box-orient: vertical;
+              overflow: hidden;
             }
           }
         }
