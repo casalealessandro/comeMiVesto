@@ -48,7 +48,7 @@
 .outfit-bottom-bar {
 
     --background: #fff;
-    height: 75px;
+    height: 64px;
     align-items: flex-end;
     background: linear-gradient(
         to bottom,
@@ -93,7 +93,7 @@
         } */
         .button-block {
             width: 68px;
-            height: 55px;
+            height: 52px;
             display: block;
             color: var(--outfit-secondary-color);
 
@@ -103,22 +103,22 @@
                 align-items: center;
                 transition: color 100ms ease, box-shadow 100ms ease;
                 --background: transparent;
-                --padding-top: 15.5px;
-                --padding-bottom: 12.5px;
+                --padding-top: 7px;
+                --padding-bottom: 6px;
                 --padding-end: 15px;
                 --padding-start: 15px;
-                gap: 8px;
+                gap: 4px;
 
 
                 .fi {
-                    font-size: 24px;
+                    font-size: 23px;
                 }
 
                 .outfit-tab-text {
 
-                    font-size: 12px;
+                    font-size: 11px;
                     font-weight: 500;
-                    line-height: 14.63px;
+                    line-height: 13.4px;
                     text-align: left;
                     text-underline-position: from-font;
                     text-decoration-skip-ink: none;
@@ -151,20 +151,20 @@
             width: 84px;
             height: 34px;
             border-radius: 0 0 32px 32px;
-            top: 39%;
+            top: 36%;
             left: 50%;
             transform: translate(-50%);
 
             ion-tab-button {
                 display: block !important;
                 margin: auto;
-                width: 55px;
-                  height: 55px;
+                width: 52px;
+                height: 52px;
                 color: #fff;
                 border-radius: 50px;
                 background: #333;
                 position: absolute;
-                top: -28px;
+                top: -25px;
                 left: 50%;
                 transform: translate(-50%);
 
@@ -175,12 +175,12 @@
 
             .center-tab-text {
                 position: absolute;
-                top: 30px;
+                top: 25px;
                 left: 50%;
                 transform: translateX(-50%);
-                font-size: 12px;
+                font-size: 11px;
                 font-weight: 500;
-                line-height: 14.63px;
+                line-height: 13.4px;
                 color: var(--outfit-secondary-color);
                 white-space: nowrap;
             }
