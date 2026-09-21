@@ -163,3 +163,24 @@
 
   }
 }
+
+.product-grid.horizontal-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  max-width: none;
+  padding-bottom: 4px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+
+  .product-cards {
+    flex: 0 0 calc(48% - 5px);
+    scroll-snap-align: start;
+  }
+
+  @media screen and (min-width: 1024px) {
+    .product-cards {
+      flex-basis: 200px;
+    }
+  }
+}

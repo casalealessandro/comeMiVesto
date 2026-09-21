@@ -2,38 +2,113 @@
   display: flex;
   gap: 24px;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
+
+  .outfit-hero {
+    width: 100%;
+    min-height: 260px;
+    max-height: 520px;
+    overflow: hidden;
+    background-color: #F7F7F7;
+
+    ion-img {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      max-height: 520px;
+
+      &::part(image) {
+        object-fit: contain;
+      }
+    }
+  }
+
+  .outfit-info {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+
+    .outfit-title {
+      color: #000;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 24px;
+    }
+
+    .outfit-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      .outfit-chip {
+        height: 26px;
+        margin: 0;
+        padding: 0 10px;
+        border: 0.5px solid var(--input-border-color);
+        border-radius: 4px;
+        background: #fff;
+        color: #000;
+        font-size: 11px;
+        font-weight: 500;
+      }
+    }
+
+    .outfit-description {
+      color: var(--outfit-primary-text-color);
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 18px;
+    }
+
+    .outfit-stats {
+      display: flex;
+      gap: 16px;
+      color: var(--outfit-primary-text-color);
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 14px;
+    }
+  }
+
+  .section-title {
+    display: flex;
+    min-height: 20px;
+    align-items: center;
+    justify-content: space-between;
+
+    .section-title-text {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 19.5px;
+      text-align: left;
+      text-underline-position: from-font;
+      text-decoration-skip-ink: none;
+    }
+
+    .section-count {
+      color: var(--outfit-primary-text-color);
+      font-size: 12px;
+      font-weight: 400;
+    }
+  }
 
   .outfit-detail {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+
     &::after {
       display: block;
       content: "";
       border: 0.5px solid #D9D9D9;
-      margin: 20px 0;
+      margin-top: 10px;
     }
   }
-
 
   .products-related {
     display: flex;
     gap: 10px;
     flex-direction: column;
-    .related-title {
-      height: 20px;
-      gap: 6px;
-
-      .related-title-text {
-        font-size: 16px;
-        font-weight: 600;
-        line-height: 19.5px;
-        text-align: left;
-        text-underline-position: from-font;
-        text-decoration-skip-ink: none;
-      }
-    }
-
-
-
-
+    padding-bottom: 12px;
   }
 }

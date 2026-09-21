@@ -1,5 +1,5 @@
 <!-- Griglia dei prodotti -->
-<div class="product-grid main-content">
+<div class="product-grid main-content" [class.horizontal-scroll]="horizontalScroll">
   <ion-card class="product-cards" *ngFor="let product of products" (click)="openProduct($event,product)">
     <div class="product-card">
       <div class="product-card-header">
@@ -8,7 +8,7 @@
         
       </div>
       <div class="product-image">
-        <ion-img class="image" [src]="product.imageUrl || product.images || '../../../assets/images/sub_categories/TS.webp' "></ion-img>
+        <ion-img class="image" [src]="product.imageUrl || (product.images && product.images.length > 0 ? product.images[0] : '../../../assets/images/sub_categories/TS.webp')"></ion-img>
         <div  class="remove-product" *ngIf="showRemoveBtn">
           <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="removeProduct($event,product)">
             <i class="fi fi-rr-cross"></i>
@@ -46,6 +46,7 @@
         
         </ion-card-content>
       </div>
+
 
 
 

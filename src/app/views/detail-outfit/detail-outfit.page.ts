@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
 import { IonModal, ModalController, NavController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
-import { Tag } from 'src/app/service/interface/outfit-all-interface';
+import { seasons, style, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 
 @Component({
@@ -21,6 +21,8 @@ export class DetailOutfitPage implements OnInit {
   outfitId: any
   isOpen: boolean = false;
   outfitComposed: any
+  outfitStyle: string = '';
+  outfitSeason: string = '';
   userID: string = '';
   relatedProducts:any[] = []
   isLoading: boolean = true;
@@ -44,8 +46,11 @@ export class DetailOutfitPage implements OnInit {
       this.isLoading = true;
       try {
         const selectedOutfit = await this.appService.getOutfit(this.outfitId);
+        this.outfitComposed = selectedOutfit;
         this.image = selectedOutfit.imageUrl
-        this.tags = selectedOutfit.tags;
+        this.tags = selectedOutfit.tags || [];
+        this.outfitStyle = style.find(item => item.id === selectedOutfit.style)?.value || '';
+        this.outfitSeason = seasons.find(item => item.id === selectedOutfit.season)?.value || '';
 
         if (this.tags.length > 0) {
           this.isOpen = true;

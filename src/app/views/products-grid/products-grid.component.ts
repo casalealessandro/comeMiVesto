@@ -16,6 +16,7 @@ export class ProductsGridComponent implements  OnChanges {
   @Input() showRemoveBtn: boolean = false;
   @Input() showSaveBtn: boolean = true;
   @Input() openProductDetail: boolean = false;
+  @Input() horizontalScroll: boolean = false;
   @Output() productsEvent = new EventEmitter<any>();
   constructor(private categoryService:CategoryService, private router: Router) { }
   
