@@ -163,7 +163,7 @@
               <div class="outfit-center-wrapper">
 
                 <app-foto-outfit [image]="outfit.imageUrl" [enableNewImagecaptured]="false" [enableSetTagsImage]="false"
-                  displayMode="feed" [tags]="outfit.tags" (eventImageShowFull)="hasOutfitVisitFull(outfit)">
+                  [tags]="outfit.tags" (eventImageShowFull)="hasOutfitVisitFull(outfit)">
                 </app-foto-outfit>
 
 
