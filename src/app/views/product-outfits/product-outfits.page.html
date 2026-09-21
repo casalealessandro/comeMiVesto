@@ -1,0 +1,83 @@
+<ion-content class="ion-padding">
+  <div class="main-content">
+    <div class="heading">
+      <div class="spinner" *ngIf="isLoading">
+        <ion-spinner></ion-spinner>
+      </div>
+
+      <div class="style-main" *ngIf="!isLoading">
+        <ion-row class="style">
+          <ion-col class="style-col" size="12" *ngFor="let outfit of filteredOutfits">
+            <ion-card class="outfit-card">
+              <div class="outfit-header">
+                <button
+                  type="button"
+                  class="outfit-header-wrapper-title"
+                  *ngIf="outfitUserProfile[outfit.userId]"
+                  (click)="openUserProfile(outfit.userId)">
+                  <ion-avatar slot="start" class="outfit-card-avatar">
+                    <img
+                      *ngIf="outfitUserProfile[outfit.userId]"
+                      [src]="outfitUserProfile[outfit.userId].photoURL" />
+                  </ion-avatar>
+                  <ion-card-title class="outfit-card-title">
+                    {{ outfitUserProfile[outfit.userId].displayName }}
+                  </ion-card-title>
+                </button>
+
+                <div class="outfit-header-wrapper-info">
+                  <ion-button size="small" fill="clear" (click)="outfitMenu(outfit)">
+                    <i class="fi fi-rr-menu-dots-vertical"></i>
+                  </ion-button>
+                  <ion-button size="small" fill="clear" slot="end" (click)="openShareModal(outfit)">
+                    <i class="fi fi-rr-share"></i>
+                  </ion-button>
+                </div>
+              </div>
+
+              <div class="outfit-center-wrapper">
+                <app-foto-outfit
+                  [image]="outfit.imageUrl"
+                  [enableNewImagecaptured]="false"
+                  [enableSetTagsImage]="false"
+                  [tags]="outfit.tags"
+                  (eventImageShowFull)="hasOutfitVisitFull(outfit)">
+                </app-foto-outfit>
+              </div>
+
+              <div class="outfit-bottom-wrapper">
+                <ion-card-content class="outfit-bottom-content">
+                  <div class="outfit-bottom-content-top">
+                    <div class="letf-bottom-content">
+                      <ion-card-subtitle class="outfit-card-subTitle">
+                        {{ outfit.title }}
+                      </ion-card-subtitle>
+                    </div>
+
+                    <div class="right-bottom-content">
+                      <ion-button
+                        size="small"
+                        slot="icon-only"
+                        fill="clear"
+                        class="outfit-card-action"
+                        (click)="addFavoriteOutfit(outfit)">
+                        <i
+                          class="fi"
+                          [ngClass]="isFavorite(outfit.id) ? 'fi-sr-heart' : 'fi-rs-heart'">
+                        </i>
+                      </ion-button>
+                    </div>
+                  </div>
+
+                  <div class="outfit-bottom-content-bottom">
+                    <p class="outfit-description">{{ outfit.description }}</p>
+                  </div>
+                </ion-card-content>
+              </div>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </div>
+    </div>
+  </div>
+</ion-content>
