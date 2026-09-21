@@ -23,6 +23,7 @@ export class DetailOutfitPage implements OnInit {
   outfitComposed: any
   userID: string = '';
   relatedProducts:any[] = []
+  isLoading: boolean = true;
   constructor(
     private modalController: ModalController, 
     private router:Router, 
@@ -35,9 +36,13 @@ export class DetailOutfitPage implements OnInit {
   ngOnInit() {
     this.route.paramMap.subscribe(async params => {
       this.outfitId = params.get('id');
-      if (this.outfitId) {
+      if (!this.outfitId) {
+        this.isLoading = false;
+        return;
+      }
 
-
+      this.isLoading = true;
+      try {
         const selectedOutfit = await this.appService.getOutfit(this.outfitId);
         this.image = selectedOutfit.imageUrl
         this.tags = selectedOutfit.tags;
@@ -46,21 +51,23 @@ export class DetailOutfitPage implements OnInit {
           this.isOpen = true;
           console.log(this.tags)
         }
-        
+
         const response = await this.appService.filterOutfitProducts({
           outfitSubCategory: selectedOutfit.outfitSubCategory,
           gender: selectedOutfit.gender,
           limit: 20
         });
         const products = response.data;
-       
+
         if (this.tags.length > 0 && this.isOpen) {
-          const tags =this.tags
-          this.relatedProducts = products.filter(prod => 
+          this.relatedProducts = products.filter(prod =>
             !this.tags.some(tag => String(tag.id) === String(prod.id)) // Confronta gli ID come stringhe
-        );
-          
+          );
         }
+      } catch (error) {
+        console.error('Impossibile caricare il dettaglio outfit:', error);
+      } finally {
+        this.isLoading = false;
       }
     });
 
