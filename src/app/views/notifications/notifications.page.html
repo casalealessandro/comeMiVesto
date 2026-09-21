@@ -7,7 +7,11 @@
 </app-header>
 
 <ion-content class="ion-padding">
-  <div class="notifications-content">
+  <div class="ion-text-center ion-padding" *ngIf="loading">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <div class="notifications-content" *ngIf="!loading">
     <div class="notifications-intro">
       <i class="fi fi-rr-bell"></i>
       <div>
