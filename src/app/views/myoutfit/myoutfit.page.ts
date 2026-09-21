@@ -796,9 +796,6 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async hasOutfitVisitFull(outfit: outfit) {
-    if (outfit.tags.length == 0) {
-      return
-    }
     this.router.navigate(['tabs/detail-outfit', outfit.id]).then(async res => {
 
 

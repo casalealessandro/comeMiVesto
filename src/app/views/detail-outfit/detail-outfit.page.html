@@ -37,17 +37,22 @@
         </div>
       </div>
 
-      <div class="outfit-detail" *ngIf="tags?.length">
+      <div class="outfit-detail" *ngIf="outfitComposed">
         <div class="section-title">
           <ion-label class="section-title-text">Capi di questo outfit</ion-label>
-          <ion-label class="section-count">{{ tags.length }}</ion-label>
+          <ion-label class="section-count">{{ tags?.length || 0 }}</ion-label>
         </div>
 
         <app-products-grid
+          *ngIf="tags?.length"
           [products]="tags"
           [openProductDetail]="true"
           (productsEvent)="saveItem($event)">
         </app-products-grid>
+
+        <div class="outfit-empty" *ngIf="!tags?.length">
+          <ion-text>Nessun capo associato a questo outfit.</ion-text>
+        </div>
       </div>
 
       <div class="products-related" *ngIf="relatedProducts.length > 0">
