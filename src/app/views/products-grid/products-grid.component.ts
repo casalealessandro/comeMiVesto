@@ -74,7 +74,7 @@ export class ProductsGridComponent implements  OnChanges {
         : '';
 
     if (!catalogProductId) {
-      this.saveToWardrobe(evt, product);
+      void this.buyToStore(evt, product);
       return;
     }
 
