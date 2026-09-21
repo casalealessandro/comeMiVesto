@@ -26,7 +26,6 @@ export class FotoOutfitPage implements OnInit {
   //Abilita l'inserimento dei tag nell'immagine catturata
   @Input() enableSetTagsImage: boolean = true;
   @Input() enableNewImagecaptured: boolean = true;
-  @Input() displayMode: 'default' | 'feed' = 'default';
   @Input() tags!: Tag[];
 
   tagStyle: any = [];
@@ -292,21 +291,6 @@ export class FotoOutfitPage implements OnInit {
 
   toggleTags() {
     this.showTag = !this.showTag;
-
-    if (!this.showTag) {
-      return;
-    }
-
-    requestAnimationFrame(() => {
-      const image = this.imageElement?.nativeElement as HTMLElement;
-      if (!image) {
-        return;
-      }
-
-      const rect = image.getBoundingClientRect();
-      this.setDisplayTag(rect);
-      this.setDisplayButtonTag(rect);
-    });
   }
 
   setDisplayButtonTag(rect: DOMRect) {
