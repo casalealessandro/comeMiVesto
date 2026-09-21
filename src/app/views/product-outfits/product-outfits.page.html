@@ -5,7 +5,11 @@
         <ion-spinner></ion-spinner>
       </div>
 
-      <div class="style-main" *ngIf="!isLoading">
+      <ng-container *ngIf="!isLoading && filteredOutfits.length === 0">
+        <ion-text color="medium">Nessun outfit disponibile per questo prodotto.</ion-text>
+      </ng-container>
+
+      <div class="style-main" *ngIf="!isLoading && filteredOutfits.length > 0">
         <ion-row class="style">
           <ion-col class="style-col" size="12" *ngFor="let outfit of filteredOutfits">
             <ion-card class="outfit-card">
