@@ -44,3 +44,22 @@ export const authGuard: CanActivateFn = async (route, state) => {
     return loginRedirect();
   }
 };
+
+
+export const guestGuard: CanActivateFn = async () => {
+  const firebase = inject(FirebaseService);
+  const router = inject(Router);
+
+  try {
+    const user = await firebase.waitForAuthState();
+    if (!user) {
+      return true;
+    }
+
+    const token = await user.getIdToken();
+    return token ? router.createUrlTree(['/tabs/myoutfit']) : true;
+  } catch (error) {
+    console.error('Errore nella verifica della sessione guest:', error);
+    return true;
+  }
+};
