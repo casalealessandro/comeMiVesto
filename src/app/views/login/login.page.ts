@@ -62,7 +62,10 @@ export class LoginPage implements OnInit {
       await userCredential.user.getIdToken(true);
       const bootstrap = await this.userService.loadBootstrap();
       sessionStorage.setItem('userProfile', JSON.stringify(bootstrap.profile));
-      await this.router.navigateByUrl(getSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')));
+      await this.router.navigateByUrl(
+        getSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
+        { replaceUrl: true }
+      );
     } catch (error) {
       console.error(error)
       this.alert.create(
