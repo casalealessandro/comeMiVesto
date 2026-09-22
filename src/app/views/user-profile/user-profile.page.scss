@@ -25,10 +25,34 @@
   color: var(--outfit-secondary-color);
 }
 
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .profile-name {
   margin: 0;
   font-size: 14px;
   font-weight: 500;
+}
+
+.ai-creator-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 7px;
+  border: 1px solid var(--primary-color);
+  border-radius: 999px;
+  color: var(--primary-color);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .35px;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .profile-bio {
