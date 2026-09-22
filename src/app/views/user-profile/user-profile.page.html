@@ -17,7 +17,10 @@
         <img class="profile-pic" [src]="profile.photoURL || fallbackImage" [alt]="profile.displayName" />
       </ion-avatar>
       <div class="profile-info">
-        <p class="profile-name">{{ profile.displayName }}</p>
+        <div class="profile-name-row">
+          <p class="profile-name">{{ profile.displayName }}</p>
+          <span class="ai-creator-badge" *ngIf="profile.aiCreator">AI Creator</span>
+        </div>
         <p class="profile-bio">{{ profile.bio }}</p>
       </div>
       <ion-button class="profile-btn" fill="clear" [disabled]="isFollowLoading" (click)="toggleFollow()">
