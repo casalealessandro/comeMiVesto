@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { routes } from './app-routing.module';
-import { authGuard } from './auth.guard';
+import { authGuard, guestGuard } from './auth.guard';
 import { TermsAcceptanceService } from './service/terms-acceptance.service';
 import { UserService } from './service/user.service';
 import { FirebaseService } from './service/firebase.service';
@@ -37,6 +37,10 @@ describe('protected routing', () => {
 
   async function run(url: string): Promise<boolean | UrlTree> {
     return TestBed.runInInjectionContext(() => authGuard({} as any, { url } as RouterStateSnapshot)) as Promise<boolean | UrlTree>;
+  }
+
+  async function runGuest(url: string): Promise<boolean | UrlTree> {
+    return TestBed.runInInjectionContext(() => guestGuard({} as any, { url } as RouterStateSnapshot)) as Promise<boolean | UrlTree>;
   }
 
   it('redirects signed-out protected requests to login with returnUrl', async () => {
@@ -85,8 +89,26 @@ describe('protected routing', () => {
     expect(await run('/tabs/myoutfit')).toBeFalse();
   });
 
-  it('keeps register and Terms routes public', () => {
-    for (const path of ['login', 'register', 'intro', 'terms-conditions']) {
+  it('allows signed-out users to open guest routes', async () => {
+    expect(await runGuest('/login')).toBeTrue();
+    expect(await runGuest('/register')).toBeTrue();
+  });
+
+  it('redirects authenticated users away from guest routes', async () => {
+    auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
+
+    const result = await runGuest('/login') as UrlTree;
+    expect(router.serializeUrl(result)).toBe('/tabs/myoutfit');
+  });
+
+  it('guards login and register while keeping intro and Terms public', () => {
+    for (const path of ['login', 'register']) {
+      const guestRoute = routes.find(route => route.path === path);
+      expect(guestRoute?.canActivate).toEqual([guestGuard]);
+      expect(guestRoute?.canActivateChild).toBeUndefined();
+    }
+
+    for (const path of ['intro', 'terms-conditions']) {
       const publicRoute = routes.find(route => route.path === path);
       expect(publicRoute?.canActivate).toBeUndefined();
       expect(publicRoute?.canActivateChild).toBeUndefined();
