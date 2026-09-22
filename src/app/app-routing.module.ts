@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { LayoutTabsPage } from './views/layout-tabs/layout-tabs.page';
-import { authGuard } from './auth.guard';
+import { authGuard, guestGuard } from './auth.guard';
 import { IntroSliderComponent } from './components/intro-slider/intro-slider.component';
 
 export const routes: Routes = [
@@ -107,6 +107,7 @@ export const routes: Routes = [
   },
   {
     path: 'register',
+    canActivate: [guestGuard],
     loadChildren: () =>
       import('./views/register/register.module').then(
         (m) => m.RegisterPageModule
@@ -114,6 +115,7 @@ export const routes: Routes = [
   },
   {
     path: 'login',
+    canActivate: [guestGuard],
     loadChildren: () =>
       import('./views/login/login.module').then((m) => m.LoginPageModule),
   },
