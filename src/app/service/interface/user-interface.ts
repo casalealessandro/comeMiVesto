@@ -20,6 +20,7 @@ export interface PublicUserProfile {
   displayName: string;
   photoURL: string;
   bio?: string;
+  aiCreator?: boolean;
 }
 
 export interface FollowStatus {
