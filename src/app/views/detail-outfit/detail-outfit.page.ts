@@ -6,6 +6,9 @@ import { IonModal, ModalController, NavController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
 import { seasons, style, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { SharedDataService } from 'src/app/service/shared-data.service';
+import { register } from 'swiper/element/bundle';
+
+register();
 
 @Component({
   standalone: false,
@@ -26,6 +29,7 @@ export class DetailOutfitPage implements OnInit {
   userID: string = '';
   relatedProducts:any[] = []
   isLoading: boolean = true;
+  isImagePreviewOpen: boolean = false;
   constructor(
     private modalController: ModalController, 
     private router:Router, 
@@ -97,6 +101,15 @@ export class DetailOutfitPage implements OnInit {
 
 
 
+
+  openImagePreview(): void {
+    if (!this.image) return;
+    this.isImagePreviewOpen = true;
+  }
+
+  closeImagePreview(): void {
+    this.isImagePreviewOpen = false;
+  }
 
   closeModalFullScreen() {
     this.modalController.dismiss()
