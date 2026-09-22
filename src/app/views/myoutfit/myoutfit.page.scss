@@ -160,15 +160,37 @@
               height: 30px;
             }
 
-            .outfit-card-title {
+            .outfit-card-author {
+              display: flex;
+              align-items: center;
+              flex-wrap: wrap;
+              gap: 6px;
+              min-width: 0;
+            }
 
+            .outfit-card-title {
               font-size: 16px;
               font-weight: 700;
               line-height: 19.5px;
               text-align: left;
               text-underline-position: from-font;
               text-decoration-skip-ink: none;
+            }
 
+            .ai-creator-badge {
+              display: inline-flex;
+              align-items: center;
+              min-height: 20px;
+              padding: 2px 7px;
+              border: 1px solid var(--primary-color);
+              border-radius: 999px;
+              color: var(--primary-color);
+              font-size: 9px;
+              font-weight: 700;
+              line-height: 1;
+              letter-spacing: .35px;
+              text-transform: uppercase;
+              white-space: nowrap;
             }
 
           }
