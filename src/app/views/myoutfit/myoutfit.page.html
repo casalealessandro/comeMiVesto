@@ -146,10 +146,14 @@
                   <ion-avatar slot="start" class="outfit-card-avatar">
                     <img *ngIf="outfitUserProfile[outfit.userId]" [src]="outfitUserProfile[outfit.userId].photoURL" />
                   </ion-avatar>
-                  <ion-card-title class="outfit-card-title">
-
-                    {{ outfitUserProfile[outfit.userId].displayName }}
-                  </ion-card-title>
+                  <div class="outfit-card-author">
+                    <ion-card-title class="outfit-card-title">
+                      {{ outfitUserProfile[outfit.userId].displayName }}
+                    </ion-card-title>
+                    <span class="ai-creator-badge" *ngIf="outfitUserProfile[outfit.userId].aiCreator">
+                      AI Creator
+                    </span>
+                  </div>
                 </button>
                 <div class="outfit-header-wrapper-info">
                   <ion-button size="small" fill="clear" (click)="outfitMenu(outfit)">
