@@ -3,12 +3,13 @@ import { signal } from '@angular/core';
 import {
   IonicModule,
   ModalController,
-  NavController
+  NavController,
+  ToastController
 } from '@ionic/angular';
 import { of, BehaviorSubject } from 'rxjs';
 
 import { ProdottiOnlinePage } from './prodotti-online.page';
-import { AppService } from 'src/app/service/app-service';
+import { ApiRequestError, AppService } from 'src/app/service/app-service';
 import { FirebaseService } from 'src/app/service/firebase.service';
 import { UserService } from 'src/app/service/user.service';
 import { CategoryService } from 'src/app/service/category.service';
@@ -23,6 +24,9 @@ describe('ProdottiOnlinePage', () => {
   );
 
   modalControllerMock.getTop.and.resolveTo(null);
+
+  const toast = { present: jasmine.createSpy('present').and.resolveTo() };
+  const toastControllerMock = jasmine.createSpyObj('ToastController', ['create']);
 
   const navControllerMock = jasmine.createSpyObj(
     'NavController',
@@ -54,6 +58,10 @@ describe('ProdottiOnlinePage', () => {
     appServiceMock.getOutfitProducts.calls.reset();
     appServiceMock.filterOutfitProducts.calls.reset();
     appServiceMock.createWardrobe.calls.reset();
+    modalControllerMock.dismiss.calls.reset();
+    toast.present.calls.reset();
+    toastControllerMock.create.calls.reset();
+    toastControllerMock.create.and.resolveTo(toast as any);
     appServiceMock.getOutfitProducts.and.resolveTo({ data: [], pagination: { nextCursor: null, hasMore: false } });
     appServiceMock.filterOutfitProducts.and.resolveTo({ data: [], pagination: { nextCursor: null, hasMore: false } });
     await TestBed.configureTestingModule({
@@ -85,6 +93,10 @@ describe('ProdottiOnlinePage', () => {
         {
           provide: CategoryService,
           useValue: categoryServiceMock
+        },
+        {
+          provide: ToastController,
+          useValue: toastControllerMock
         }
       ]
     }).compileComponents();
@@ -198,16 +210,73 @@ describe('ProdottiOnlinePage', () => {
     expect(component.outfitCategory).toBe('category-1');
   });
 
-  it('keeps wardrobe saving compatible with catalog prezzo', async () => {
+  const productEvent = (id = 'PRODUCT_123') => ({ data: {
+    id, brend: 'Brand', images: ['image'], imageUrl: 'image', name: 'Product',
+    outfitCategory: 'category', outfitSubCategory: 'subcategory', color: 'black',
+    price: 10, prezzo: 9.99, link: 'https://example.com'
+  } });
+
+  it('saves once and dismisses selection mode with the created wardrobe item', async () => {
+    const createdWardrobeItem = { id: 'saved' };
+    component.showHeader = true;
+    appServiceMock.createWardrobe.and.resolveTo(createdWardrobeItem);
+
+    await component.saveToWardrobe(productEvent());
+
+    expect(appServiceMock.createWardrobe).toHaveBeenCalledOnceWith(
+      jasmine.objectContaining({ catalogProductId: 'PRODUCT_123', prezzo: 9.99 })
+    );
+    expect(modalControllerMock.dismiss).toHaveBeenCalledOnceWith(createdWardrobeItem, 'selected');
+  });
+
+  it('keeps the modal open and shows a specific message for a duplicate', async () => {
+    component.showHeader = true;
+    appServiceMock.createWardrobe.and.rejectWith(
+      new ApiRequestError('La risorsa è già presente.', 409, 'WARDROBE_PRODUCT_ALREADY_EXISTS')
+    );
+
+    await component.saveToWardrobe(productEvent());
+
+    expect(appServiceMock.createWardrobe).toHaveBeenCalledTimes(1);
+    expect(modalControllerMock.dismiss).not.toHaveBeenCalled();
+    expect(toastControllerMock.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'Questo prodotto è già presente nel tuo armadio.'
+    }));
+  });
+
+  it('ignores a second tap while the same catalog product is being saved', async () => {
+    let resolveSave!: (value: any) => void;
+    appServiceMock.createWardrobe.and.returnValue(new Promise(resolve => resolveSave = resolve));
+
+    const firstSave = component.saveToWardrobe(productEvent());
+    await component.saveToWardrobe(productEvent());
+    expect(appServiceMock.createWardrobe).toHaveBeenCalledTimes(1);
+
+    resolveSave({ id: 'saved' });
+    await firstSave;
+  });
+
+  it('handles generic errors and clears the saving state', async () => {
+    appServiceMock.createWardrobe.and.rejectWith(new ApiRequestError('Riprova più tardi.', 500));
+
+    await component.saveToWardrobe(productEvent());
+    await component.saveToWardrobe(productEvent());
+
+    expect(appServiceMock.createWardrobe).toHaveBeenCalledTimes(2);
+    expect(modalControllerMock.dismiss).not.toHaveBeenCalled();
+    expect(toastControllerMock.create).toHaveBeenCalledWith(jasmine.objectContaining({ message: 'Riprova più tardi.' }));
+  });
+
+  it('saves from the normal products page without dismissing a modal', async () => {
+    component.showHeader = false;
     appServiceMock.createWardrobe.and.resolveTo({ id: 'saved' });
-    spyOn(window, 'alert');
 
-    await component.saveToWardrobe({ data: {
-      brend: 'Brand', images: ['image'], imageUrl: 'image', name: 'Product',
-      outfitCategory: 'category', outfitSubCategory: 'subcategory', color: 'black',
-      price: 10, prezzo: 9.99, link: 'https://example.com'
-    } });
+    await component.saveToWardrobe(productEvent());
 
-    expect(appServiceMock.createWardrobe).toHaveBeenCalledWith(jasmine.objectContaining({ prezzo: 9.99 }));
+    expect(appServiceMock.createWardrobe).toHaveBeenCalledTimes(1);
+    expect(modalControllerMock.dismiss).not.toHaveBeenCalled();
+    expect(toastControllerMock.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'Prodotto aggiunto al tuo armadio.'
+    }));
   });
 });

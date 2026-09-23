@@ -176,6 +176,7 @@ export class MyWardrobesPage implements OnInit {
   }
 
   async searchClothModal() {
+    const parentModal = this.showheader ? await this.modalController.getTop() : null;
     const modal = await this.modalController.create({
       component: ProdottiOnlinePage,
       componentProps: {
@@ -186,45 +187,16 @@ export class MyWardrobesPage implements OnInit {
     });
     await modal.present();
 
-    const { data } = await modal.onDidDismiss();
-    if (!data) {
+    const { data, role } = await modal.onDidDismiss();
+    if (role !== 'selected' || !data) {
       return
     }
-    const dataP = data.data;
-    const categoryID = dataP.outfitCategory;
-    const subCategoryID = dataP.outfitSubCategory;
-    const link = !dataP.link ? '#' : dataP.link
 
-    const id = this.generateGUID();
-
-    let saveData = {
-      catalogProductId: dataP.id,
-      brend: dataP.brend,
-      images: Array.isArray(dataP.images) ? dataP.images : dataP.imageUrl ? [dataP.imageUrl] : [],
-      imageUrl: dataP.imageUrl,
-      name: dataP.name,
-      outfitCategory: categoryID,
-      outfitSubCategory: subCategoryID,
-      color: dataP.color,
-      prezzo: parseInt(dataP.price, 10),
-      link: link
-    }
-
-    let resSave = await this.appService.createWardrobe(saveData)
-    if (resSave) {
-
-      this.groupItemsByCategory();
-
-      //Mando i dati on uscita
-      const modal = await this.modalController.getTop();
-      if (modal) {
-        this.modalController.dismiss(saveData)
-      } else {
-        this.selectedItem.emit(saveData);
-      }
-
-
-
+    await this.groupItemsByCategory();
+    if (parentModal) {
+      await parentModal.dismiss(data);
+    } else {
+      this.selectedItem.emit(data);
     }
     return data
   }
