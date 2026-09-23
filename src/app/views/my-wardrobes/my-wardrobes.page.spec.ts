@@ -35,6 +35,8 @@ describe('MyWardrobesPage', () => {
   );
 
   beforeEach(waitForAsync(() => {
+    appServiceMock.createWardrobe.calls.reset();
+    modalControllerMock.create.calls.reset();
     TestBed.configureTestingModule({
       declarations: [MyWardrobesPage],
       imports: [
@@ -68,5 +70,36 @@ describe('MyWardrobesPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('refreshes a completed store selection without saving it again', async () => {
+    const createdWardrobeItem = { id: 'wardrobe-1' };
+    const modal = {
+      present: jasmine.createSpy('present').and.resolveTo(),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.resolveTo({ data: createdWardrobeItem, role: 'selected' })
+    };
+    modalControllerMock.create.and.resolveTo(modal as any);
+    spyOn(component, 'groupItemsByCategory').and.resolveTo();
+    spyOn(component.selectedItem, 'emit');
+
+    await component.searchClothModal();
+
+    expect(appServiceMock.createWardrobe).not.toHaveBeenCalled();
+    expect(component.groupItemsByCategory).toHaveBeenCalledTimes(1);
+    expect(component.selectedItem.emit).toHaveBeenCalledOnceWith(createdWardrobeItem);
+  });
+
+  it('does nothing when store selection is cancelled', async () => {
+    const modal = {
+      present: jasmine.createSpy('present').and.resolveTo(),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.resolveTo({ role: 'cancel' })
+    };
+    modalControllerMock.create.and.resolveTo(modal as any);
+    spyOn(component, 'groupItemsByCategory').and.resolveTo();
+
+    await component.searchClothModal();
+
+    expect(appServiceMock.createWardrobe).not.toHaveBeenCalled();
+    expect(component.groupItemsByCategory).not.toHaveBeenCalled();
   });
 });

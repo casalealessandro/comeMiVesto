@@ -2,8 +2,8 @@ import { Component, DestroyRef, inject, Input, OnInit, ViewChild } from '@angula
 import { FirebaseService } from 'src/app/service/firebase.service';
 import { Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
-import { InfiniteScrollCustomEvent, IonInfiniteScroll, ModalController, NavController } from '@ionic/angular';
-import { AppCatalogProduct, AppService, CatalogProductsResponse } from 'src/app/service/app-service';
+import { InfiniteScrollCustomEvent, IonInfiniteScroll, ModalController, NavController, ToastController } from '@ionic/angular';
+import { ApiRequestError, AppCatalogProduct, AppService, CatalogProductsResponse } from 'src/app/service/app-service';
 import { CategoryService } from 'src/app/service/category.service';
 import { outfitCategories } from 'src/app/service/interface/outfit-all-interface';
 import { UserProfile } from 'src/app/service/interface/user-interface';
@@ -27,6 +27,7 @@ export class ProdottiOnlinePage implements OnInit {
     private navController: NavController,
     private firebase: FirebaseService,
     private userProfileService: UserService,
+    private toastController: ToastController,
 
   ) { }
 
@@ -50,6 +51,7 @@ export class ProdottiOnlinePage implements OnInit {
   outfitSubCategory = "";
   selectedCategoryName = "Tutti i prodotti";
   selectedFilterStyleIndex?:number;
+  private savingCatalogProductIds = new Set<string>();
   ngOnInit() {
     this.firebase.authState.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async user => {
       if (user) {
@@ -197,12 +199,16 @@ export class ProdottiOnlinePage implements OnInit {
   // Salva il prodotto nel guardaroba
   async saveToWardrobe(dataProduct: any) {
      const data = dataProduct.data
+        const catalogProductId = String(data.id);
+        if (this.savingCatalogProductIds.has(catalogProductId)) return;
+
+        this.savingCatalogProductIds.add(catalogProductId);
         const categoryID = data.outfitCategory;
         const subCategoryID = data.outfitSubCategory;
         const link = !data.link ? '#' : data.link
        
         const saveData = {
-          catalogProductId: data.id,
+          catalogProductId,
           brend: data.brend,
           images: Array.isArray(data.images) ? data.images : data.imageUrl ? [data.imageUrl] : [],
           imageUrl: data.imageUrl,
@@ -214,9 +220,33 @@ export class ProdottiOnlinePage implements OnInit {
           link:link
         }
     
-        const resSave = await this.appService.createWardrobe(saveData)
-        if(resSave)
-          alert('Elemento aggiunto alla tua wardrobe con successo!')
+        try {
+          const createdWardrobeItem = await this.appService.createWardrobe(saveData);
+          await this.presentToast('Prodotto aggiunto al tuo armadio.');
+          if (this.showHeader) {
+            await this.modalController.dismiss(createdWardrobeItem, 'selected');
+          }
+        } catch (error) {
+          const message = error instanceof ApiRequestError
+            && error.status === 409
+            && error.code === 'WARDROBE_PRODUCT_ALREADY_EXISTS'
+              ? 'Questo prodotto è già presente nel tuo armadio.'
+              : error instanceof ApiRequestError
+                ? error.message
+                : 'Non è stato possibile aggiungere il prodotto. Riprova.';
+          await this.presentToast(message);
+        } finally {
+          this.savingCatalogProductIds.delete(catalogProductId);
+        }
+  }
+
+  private async presentToast(message: string): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: 4500,
+      position: 'bottom'
+    });
+    await toast.present();
   }
 
   async handleBackButton() {
