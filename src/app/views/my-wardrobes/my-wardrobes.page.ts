@@ -176,6 +176,7 @@ export class MyWardrobesPage implements OnInit {
   }
 
   async searchClothModal() {
+    const parentModal = this.showheader ? await this.modalController.getTop() : null;
     const modal = await this.modalController.create({
       component: ProdottiOnlinePage,
       componentProps: {
@@ -192,7 +193,11 @@ export class MyWardrobesPage implements OnInit {
     }
 
     await this.groupItemsByCategory();
-    this.selectedItem.emit(data);
+    if (parentModal) {
+      await parentModal.dismiss(data);
+    } else {
+      this.selectedItem.emit(data);
+    }
     return data
   }
 
