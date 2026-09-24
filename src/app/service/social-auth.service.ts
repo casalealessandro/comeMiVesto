@@ -10,6 +10,14 @@ export interface PendingSocialProfile {
   familyName: string;
 }
 
+export interface AndroidGoogleDiagnostics {
+  packageName: string;
+  versionName: string | null;
+  versionCode: number;
+  sha1: string | null;
+  sha1Signers: string[];
+}
+
 interface NativeGoogleSignInResult {
   idToken: string;
   email?: string | null;
@@ -22,6 +30,7 @@ interface NativeGoogleSignInResult {
 interface LegacyGoogleSignInPlugin {
   signIn(options: { clientId: string }): Promise<NativeGoogleSignInResult>;
   signOut(options: { clientId: string }): Promise<void>;
+  getDiagnostics(): Promise<AndroidGoogleDiagnostics>;
 }
 
 const LegacyGoogleSignIn = registerPlugin<LegacyGoogleSignInPlugin>('LegacyGoogleSignIn');
@@ -63,6 +72,14 @@ export class SocialAuthService {
 
   clearPendingProfile(): void {
     this.pendingProfile = null;
+  }
+
+  async getGoogleDiagnostics(): Promise<AndroidGoogleDiagnostics | null> {
+    if (Capacitor.getPlatform() !== 'android') {
+      return null;
+    }
+
+    return LegacyGoogleSignIn.getDiagnostics();
   }
 
   async signOutGoogle(): Promise<void> {
