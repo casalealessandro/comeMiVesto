@@ -40,11 +40,20 @@ export interface UserPreference {
   ageRange?: AgeRange | null;
 }
 
+export interface SocialRegistrationStatus {
+  social: boolean;
+  provider: string | null;
+  profileExists: boolean;
+  profileComplete: boolean;
+  missingRequiredFields: Array<'gender' | 'terms'>;
+}
+
 export interface UserBootstrap {
   profile: UserProfile;
   terms: TermsStatus;
   preferences: UserPreference | null;
   preferencesConfigured: boolean;
+  registration?: SocialRegistrationStatus;
 }
 
 export type OutfitPreferencePayload = Pick<UserPreference, 'color' | 'brend' | 'style'>;
@@ -59,6 +68,15 @@ export interface RegisterPayload {
   gender: 'U' | 'D';
   termsAccepted: boolean;
 }
+
+export interface CompleteRegistrationPayload {
+  nome?: string;
+  cognome?: string;
+  gender: 'U' | 'D';
+  termsAccepted: true;
+}
+
+export type SocialAuthenticationState = 'ready' | 'registration-required';
 
 export interface TermsStatus {
   accepted: boolean;
