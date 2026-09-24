@@ -447,9 +447,8 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.acasale.comemivesto
           releaseFiles: release/app-release.aab
-          track: internal
+          tracks: internal
           status: completed
-          changesNotSentForReview: true
 
       - name: Create release tag
         env:
