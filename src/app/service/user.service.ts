@@ -10,6 +10,7 @@ import { environment } from 'src/environments/environment';
 import { FavoriteOutfit, FavoriteRelation } from './interface/outfit-all-interface';
 import { FirebaseService } from './firebase.service';
 import { PushNotificationService } from './push-notification.service';
+import { SocialAuthService } from './social-auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -44,6 +45,7 @@ export class UserService {
     private appService: AppService,
     private httpClient: HttpClient,
     private pushNotificationService: PushNotificationService,
+    private socialAuthService: SocialAuthService,
   ) {
 
     // Effetto per ascoltare i cambiamenti
@@ -364,10 +366,24 @@ export class UserService {
 
   async logOut(): Promise<boolean> {
     try {
+      const isGoogleUser = this.firebase.auth.currentUser?.providerData
+        .some((provider) => provider.providerId === 'google.com') === true;
+
       await Promise.race([
         this.pushNotificationService.disableCurrentDevice(),
         new Promise<void>((resolve) => setTimeout(resolve, 2000)),
       ]);
+
+      if (isGoogleUser) {
+        try {
+          await this.socialAuthService.signOutGoogle();
+        } catch (error) {
+          console.warn('Google Sign-In logout non riuscito, continuo con il logout Firebase:', error);
+        }
+      } else {
+        this.socialAuthService.clearPendingProfile();
+      }
+
       await signOut(this.firebase.auth);
       this.clearApplicationSessionState();
       console.log('Logout effettuato con successo');
