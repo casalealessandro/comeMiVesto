@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
+import { Capacitor } from '@capacitor/core';
 import { browserLocalPersistence, browserSessionPersistence, sendPasswordResetEmail, setPersistence, signInWithEmailAndPassword } from 'firebase/auth';
 import { UserService } from 'src/app/service/user.service';
 import { FirebaseService } from 'src/app/service/firebase.service';
+import { SocialAuthService } from 'src/app/service/social-auth.service';
 
 export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
   if (!returnUrl || !returnUrl.startsWith('/tabs') || returnUrl.startsWith('//') || returnUrl.includes('://') || returnUrl.split(/[?#]/, 1)[0].split('/').includes('..')) return '/tabs/myoutfit';
@@ -23,10 +25,13 @@ export class LoginPage implements OnInit {
   stayConnected:boolean=true;
   emailRecup:string=''
   recupPasswordError:string = 'Inserisci un email valida'
+  socialSubmitting = false;
+  readonly showGoogleLogin = Capacitor.getPlatform() !== 'web';
 
   constructor(
     private firebase: FirebaseService,
     private userService: UserService,
+    private socialAuthService: SocialAuthService,
     private alert:AlertController,
     private router :Router,
     private route: ActivatedRoute
@@ -59,9 +64,7 @@ export class LoginPage implements OnInit {
         return;
       }
 
-      await userCredential.user.getIdToken(true);
-      const bootstrap = await this.userService.loadBootstrap();
-      sessionStorage.setItem('userProfile', JSON.stringify(bootstrap.profile));
+      await this.userService.completeAuthenticatedSession();
       await this.router.navigateByUrl(getSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')));
     } catch (error) {
       console.error(error)
@@ -72,6 +75,44 @@ export class LoginPage implements OnInit {
         buttons: ['Ok'],
         }
       ).then(alert => alert.present());
+    }
+  }
+
+  async loginWithGoogle(): Promise<void> {
+    if (this.socialSubmitting) return;
+
+    this.socialSubmitting = true;
+    try {
+      await this.socialAuthService.signInWithGoogle();
+      const state = await this.userService.resolveSocialAuthentication();
+
+      if (state === 'registration-required') {
+        await this.router.navigate(['/register'], {
+          queryParams: { social: 'google' },
+          replaceUrl: true,
+        });
+        return;
+      }
+
+      await this.router.navigateByUrl(
+        getSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
+        { replaceUrl: true },
+      );
+    } catch (error: any) {
+      console.error('Google login failed', error);
+      const message = error?.message === 'GOOGLE_CLIENT_ID_NOT_CONFIGURED'
+        ? 'Login Google non ancora configurato per questa build.'
+        : error?.code === 'auth/account-exists-with-different-credential'
+          ? 'Esiste già un account con questa email. Accedi con il metodo usato in precedenza.'
+          : 'Impossibile accedere con Google. Riprova.';
+      const socialAlert = await this.alert.create({
+        header: 'Attenzione!',
+        message,
+        buttons: ['Ok'],
+      });
+      await socialAlert.present();
+    } finally {
+      this.socialSubmitting = false;
     }
   }
 
