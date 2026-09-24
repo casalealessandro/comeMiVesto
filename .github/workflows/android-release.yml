@@ -17,6 +17,11 @@ on:
         required: false
         default: false
         type: boolean
+      build_configuration:
+        description: Angular environment configuration
+        required: false
+        default: production
+        type: string
 
   workflow_dispatch:
     inputs:
@@ -29,6 +34,14 @@ on:
         required: false
         default: false
         type: boolean
+      build_configuration:
+        description: Angular environment configuration
+        required: false
+        default: production
+        type: choice
+        options:
+          - production
+          - dev
 
 permissions:
   contents: read
@@ -64,7 +77,23 @@ jobs:
         run: npm ci
 
       - name: Build web application
-        run: npm run build
+        shell: bash
+        env:
+          BUILD_CONFIGURATION: ${{ inputs.build_configuration }}
+        run: |
+          set -euo pipefail
+
+          BUILD_CONFIGURATION="${BUILD_CONFIGURATION:-production}"
+          case "$BUILD_CONFIGURATION" in
+            production|dev) ;;
+            *)
+              echo "Unsupported build_configuration: $BUILD_CONFIGURATION" >&2
+              exit 1
+              ;;
+          esac
+
+          echo "Building Angular configuration: $BUILD_CONFIGURATION"
+          npm run build -- --configuration="$BUILD_CONFIGURATION"
 
       - name: Upload web build
         uses: actions/upload-artifact@v4
