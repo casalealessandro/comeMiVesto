@@ -45,6 +45,14 @@ export class SocialAuthService {
     this.pendingProfile = null;
   }
 
+  async signOutGoogle(): Promise<void> {
+    this.clearPendingProfile();
+    if (Capacitor.getPlatform() === 'web') return;
+
+    await this.initializeGoogle();
+    await GoogleSignIn.signOut();
+  }
+
   private async initializeGoogle(): Promise<void> {
     if (this.googleInitialized) return;
 
