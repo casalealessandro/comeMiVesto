@@ -1,7 +1,7 @@
 import { effect, Injectable, signal } from '@angular/core';
 import { firstValueFrom, forkJoin, lastValueFrom, Observable, of, throwError } from 'rxjs';
 import { catchError, map, retry, switchMap, tap } from 'rxjs/operators';
-import { EditableUserProfile, FollowStatus, OutfitPreferencePayload, TermsAcceptanceResult, TermsStatus, UserBootstrap, UserPreference, UserProfile } from './interface/user-interface';
+import { CompleteRegistrationPayload, EditableUserProfile, FollowStatus, OutfitPreferencePayload, SocialAuthenticationState, SocialRegistrationStatus, TermsAcceptanceResult, TermsStatus, UserBootstrap, UserPreference, UserProfile } from './interface/user-interface';
 import { ApiRequestError, ApiResponse, AppService } from './app-service';
 import { signOut } from 'firebase/auth';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
@@ -10,6 +10,7 @@ import { environment } from 'src/environments/environment';
 import { FavoriteOutfit, FavoriteRelation } from './interface/outfit-all-interface';
 import { FirebaseService } from './firebase.service';
 import { PushNotificationService } from './push-notification.service';
+import { SocialAuthService } from './social-auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -36,6 +37,7 @@ export class UserService {
   _userPreference = signal<UserPreference | null>(null);
   _termsStatus = signal<TermsStatus | null>(null);
   _preferencesConfigured = signal<boolean>(false);
+  _registrationStatus = signal<SocialRegistrationStatus | null>(null);
   private _bootstrapUid: string | null = null;
 
   constructor(
@@ -43,6 +45,7 @@ export class UserService {
     private appService: AppService,
     private httpClient: HttpClient,
     private pushNotificationService: PushNotificationService,
+    private socialAuthService: SocialAuthService,
   ) {
 
     // Effetto per ascoltare i cambiamenti
@@ -93,6 +96,10 @@ export class UserService {
     return this._preferencesConfigured;
   }
 
+  gRegistrationStatus() {
+    return this._registrationStatus;
+  }
+
   isBootstrapReady(uid: string): boolean {
     return this._bootstrapUid === uid && this._userInfo()?.uid === uid;
   }
@@ -107,8 +114,44 @@ export class UserService {
     this._userPreference.set(response.data.preferences);
     this._termsStatus.set(response.data.terms);
     this._preferencesConfigured.set(response.data.preferencesConfigured);
+    this._registrationStatus.set(response.data.registration ?? null);
     this._bootstrapUid = response.data.profile.uid;
     return response.data;
+  }
+
+  async completeAuthenticatedSession(): Promise<UserBootstrap> {
+    const user = await this.firebase.waitForAuthState();
+    if (!user) {
+      throw new ApiRequestError('La sessione non è disponibile.', 401);
+    }
+
+    await user.getIdToken(true);
+    const bootstrap = await this.loadBootstrap();
+    sessionStorage.setItem('userProfile', JSON.stringify(bootstrap.profile));
+    return bootstrap;
+  }
+
+  async resolveSocialAuthentication(): Promise<SocialAuthenticationState> {
+    try {
+      const bootstrap = await this.completeAuthenticatedSession();
+      if (bootstrap.registration?.social && !bootstrap.registration.profileComplete) {
+        return 'registration-required';
+      }
+      return 'ready';
+    } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 404) {
+        this.clearApplicationSessionState();
+        return 'registration-required';
+      }
+      throw error;
+    }
+  }
+
+  completeRegistration(payload: CompleteRegistrationPayload): Observable<UserProfile> {
+    return this.httpClient.post<ApiResponse<UserProfile>>(this.apiFire + '/user/complete-registration', payload).pipe(
+      map((response) => response.data),
+      catchError(this.handleError)
+    );
   }
 
   registerUser<T>(api: string, payloadData: T): Observable<T> {
@@ -323,16 +366,26 @@ export class UserService {
 
   async logOut(): Promise<boolean> {
     try {
+      const isGoogleUser = this.firebase.auth.currentUser?.providerData
+        ?.some((provider) => provider.providerId === 'google.com') === true;
+
       await Promise.race([
         this.pushNotificationService.disableCurrentDevice(),
         new Promise<void>((resolve) => setTimeout(resolve, 2000)),
       ]);
+
+      if (isGoogleUser) {
+        try {
+          await this.socialAuthService.signOutGoogle();
+        } catch (error) {
+          console.warn('Google Sign-In logout non riuscito, continuo con il logout Firebase:', error);
+        }
+      } else {
+        this.socialAuthService.clearPendingProfile();
+      }
+
       await signOut(this.firebase.auth);
-      this._userInfo.set(null);
-      this._userPreference.set(null);
-      this._termsStatus.set(null);
-      this._preferencesConfigured.set(false);
-      this._bootstrapUid = null;
+      this.clearApplicationSessionState();
       console.log('Logout effettuato con successo');
       return true; // Logout completato con successo
     } catch (error) {
@@ -377,6 +430,16 @@ export class UserService {
       return false;
     }
 
+  }
+
+  private clearApplicationSessionState(): void {
+    this._userInfo.set(null);
+    this._userPreference.set(null);
+    this._termsStatus.set(null);
+    this._preferencesConfigured.set(false);
+    this._registrationStatus.set(null);
+    this._bootstrapUid = null;
+    sessionStorage.removeItem('userProfile');
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

@@ -33,6 +33,19 @@
             (submitFormEvent)="submitFormEvent($event)">
           </app-dynamic-form>
 
+          <div class="social-login" *ngIf="showGoogleLogin">
+            <div class="social-separator"><span>oppure</span></div>
+            <ion-button
+              class="google-login-button"
+              expand="block"
+              fill="outline"
+              [disabled]="socialSubmitting"
+              (click)="loginWithGoogle()">
+              <ion-icon name="logo-google" slot="start"></ion-icon>
+              {{ socialSubmitting ? 'Accesso in corso...' : 'Continua con Google' }}
+            </ion-button>
+          </div>
+
           <div class="login-links">
             <span><ion-checkbox labelPlacement="end"  (ionChange)="setStayConnected($event)" >Resta connesso</ion-checkbox></span>
             <span class="link" component="nav-profile recupPassword" (click)="showRecupPassword()">Password

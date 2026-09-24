@@ -37,6 +37,16 @@ export const authGuard: CanActivateFn = async (route, state) => {
       }
     }
 
+    const registration = userService.gRegistrationStatus()();
+    if (registration?.social && !registration.profileComplete) {
+      return router.createUrlTree(['/register'], {
+        queryParams: {
+          social: registration.provider === 'google.com' ? 'google' : 'social',
+          returnUrl: state.url,
+        },
+      });
+    }
+
     const decision = await termsAcceptance.allowAppAccess(user.uid, userService.gTermsStatus()() ?? undefined);
     return decision === 'accepted' ? true : decision === 'declined' ? loginRedirect() : false;
   } catch (error) {
@@ -46,8 +56,9 @@ export const authGuard: CanActivateFn = async (route, state) => {
 };
 
 
-export const guestGuard: CanActivateFn = async () => {
+export const guestGuard: CanActivateFn = async (route) => {
   const firebase = inject(FirebaseService);
+  const userService = inject(UserService);
   const router = inject(Router);
 
   try {
@@ -57,7 +68,19 @@ export const guestGuard: CanActivateFn = async () => {
     }
 
     const token = await user.getIdToken();
-    return token ? router.createUrlTree(['/tabs/myoutfit']) : true;
+    if (!token) return true;
+
+    if (route.routeConfig?.path === 'register' && route.queryParamMap.get('social')) {
+      if (!userService.isBootstrapReady(user.uid)) {
+        await userService.loadBootstrap();
+      }
+      const registration = userService.gRegistrationStatus()();
+      if (registration?.social && !registration.profileComplete) {
+        return true;
+      }
+    }
+
+    return router.createUrlTree(['/tabs/myoutfit']);
   } catch (error) {
     console.error('Errore nella verifica della sessione guest:', error);
     return true;

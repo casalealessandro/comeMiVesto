@@ -12,8 +12,10 @@ describe('protected routing', () => {
   let users: any;
   let terms: any;
   let router: Router;
+  let registration: any;
 
   beforeEach(() => {
+    registration = null;
     auth = { waitForAuthState: jasmine.createSpy().and.resolveTo(null) };
     users = {
       loadBootstrap: jasmine.createSpy().and.resolveTo({
@@ -25,7 +27,8 @@ describe('protected routing', () => {
       isBootstrapReady: jasmine.createSpy().and.returnValue(false),
       gTermsStatus: jasmine.createSpy().and.returnValue(() => ({
         accepted: true, acceptedVersion: '1', currentVersion: '1'
-      }))
+      })),
+      gRegistrationStatus: jasmine.createSpy().and.callFake(() => () => registration)
     };
     terms = { allowAppAccess: jasmine.createSpy().and.resolveTo('accepted') };
     TestBed.configureTestingModule({ imports: [RouterTestingModule], providers: [
@@ -39,8 +42,13 @@ describe('protected routing', () => {
     return TestBed.runInInjectionContext(() => authGuard({} as any, { url } as RouterStateSnapshot)) as Promise<boolean | UrlTree>;
   }
 
-  async function runGuest(url: string): Promise<boolean | UrlTree> {
-    return TestBed.runInInjectionContext(() => guestGuard({} as any, { url } as RouterStateSnapshot)) as Promise<boolean | UrlTree>;
+  async function runGuest(url: string, social: string | null = null): Promise<boolean | UrlTree> {
+    const path = url.startsWith('/register') ? 'register' : 'login';
+    const route = {
+      routeConfig: { path },
+      queryParamMap: { get: (name: string) => name === 'social' ? social : null }
+    };
+    return TestBed.runInInjectionContext(() => guestGuard(route as any, { url } as RouterStateSnapshot)) as Promise<boolean | UrlTree>;
   }
 
   it('redirects signed-out protected requests to login with returnUrl', async () => {
@@ -87,6 +95,35 @@ describe('protected routing', () => {
     expect(router.serializeUrl(await run('/tabs/myoutfit') as UrlTree)).toContain('/login?returnUrl=');
     terms.allowAppAccess.and.resolveTo('unavailable');
     expect(await run('/tabs/myoutfit')).toBeFalse();
+  });
+
+  it('redirects incomplete social users to profile completion before Terms handling', async () => {
+    registration = {
+      social: true,
+      provider: 'google.com',
+      profileExists: false,
+      profileComplete: false,
+      missingRequiredFields: ['gender', 'terms']
+    };
+    auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
+
+    const result = await run('/tabs/myoutfit') as UrlTree;
+    expect(router.serializeUrl(result)).toContain('/register?');
+    expect(router.serializeUrl(result)).toContain('social=google');
+    expect(terms.allowAppAccess).not.toHaveBeenCalled();
+  });
+
+  it('allows an authenticated incomplete social user to open the social registration route', async () => {
+    registration = {
+      social: true,
+      provider: 'google.com',
+      profileExists: false,
+      profileComplete: false,
+      missingRequiredFields: ['gender', 'terms']
+    };
+    auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
+
+    expect(await runGuest('/register?social=google', 'google')).toBeTrue();
   });
 
   it('allows signed-out users to open guest routes', async () => {

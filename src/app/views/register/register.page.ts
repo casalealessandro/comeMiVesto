@@ -1,14 +1,15 @@
 import { Component, inject, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController, NavController } from '@ionic/angular';
 import { RegisterPayload } from 'src/app/service/interface/user-interface';
 import { TermsConditionsPage } from '../terms-conditions/terms-conditions.page';
 import { ApiRequestError } from 'src/app/service/app-service';
 import { UserService } from 'src/app/service/user.service';
-import { finalize } from 'rxjs';
+import { finalize, firstValueFrom } from 'rxjs';
 import { DynamicFormComponent } from 'src/app/components/dynamic-form/dynamic-form.component';
 import { browserLocalPersistence, setPersistence, signInWithEmailAndPassword } from 'firebase/auth';
 import { FirebaseService } from 'src/app/service/firebase.service';
+import { SocialAuthService } from 'src/app/service/social-auth.service';
 
 @Component({
   standalone: false,
@@ -28,12 +29,29 @@ export class RegisterPage {
   modalController = inject(ModalController)
   submitting: boolean = false;
   termsAccepted = false;
+  socialRegistration = false;
+  socialSubmitting = false;
+  socialNome = '';
+  socialCognome = '';
+  socialGender: 'U' | 'D' | '' = '';
   constructor(
     private userService: UserService,
     private navController: NavController,
     private alert:AlertController,
     private firebase: FirebaseService,
-    private router: Router) {}
+    private socialAuthService: SocialAuthService,
+    private route: ActivatedRoute,
+    private router: Router) {
+      this.socialRegistration = this.route.snapshot.queryParamMap.get('social') === 'google';
+      if (this.socialRegistration) {
+        const profile = this.userService.gUserProfile()();
+        const googleProfile = this.socialAuthService.getPendingProfile();
+        this.socialNome = profile?.nome?.trim() || googleProfile?.givenName || '';
+        this.socialCognome = profile?.cognome?.trim() || googleProfile?.familyName || '';
+        this.socialGender = profile?.gender === 'U' || profile?.gender === 'D' ? profile.gender : '';
+        this.termsAccepted = this.userService.gTermsStatus()()?.accepted === true;
+      }
+    }
 
   
   register(registerData:any) {
@@ -85,10 +103,8 @@ export class RegisterPage {
   private async completeRegistrationSession(email: string, password: string): Promise<void> {
     try {
       await setPersistence(this.firebase.auth, browserLocalPersistence);
-      const userCredential = await signInWithEmailAndPassword(this.firebase.auth, email, password);
-      await userCredential.user.getIdToken(true);
-      const bootstrap = await this.userService.loadBootstrap();
-      sessionStorage.setItem('userProfile', JSON.stringify(bootstrap.profile));
+      await signInWithEmailAndPassword(this.firebase.auth, email, password);
+      await this.userService.completeAuthenticatedSession();
 
       const successAlert = await this.alert.create({
         header: 'Complimenti!',
@@ -106,6 +122,53 @@ export class RegisterPage {
       );
       await this.router.navigateByUrl('/login', { replaceUrl: true });
     }
+  }
+
+  async completeSocialRegistration(): Promise<void> {
+    if (this.socialSubmitting) return;
+
+    if (!this.socialGender) {
+      await this.showAlert('Dati mancanti', 'Seleziona il genere per completare il profilo.');
+      return;
+    }
+    if (!this.termsAccepted) {
+      await this.showAlert('Termini non accettati', 'Per completare la registrazione devi accettare i Termini di Servizio.');
+      return;
+    }
+
+    this.socialSubmitting = true;
+    try {
+      await firstValueFrom(this.userService.completeRegistration({
+        nome: this.socialNome.trim(),
+        cognome: this.socialCognome.trim(),
+        gender: this.socialGender,
+        termsAccepted: true,
+      }));
+      await this.userService.completeAuthenticatedSession();
+      this.socialAuthService.clearPendingProfile();
+      await this.router.navigateByUrl('/tabs/myoutfit', { replaceUrl: true });
+    } catch (error: any) {
+      const message = error?.code === 'CONTENT_FLAGGED'
+        ? 'Il nome pubblico scelto non può essere utilizzato. Modificalo e riprova.'
+        : error?.code === 'MODERATION_UNAVAILABLE'
+          ? 'Il controllo dei contenuti non è temporaneamente disponibile. Riprova tra poco.'
+          : 'Registrazione non completata. Verifica i dati e riprova.';
+      await this.showAlert('Attenzione!', message);
+    } finally {
+      this.socialSubmitting = false;
+    }
+  }
+
+  async acceptSocialTerms(): Promise<void> {
+    const modal = await this.modalController.create({
+      component: TermsConditionsPage,
+      componentProps: { mode: 'registration' },
+      backdropDismiss: false,
+      canDismiss: async (_data, role) => role === 'accepted' || role === 'declined'
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss<{ accepted: boolean }>();
+    this.termsAccepted = data?.accepted === true;
   }
 
   async functionalCheckBox(evt:any){
@@ -150,7 +213,11 @@ export class RegisterPage {
   }
 
 
-  handleBackButton() {
+  async handleBackButton() {
+    if (this.socialRegistration) {
+      this.socialAuthService.clearPendingProfile();
+      await this.userService.logOut();
+    }
     this.navController.navigateBack('/login');
    }
 }
