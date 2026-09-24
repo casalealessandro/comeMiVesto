@@ -97,6 +97,7 @@ export class LoginPage implements OnInit {
         return;
       }
 
+      this.socialAuthService.clearPendingProfile();
       await this.router.navigateByUrl(
         getSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
         { replaceUrl: true },
