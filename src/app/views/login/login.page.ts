@@ -6,6 +6,7 @@ import { browserLocalPersistence, browserSessionPersistence, sendPasswordResetEm
 import { UserService } from 'src/app/service/user.service';
 import { FirebaseService } from 'src/app/service/firebase.service';
 import { SocialAuthService } from 'src/app/service/social-auth.service';
+import { environment } from 'src/environments/environment';
 
 export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
   if (!returnUrl || !returnUrl.startsWith('/tabs') || returnUrl.startsWith('//') || returnUrl.includes('://') || returnUrl.split(/[?#]/, 1)[0].split('/').includes('..')) return '/tabs/myoutfit';
@@ -108,7 +109,9 @@ export class LoginPage implements OnInit {
         ? 'Login Google non ancora configurato per questa build.'
         : error?.code === 'auth/account-exists-with-different-credential'
           ? 'Esiste già un account con questa email. Accedi con il metodo usato in precedenza.'
-          : 'Impossibile accedere con Google. Riprova.';
+          : !environment.production
+            ? `Google Sign-In failed. code: ${error?.code ?? 'n/a'} - message: ${error?.message ?? String(error)}`
+            : 'Impossibile accedere con Google. Riprova.';
       const socialAlert = await this.alert.create({
         header: 'Attenzione!',
         message,
