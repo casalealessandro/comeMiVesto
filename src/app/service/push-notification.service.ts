@@ -22,6 +22,20 @@ export interface NotificationPreferences {
   dailyEnabled: boolean;
 }
 
+interface PushFeatureFlags {
+  enabled?: boolean;
+  androidEnabled?: boolean;
+  iosEnabled?: boolean;
+}
+
+interface BootstrapResponse {
+  data?: {
+    features?: {
+      pushNotifications?: PushFeatureFlags;
+    };
+  };
+}
+
 type MobilePlatform = 'android' | 'ios';
 
 @Injectable({ providedIn: 'root' })
@@ -70,7 +84,7 @@ export class PushNotificationService {
 
       this.authSubscription = this.firebase.authState.subscribe((user) => {
         if (user) {
-          void this.registerForPush();
+          void this.registerForPushIfEnabled(platform);
         }
       });
     } catch {
@@ -119,6 +133,26 @@ export class PushNotificationService {
     return this.http.put<ApiResponse<NotificationPreferences>>(`${environment.BASE_API_URL}/gen/notifications/preferences`, preferences).pipe(
       map((response) => response.data),
     );
+  }
+
+  private async registerForPushIfEnabled(platform: MobilePlatform): Promise<void> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<BootstrapResponse>(`${environment.BASE_API_URL}/user/bootstrap`).pipe(timeout(3000)),
+      );
+      const flags = response.data?.features?.pushNotifications;
+      const platformEnabled = platform === 'android'
+        ? flags?.androidEnabled === true
+        : flags?.iosEnabled === true;
+
+      if (flags?.enabled !== true || !platformEnabled) {
+        return;
+      }
+
+      await this.registerForPush();
+    } catch {
+      console.warn('Push feature bootstrap unavailable; skipping registration.');
+    }
   }
 
   private async registerForPush(): Promise<void> {
