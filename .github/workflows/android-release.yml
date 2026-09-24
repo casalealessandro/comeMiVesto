@@ -22,6 +22,11 @@ on:
         required: false
         default: production
         type: string
+      source_ref:
+        description: Source ref to build (defaults to release_tag when empty)
+        required: false
+        default: ''
+        type: string
 
   workflow_dispatch:
     inputs:
@@ -42,6 +47,11 @@ on:
         options:
           - production
           - dev
+      source_ref:
+        description: Source ref to build (defaults to release_tag when empty)
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -65,7 +75,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || inputs.release_tag || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || inputs.source_ref || inputs.release_tag || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -123,7 +133,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.release_tag || github.sha }}
+          ref: ${{ inputs.source_ref || inputs.release_tag || github.sha }}
 
       - name: Calculate Android version
         id: android_version
@@ -462,7 +472,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.release_tag }}
+          ref: ${{ inputs.source_ref || inputs.release_tag }}
 
       - name: Download release artifact
         uses: actions/download-artifact@v4
