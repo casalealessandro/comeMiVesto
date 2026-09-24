@@ -105,13 +105,27 @@ export class LoginPage implements OnInit {
       );
     } catch (error: any) {
       console.error('Google login failed', error);
-      const message = error?.message === 'GOOGLE_CLIENT_ID_NOT_CONFIGURED'
+      let message = error?.message === 'GOOGLE_CLIENT_ID_NOT_CONFIGURED'
         ? 'Login Google non ancora configurato per questa build.'
         : error?.code === 'auth/account-exists-with-different-credential'
           ? 'Esiste già un account con questa email. Accedi con il metodo usato in precedenza.'
           : !environment.production
             ? `Google Sign-In failed. code: ${error?.code ?? 'n/a'} - message: ${error?.message ?? String(error)}`
             : 'Impossibile accedere con Google. Riprova.';
+
+      if (!environment.production && Capacitor.getPlatform() === 'android') {
+        try {
+          const diagnostics = await this.socialAuthService.getGoogleDiagnostics();
+          if (diagnostics) {
+            const signerSummary = diagnostics.sha1Signers?.length
+              ? diagnostics.sha1Signers.join(', ')
+              : diagnostics.sha1 ?? 'n/a';
+            message += ` | package: ${diagnostics.packageName} | version: ${diagnostics.versionName ?? 'n/a'} (${diagnostics.versionCode}) | runtime SHA-1: ${signerSummary}`;
+          }
+        } catch (diagnosticsError) {
+          console.error('Unable to read Android Google diagnostics', diagnosticsError);
+        }
+      }
       const socialAlert = await this.alert.create({
         header: 'Attenzione!',
         message,
