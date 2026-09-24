@@ -76,6 +76,22 @@ describe('PushNotificationService', () => {
     await Promise.resolve();
     await Promise.resolve();
 
+    const bootstrapRequest = http.expectOne(`${environment.BASE_API_URL}/user/bootstrap`);
+    expect(bootstrapRequest.request.method).toBe('GET');
+    bootstrapRequest.flush({
+      data: {
+        features: {
+          pushNotifications: {
+            enabled: true,
+            androidEnabled: true,
+            iosEnabled: false,
+          },
+        },
+      },
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
     expect(PushNotifications.register).toHaveBeenCalled();
 
     listeners['registration']({ value: 'native-token' });
@@ -84,6 +100,44 @@ describe('PushNotificationService', () => {
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ token: 'fcm-token', platform: 'android' });
     request.flush({ message: 'Success', data: null });
+  });
+
+  it('does not start native registration when Android push is disabled by bootstrap', async () => {
+    await service.initialize();
+    authState.next({ uid: 'user' });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const bootstrapRequest = http.expectOne(`${environment.BASE_API_URL}/user/bootstrap`);
+    bootstrapRequest.flush({
+      data: {
+        features: {
+          pushNotifications: {
+            enabled: true,
+            androidEnabled: false,
+            iosEnabled: true,
+          },
+        },
+      },
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(PushNotifications.register).not.toHaveBeenCalled();
+  });
+
+  it('fails safe when the bootstrap feature check is unavailable', async () => {
+    await service.initialize();
+    authState.next({ uid: 'user' });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const bootstrapRequest = http.expectOne(`${environment.BASE_API_URL}/user/bootstrap`);
+    bootstrapRequest.flush({ message: 'Unavailable' }, { status: 503, statusText: 'Unavailable' });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(PushNotifications.register).not.toHaveBeenCalled();
   });
 
   it('upserts a refreshed FCM token emitted by native registration', async () => {
