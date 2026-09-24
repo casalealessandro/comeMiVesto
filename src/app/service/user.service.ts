@@ -367,7 +367,7 @@ export class UserService {
   async logOut(): Promise<boolean> {
     try {
       const isGoogleUser = this.firebase.auth.currentUser?.providerData
-        .some((provider) => provider.providerId === 'google.com') === true;
+        ?.some((provider) => provider.providerId === 'google.com') === true;
 
       await Promise.race([
         this.pushNotificationService.disableCurrentDevice(),
