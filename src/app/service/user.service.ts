@@ -369,10 +369,11 @@ export class UserService {
       const isGoogleUser = this.firebase.auth.currentUser?.providerData
         ?.some((provider) => provider.providerId === 'google.com') === true;
 
-      await Promise.race([
-        this.pushNotificationService.disableCurrentDevice(),
-        new Promise<void>((resolve) => setTimeout(resolve, 2000)),
-      ]);
+      try {
+        await this.pushNotificationService.disableCurrentDevice();
+      } catch (error) {
+        console.warn('Disabilitazione notifiche push non riuscita, continuo con il logout:', error);
+      }
 
       if (isGoogleUser) {
         try {

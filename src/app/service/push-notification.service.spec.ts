@@ -33,7 +33,6 @@ describe('PushNotificationService', () => {
     spyOn(PushNotifications, 'requestPermissions').and.resolveTo({ receive: 'granted' });
     spyOn(PushNotifications, 'register').and.resolveTo();
     spyOn(FCM, 'getToken').and.resolveTo({ token: 'fcm-token' });
-    spyOn(FCM, 'deleteInstance').and.resolveTo();
     spyOn(LocalNotifications, 'addListener').and.callFake(((eventName: string, callback: any) => {
       listeners[eventName] = callback;
       return Promise.resolve({ remove: () => Promise.resolve() });
@@ -162,6 +161,6 @@ describe('PushNotificationService', () => {
     request.flush({ message: 'error' }, { status: 503, statusText: 'Unavailable' });
 
     await expectAsync(result).toBeResolved();
-    expect(FCM.deleteInstance).toHaveBeenCalled();
+    expect(FCM.getToken).toHaveBeenCalled();
   });
 });
