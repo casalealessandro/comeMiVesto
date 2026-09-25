@@ -102,11 +102,6 @@ export class PushNotificationService {
       }
     }
 
-    try {
-      await FCM.deleteInstance();
-    } catch {
-      console.warn('Could not clear the local push registration.');
-    }
   }
 
   getPreferences() {
