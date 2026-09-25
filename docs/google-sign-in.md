@@ -1,6 +1,6 @@
 # Google Sign-In
 
-Questa integrazione usa `@capawesome/capacitor-google-sign-in` per il login nativo e converte l'ID token Google in una credenziale Firebase tramite `GoogleAuthProvider`.
+Questa integrazione converte l'ID token Google in una credenziale Firebase tramite `GoogleAuthProvider`. Su Android il flusso nativo usa il bridge `LegacyGoogleSignInPlugin` basato su `GoogleSignInClient`; su iOS resta predisposto `@capawesome/capacitor-google-sign-in`.
 
 ## Configurazione richiesta
 
@@ -10,7 +10,9 @@ Questa integrazione usa `@capawesome/capacitor-google-sign-in` per il login nati
 4. Android:
    - package: `com.acasale.comemivesto`
    - creare un OAuth Client Android per ogni SHA-1 usato nei test/release;
-   - includere lo SHA-1 della firma Google Play per le build distribuite tramite Play App Signing.
+   - includere lo SHA-1 della firma Google Play per le build distribuite tramite Play App Signing;
+   - SHA-1 Play verificato a runtime per l'app distribuita: `19:10:0E:BA:6A:25:8F:A6:CC:B2:3C:A3:F8:11:7E:01:80:18:B3:3B`;
+   - lo stesso SHA-1 deve essere registrato sia nell'app Android Firebase sia in un OAuth Client Android Google Cloud associato a `com.acasale.comemivesto`.
 5. iOS:
    - bundle ID: `com.acasale.comemivesto`
    - creare l'OAuth Client iOS;
@@ -19,7 +21,8 @@ Questa integrazione usa `@capawesome/capacitor-google-sign-in` per il login nati
 
 ## Flusso
 
-`GoogleSignIn.signIn()`
+Android: `LegacyGoogleSignInPlugin.signIn()`  
+iOS: `GoogleSignIn.signIn()`  
 → ID token Google
 → `GoogleAuthProvider.credential(...)`
 → `signInWithCredential(...)`
@@ -41,3 +44,8 @@ Il completamento usa `POST /user/complete-registration` introdotto in firebase-a
 Il Web Client ID non è un segreto, ma deve essere quello corretto del progetto. Non inserire Client ID inventati.
 
 La versione web del login Google non è ancora inclusa: il pulsante è mostrato solo su Android/iOS.
+
+
+## Verifica Android conclusiva
+
+Il login Google Android è stato validato su una build distribuita tramite Google Play Internal Testing. Il problema `GOOGLE_SIGN_IN_FAILED_10` / `DEVELOPER_ERROR` era causato dalla mancata registrazione dello SHA-1 reale della firma Play presso Firebase/Google OAuth. Dopo la registrazione dello SHA-1 Play effettivo, il login è risultato funzionante end-to-end.
