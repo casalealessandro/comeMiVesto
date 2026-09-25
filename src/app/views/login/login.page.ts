@@ -6,7 +6,6 @@ import { browserLocalPersistence, browserSessionPersistence, sendPasswordResetEm
 import { UserService } from 'src/app/service/user.service';
 import { FirebaseService } from 'src/app/service/firebase.service';
 import { SocialAuthService } from 'src/app/service/social-auth.service';
-import { environment } from 'src/environments/environment';
 
 export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
   if (!returnUrl || !returnUrl.startsWith('/tabs') || returnUrl.startsWith('//') || returnUrl.includes('://') || returnUrl.split(/[?#]/, 1)[0].split('/').includes('..')) return '/tabs/myoutfit';
@@ -105,27 +104,11 @@ export class LoginPage implements OnInit {
       );
     } catch (error: any) {
       console.error('Google login failed', error);
-      let message = error?.message === 'GOOGLE_CLIENT_ID_NOT_CONFIGURED'
+      const message = error?.message === 'GOOGLE_CLIENT_ID_NOT_CONFIGURED'
         ? 'Login Google non ancora configurato per questa build.'
         : error?.code === 'auth/account-exists-with-different-credential'
           ? 'Esiste già un account con questa email. Accedi con il metodo usato in precedenza.'
-          : !environment.production
-            ? `Google Sign-In failed. code: ${error?.code ?? 'n/a'} - message: ${error?.message ?? String(error)}`
-            : 'Impossibile accedere con Google. Riprova.';
-
-      if (!environment.production && Capacitor.getPlatform() === 'android') {
-        try {
-          const diagnostics = await this.socialAuthService.getGoogleDiagnostics();
-          if (diagnostics) {
-            const signerSummary = diagnostics.sha1Signers?.length
-              ? diagnostics.sha1Signers.join(', ')
-              : diagnostics.sha1 ?? 'n/a';
-            message += ` | package: ${diagnostics.packageName} | version: ${diagnostics.versionName ?? 'n/a'} (${diagnostics.versionCode}) | runtime SHA-1: ${signerSummary}`;
-          }
-        } catch (diagnosticsError) {
-          console.error('Unable to read Android Google diagnostics', diagnosticsError);
-        }
-      }
+          : 'Impossibile accedere con Google. Riprova.';
       const socialAlert = await this.alert.create({
         header: 'Attenzione!',
         message,
