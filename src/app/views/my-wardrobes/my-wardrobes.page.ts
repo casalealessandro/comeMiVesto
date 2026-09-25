@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
 import { FirebaseService } from 'src/app/service/firebase.service';
-import { ModalController } from '@ionic/angular';
+import { AlertController, ModalController } from '@ionic/angular';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { AppService } from 'src/app/service/app-service';
 import { categoryCloth, outfitCategories, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
@@ -34,7 +34,14 @@ export class MyWardrobesPage implements OnInit {
   openModal: any = null
   isLoading: boolean = true;
   
-  constructor(private appService: AppService, private firebase: FirebaseService, private modalController: ModalController, private userProfileService: UserService, private router: Router) { }
+  constructor(
+    private appService: AppService,
+    private firebase: FirebaseService,
+    private modalController: ModalController,
+    private userProfileService: UserService,
+    private router: Router,
+    private alertController: AlertController
+  ) { }
 
   ngOnInit() {
 
@@ -112,10 +119,26 @@ export class MyWardrobesPage implements OnInit {
   }
 
   async deleteItemWadro(item: any) {
-    let res = await this.appService.deleteWardrobe(String(item.id))
+    const alert = await this.alertController.create({
+      header: 'Rimuovi prodotto',
+      message: item?.name
+        ? `Vuoi rimuovere "${item.name}" dal tuo armadio?`
+        : 'Vuoi rimuovere questo prodotto dal tuo armadio?',
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        { text: 'Rimuovi', role: 'destructive' }
+      ]
+    });
 
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'destructive') {
+      return;
+    }
+
+    const res = await this.appService.deleteWardrobe(String(item.id));
     if (res) {
-      this.groupItemsByCategory();
+      await this.groupItemsByCategory();
     }
   }
 

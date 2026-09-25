@@ -103,9 +103,15 @@
                 <ion-img [src]="userWardrobe.images" [alt]="userWardrobe.name">
                 </ion-img>
            
-                <div  class="del-item">
-                  <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="deletewardrobesitem($event,userWardrobe)">
-                    <i class="fi fi-rr-cross"></i>
+                <div class="del-item wardrobe-delete-action">
+                  <ion-button
+                    class="remove-product-btn"
+                    slot="icon-only"
+                    fill="clear"
+                    aria-label="Rimuovi prodotto dall'armadio"
+                    title="Rimuovi dall'armadio"
+                    (click)="deletewardrobesitem($event,userWardrobe)">
+                    <i class="fi fi-rr-trash"></i>
                   </ion-button>
                 </div>
               </div>

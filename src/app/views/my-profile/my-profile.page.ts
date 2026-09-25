@@ -274,8 +274,24 @@ export class MyProfilePage implements OnInit {
     event.stopPropagation();
     event.preventDefault();
 
-    let res = await this.appService.deleteWardrobe(String(wardrobesItem.id))
+    const alert = await this.alert.create({
+      header: 'Rimuovi prodotto',
+      message: wardrobesItem?.name
+        ? `Vuoi rimuovere "${wardrobesItem.name}" dal tuo armadio?`
+        : 'Vuoi rimuovere questo prodotto dal tuo armadio?',
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        { text: 'Rimuovi', role: 'destructive' }
+      ]
+    });
 
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'destructive') {
+      return;
+    }
+
+    const res = await this.appService.deleteWardrobe(String(wardrobesItem.id));
     if (res) {
       await this.loadUserWardrobes();
     }

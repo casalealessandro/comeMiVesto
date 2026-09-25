@@ -12,6 +12,7 @@ describe('MyProfilePage data refresh', () => {
   let appService: jasmine.SpyObj<AppService>;
   let terms: any;
   let alerts: any;
+  let alertOverlay: any;
 
   const event = {
     stopPropagation: jasmine.createSpy('stopPropagation'),
@@ -33,7 +34,11 @@ describe('MyProfilePage data refresh', () => {
     userService.loadFaveUserOutfits.and.returnValue(of([]));
 
     terms = { allowAppAccess: jasmine.createSpy().and.resolveTo('accepted') };
-    alerts = { create: jasmine.createSpy().and.resolveTo({ present: jasmine.createSpy().and.resolveTo() }) };
+    alertOverlay = {
+      present: jasmine.createSpy('present').and.resolveTo(),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.resolveTo({ role: 'destructive' })
+    };
+    alerts = { create: jasmine.createSpy().and.resolveTo(alertOverlay) };
     appService = jasmine.createSpyObj<AppService>('AppService', ['deleteOutfit', 'deleteWardrobe']);
     TestBed.configureTestingModule({});
     component = TestBed.runInInjectionContext(() => new MyProfilePage(
@@ -66,12 +71,23 @@ describe('MyProfilePage data refresh', () => {
     appService.deleteWardrobe.and.resolveTo(true);
     userService.getUserWardrobes.and.returnValue(of(wardrobes));
 
-    await component.deletewardrobesitem(event, { id: 'deleted' } as wardrobesItem);
+    await component.deletewardrobesitem(event, { id: 'deleted', name: 'Giacca' } as wardrobesItem);
 
+    expect(alerts.create).toHaveBeenCalled();
+    expect(appService.deleteWardrobe).toHaveBeenCalledOnceWith('deleted');
     expect(userService.getUserWardrobes).toHaveBeenCalled();
     expect(component.userWardrobes).toEqual(wardrobes);
     expect(component.wardrobesNumber).toBe(1);
     expect(component.segmentButtons[1].number).toBe(1);
+  });
+
+  it('does not delete a wardrobe item when removal is cancelled', async () => {
+    alertOverlay.onDidDismiss.and.resolveTo({ role: 'cancel' });
+
+    await component.deletewardrobesitem(event, { id: 'deleted', name: 'Giacca' } as wardrobesItem);
+
+    expect(appService.deleteWardrobe).not.toHaveBeenCalled();
+    expect(userService.getUserWardrobes).not.toHaveBeenCalled();
   });
 
   it('updates the favorites counter after favorites finish loading', async () => {

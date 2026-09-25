@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { AlertController, IonicModule, ModalController } from '@ionic/angular';
 import { of } from 'rxjs';
 
 import { MyWardrobesPage } from './my-wardrobes.page';
@@ -34,9 +34,20 @@ describe('MyWardrobesPage', () => {
     ['getTop', 'create', 'dismiss']
   );
 
+  const alertControllerMock = jasmine.createSpyObj(
+    'AlertController',
+    ['create']
+  );
+
   beforeEach(waitForAsync(() => {
     appServiceMock.createWardrobe.calls.reset();
+    appServiceMock.deleteWardrobe.calls.reset();
     modalControllerMock.create.calls.reset();
+    alertControllerMock.create.calls.reset();
+    alertControllerMock.create.and.resolveTo({
+      present: jasmine.createSpy('present').and.resolveTo(),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.resolveTo({ role: 'cancel' })
+    } as any);
     modalControllerMock.getTop.calls.reset();
     modalControllerMock.dismiss.calls.reset();
     modalControllerMock.getTop.and.resolveTo(null);
@@ -62,6 +73,10 @@ describe('MyWardrobesPage', () => {
         {
           provide: ModalController,
           useValue: modalControllerMock
+        },
+        {
+          provide: AlertController,
+          useValue: alertControllerMock
         }
       ]
     }).compileComponents();
@@ -73,6 +88,27 @@ describe('MyWardrobesPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('does not delete a wardrobe item when removal is cancelled', async () => {
+    await component.deleteItemWadro({ id: 'wardrobe-1', name: 'Giacca' });
+
+    expect(alertControllerMock.create).toHaveBeenCalled();
+    expect(appServiceMock.deleteWardrobe).not.toHaveBeenCalled();
+  });
+
+  it('deletes and refreshes the wardrobe after confirmation', async () => {
+    alertControllerMock.create.and.resolveTo({
+      present: jasmine.createSpy('present').and.resolveTo(),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.resolveTo({ role: 'destructive' })
+    } as any);
+    appServiceMock.deleteWardrobe.and.resolveTo(true);
+    spyOn(component, 'groupItemsByCategory').and.resolveTo();
+
+    await component.deleteItemWadro({ id: 'wardrobe-1', name: 'Giacca' });
+
+    expect(appServiceMock.deleteWardrobe).toHaveBeenCalledOnceWith('wardrobe-1');
+    expect(component.groupItemsByCategory).toHaveBeenCalledTimes(1);
   });
 
   it('refreshes a completed store selection without saving it again', async () => {
