@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { ApiRequestError, AppService } from 'src/app/service/app-service';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 import { TermsAcceptanceService } from 'src/app/service/terms-acceptance.service';
+import { PreferencesOnboardingComponent } from 'src/app/components/preferences-onboarding/preferences-onboarding.component';
 @Component({
   standalone: false,
   selector: 'app-my-profile',
@@ -198,38 +199,14 @@ export class MyProfilePage implements OnInit {
   }
 
   async editUserPreference() {
-    //usersPreferenceForm
-    console.log('editUserPreference', this.userPreference)
     const modal = await this.modalController.create({
-      component: ModalFormComponent,
-      componentProps: {
-        service: 'usersPreferenceForm',
-        editData: this.userPreference
-      }
+      component: PreferencesOnboardingComponent,
     });
     await modal.present();
 
-    const { data } = await modal.onDidDismiss();
-
-    let color = !data.color ? [] : data.color
-    let brend = !data.brend ? [] : data.brend
-    let style = !data.style ? [] : data.style
-    let profilePrefData: Partial<UserPreference> = {
-      uid: this.uid,
-      color: color,
-      brend: brend,
-      style: style
-
-    }
-    let isOk = await this.userProfileService.setUserPreference(profilePrefData)
-    if (isOk) {
+    const { role } = await modal.onDidDismiss();
+    if (role === 'complete') {
       this.userPreference = this.userProfileService.gUserPreference()();
-
-      this.alert.create({
-        header: 'Attenzione!',
-        message: `Preferenze aggiornate`,
-        buttons: ['Ok'],
-      })
     }
   }
   async presentProfileError(error: ApiRequestError, picture = false): Promise<void> {
