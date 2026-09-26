@@ -41,7 +41,7 @@ export const authGuard: CanActivateFn = async (route, state) => {
     if (registration?.social && !registration.profileComplete) {
       return router.createUrlTree(['/register'], {
         queryParams: {
-          social: registration.provider === 'google.com' ? 'google' : 'social',
+          social: registration.provider === 'google.com' ? 'google' : registration.provider === 'apple.com' ? 'apple' : 'social',
           returnUrl: state.url,
         },
       });
