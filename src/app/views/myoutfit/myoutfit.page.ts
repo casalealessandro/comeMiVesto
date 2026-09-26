@@ -8,7 +8,7 @@ import { buttons, filterItmClothing, outfit, OutfitFilterPayload, ReportReason, 
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom, lastValueFrom, Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { finalize, take } from 'rxjs/operators';
 import { OutfitPreferencePayload, PublicUserProfile, UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
 import { IonRefresherCustomEvent } from '@ionic/core';
@@ -763,20 +763,34 @@ export class MyOutFitPage implements OnDestroy {
     const outfitId = String(outfit.id);
     if (this.favoriteActionsInProgress.has(outfitId)) return;
     this.favoriteActionsInProgress.add(outfitId);
-    try {
-      if (this.favorites.has(outfit.id)) {
-        await firstValueFrom(this.userProfileService.delFaveUserOutfits(outfitId));
-        this.favorites.delete(outfit.id);
-        return;
-      }
 
-      const res = await firstValueFrom(this.userProfileService.saveFaveUserOutfits(outfit.id));
-      if (res) {
-        this.favorites.add(outfit.id);
-      }
-    } finally {
-      this.favoriteActionsInProgress.delete(outfitId);
+    let likes = outfit.likes
+    if (this.favorites.has(outfit.id)) {
+      this.userProfileService.delFaveUserOutfits(outfitId)
+      .pipe(finalize(() => this.favoriteActionsInProgress.delete(outfitId)))
+      .subscribe(faveUserOutfits => {
+        this.favorites.delete(outfit.id);
+      })
+
+      return;
+
     }
+
+    this.userProfileService.saveFaveUserOutfits(outfit.id)
+    .pipe(finalize(() => this.favoriteActionsInProgress.delete(outfitId)))
+    .subscribe(res=>{
+      if (res) {
+
+        this.favorites.add(outfit.id);
+
+        if (this.cUserID == outfit.userId) {
+          return;
+        }
+
+      }
+    })
+
+
   }
 
   async heartIcon() {

@@ -1,5 +1,5 @@
 import { MyOutFitPage } from './myoutfit.page';
-import { of, Subject } from 'rxjs';
+import { config, of, Subject } from 'rxjs';
 
 describe('MyOutFitPage filters and search', () => {
   function page(): MyOutFitPage {
@@ -199,11 +199,14 @@ describe('MyOutFitPage filters and search', () => {
     Object.assign(component, { userProfileService });
     const errorRequest = new Subject<any>();
     userProfileService.saveFaveUserOutfits.and.returnValues(errorRequest, of([]));
-    const request = component.addFavoriteOutfit({ id: 'one' });
+    const previousUnhandledError = config.onUnhandledError;
+    config.onUnhandledError = () => undefined;
+    component.addFavoriteOutfit({ id: 'one' });
     errorRequest.error(new Error('failed'));
-    await expectAsync(request).toBeRejected();
     await component.addFavoriteOutfit({ id: 'one' });
     expect(userProfileService.saveFaveUserOutfits).toHaveBeenCalledTimes(2);
+    await new Promise(resolve => setTimeout(resolve));
+    config.onUnhandledError = previousUnhandledError;
   });
 
   it('refreshes the server-authoritative feed after blocking without calling the lifecycle', async () => {

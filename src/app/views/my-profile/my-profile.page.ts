@@ -1,5 +1,5 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, effect, OnInit } from '@angular/core';
-import { firstValueFrom, Observable } from 'rxjs';
+import { finalize, firstValueFrom, Observable } from 'rxjs';
 import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { UserService } from 'src/app/service/user.service';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -155,12 +155,16 @@ export class MyProfilePage implements OnInit {
     });
 
     if (image && image.dataUrl) {
-        await this.userProfileService.updateProfilePicture(image.dataUrl)
-          .then(() => console.log('Profile picture updated'))
-          .catch((error: ApiRequestError) => void this.presentProfileError(error, true));
+      this.userProfileService.updateProfilePicture(image.dataUrl)
+        .then(() => console.log('Profile picture updated'))
+        .catch((error: ApiRequestError) => void this.presentProfileError(error, true))
+        .finally(() => this.isProfilePictureChanging = false);
+      return;
       }
-    } finally {
       this.isProfilePictureChanging = false;
+    } catch (error) {
+      this.isProfilePictureChanging = false;
+      throw error;
     }
   }
 
@@ -197,16 +201,17 @@ export class MyProfilePage implements OnInit {
       bio: bio,
       gender: data.gender,
     }
-      const updatedProfile = await firstValueFrom(this.userProfileService.updateUserProfile(this.uid || '', profileData));
-      if (updatedProfile) {
+    this.userProfileService.updateUserProfile(this.uid || '', profileData).subscribe({ next: data => {
+      const isOk = data ? true : false;
+      if (isOk) {
         this.alert.create({
           header: 'Attenzione!',
           message: `Profilo aggiornato`,
           buttons: ['Ok'],
         })
+        //this.userProfile = profileData;
       }
-    } catch (error) {
-      await this.presentProfileError(error as ApiRequestError);
+    }, error: (error: ApiRequestError) => void this.presentProfileError(error) });
     } finally {
       this.isEditProfileModalOpen = false;
     }
@@ -348,27 +353,31 @@ export class MyProfilePage implements OnInit {
     const lockId = `favorite:${faveItem.outfitId}`;
     if (this.deletionsInProgress.has(lockId)) return;
     this.deletionsInProgress.add(lockId);
+    let confirmed: boolean;
     try {
-      const confirmed = await this.confirmRemoval(
+      confirmed = await this.confirmRemoval(
       'Rimuovi dai desiderati',
       faveItem?.title
         ? `Vuoi rimuovere "${faveItem.title}" dai desiderati?`
         : 'Vuoi rimuovere questo outfit dai desiderati?',
       'Rimuovi'
     );
+    } catch (error) {
+      this.deletionsInProgress.delete(lockId);
+      throw error;
+    }
     if (!confirmed) {
-        return;
+      this.deletionsInProgress.delete(lockId);
+      return;
     }
 
-      const res = await firstValueFrom(this.userProfileService.delFaveUserOutfits(faveItem.outfitId));
+    this.userProfileService.delFaveUserOutfits(faveItem.outfitId)
+    .pipe(finalize(() => this.deletionsInProgress.delete(lockId)))
+    .subscribe(res => {
       if (res) {
         this.segmentButtons[2].number = res.length;
       }
-    } finally {
-      this.deletionsInProgress.delete(lockId);
-    }
-
-
+    });
   }
 
   private async confirmRemoval(header: string, message: string, confirmText: string): Promise<boolean> {

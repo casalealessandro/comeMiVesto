@@ -82,6 +82,9 @@ describe('AddOutfitPage gender and Terms errors', () => {
     expect(appService.createOutfit).toHaveBeenCalledTimes(1);
     resolveCreate({ status: 'pending' });
     await Promise.all([first, duplicate]);
+    while (component.isSubmitting) {
+      await Promise.resolve();
+    }
 
     appService.createOutfit.and.resolveTo({ status: 'pending' });
     await component.saveOutfit(payload);

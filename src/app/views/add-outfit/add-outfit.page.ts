@@ -187,6 +187,7 @@ export class AddOutfitPage implements OnInit, OnDestroy {
   async saveOutfit(event: Partial<EditableOutfit> & { color?: string }) {
     if (this.isSubmitting) return;
     this.isSubmitting = true;
+    let submissionContinues = false;
     try {
       this.title = event.title ?? '';
     this.color = event.color;
@@ -205,7 +206,9 @@ export class AddOutfitPage implements OnInit, OnDestroy {
 
     if (!this.isEditMode) {
 
-      await this.confirmOutfit()
+      submissionContinues = true;
+      this.confirmOutfit().finally(() => this.isSubmitting = false)
+      return;
     } else {
       let partialOutfit = {
 
@@ -228,7 +231,7 @@ export class AddOutfitPage implements OnInit, OnDestroy {
       }
       }
     } finally {
-      this.isSubmitting = false;
+      if (!submissionContinues) this.isSubmitting = false;
     }
   }
 
@@ -419,7 +422,7 @@ export class AddOutfitPage implements OnInit, OnDestroy {
             if (indexTag > -1) {
               this.tags.splice(indexTag, 1);
 
-              void this.editOutfit({ tags: this.tags })
+              this.editOutfit({ tags: this.tags })
             }
           }
         }
