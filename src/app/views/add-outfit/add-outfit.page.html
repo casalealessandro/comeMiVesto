@@ -37,6 +37,7 @@
     [service]="'outfitForm'"
     [editData]="outfitData"
     [btnFormText]="isEditMode ? 'Salva' : 'Crea outfit'"
+    [isSubmitting]="isSubmitting"
     (submitFormEvent)="saveOutfit($event)"
 
     >

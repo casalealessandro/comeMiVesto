@@ -29,6 +29,7 @@ export class ProductDetailPage implements OnInit {
   isLoading = true;
   isRelatedLoading = false;
   loadError = false;
+  private isSavingToWardrobe = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -78,8 +79,11 @@ export class ProductDetailPage implements OnInit {
 
   async saveToWardrobe(): Promise<void> {
     if (!this.product) return;
+    if (this.isSavingToWardrobe) return;
+    this.isSavingToWardrobe = true;
 
-    const saved = await this.appService.createWardrobe({
+    try {
+      const saved = await this.appService.createWardrobe({
       catalogProductId: this.product.id,
       brend: this.product.brend,
       images: this.productImages,
@@ -92,8 +96,11 @@ export class ProductDetailPage implements OnInit {
       link: this.product.link || '#'
     });
 
-    if (saved) {
-      alert('Elemento aggiunto alla tua wardrobe con successo!');
+      if (saved) {
+        alert('Elemento aggiunto alla tua wardrobe con successo!');
+      }
+    } finally {
+      this.isSavingToWardrobe = false;
     }
   }
 

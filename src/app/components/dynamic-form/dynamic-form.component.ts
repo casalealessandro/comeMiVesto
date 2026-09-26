@@ -190,6 +190,7 @@ export class DynamicFormComponent implements OnInit {
 
 
   submitForm() {
+    if (this.isSubmitting) return;
     if (this.form.valid) {
       this.submitFormEvent.emit(this.form.value);
     } else {

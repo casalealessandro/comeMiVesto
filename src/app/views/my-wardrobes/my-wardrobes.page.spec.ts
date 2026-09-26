@@ -181,4 +181,23 @@ describe('MyWardrobesPage', () => {
     expect(appServiceMock.createWardrobe).not.toHaveBeenCalled();
     expect(component.groupItemsByCategory).not.toHaveBeenCalled();
   });
+
+  it('creates only one search modal for concurrent invocations', async () => {
+    let dismiss!: (value: any) => void;
+    const modal = {
+      present: jasmine.createSpy('present').and.resolveTo(),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(new Promise(resolve => dismiss = resolve))
+    };
+    modalControllerMock.create.and.resolveTo(modal as any);
+
+    const first = component.searchClothModal();
+    const duplicate = component.searchClothModal();
+    await Promise.resolve();
+    expect(modalControllerMock.create).toHaveBeenCalledTimes(1);
+    dismiss({ role: 'cancel' });
+    await Promise.all([first, duplicate]);
+
+    await component.searchClothModal();
+    expect(modalControllerMock.create).toHaveBeenCalledTimes(2);
+  });
 });

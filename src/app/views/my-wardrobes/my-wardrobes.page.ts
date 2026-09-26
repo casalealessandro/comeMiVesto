@@ -33,6 +33,9 @@ export class MyWardrobesPage implements OnInit {
   subCategoryCloth: outfitCategories[] = [];
   openModal: any = null
   isLoading: boolean = true;
+  private isAddClothModalOpen = false;
+  private isSearchClothModalOpen = false;
+  private wardrobeDeletionsInProgress = new Set<string>();
   
   constructor(
     private appService: AppService,
@@ -119,7 +122,11 @@ export class MyWardrobesPage implements OnInit {
   }
 
   async deleteItemWadro(item: any) {
-    const alert = await this.alertController.create({
+    const itemId = String(item.id);
+    if (this.wardrobeDeletionsInProgress.has(itemId)) return;
+    this.wardrobeDeletionsInProgress.add(itemId);
+    try {
+      const alert = await this.alertController.create({
       header: 'Rimuovi prodotto',
       message: item?.name
         ? `Vuoi rimuovere "${item.name}" dal tuo armadio?`
@@ -133,17 +140,23 @@ export class MyWardrobesPage implements OnInit {
     await alert.present();
     const { role } = await alert.onDidDismiss();
     if (role !== 'confirm') {
-      return;
+        return;
     }
 
     const res = await this.appService.deleteWardrobe(String(item.id));
     if (res) {
-      await this.groupItemsByCategory();
+        await this.groupItemsByCategory();
+      }
+    } finally {
+      this.wardrobeDeletionsInProgress.delete(itemId);
     }
   }
 
   async addClothModal() {
-    const modal = await this.modalController.create({
+    if (this.isAddClothModalOpen) return;
+    this.isAddClothModalOpen = true;
+    try {
+      const modal = await this.modalController.create({
       component: ModalFormComponent,
       componentProps: {
         service: 'tagForm',
@@ -195,12 +208,18 @@ export class MyWardrobesPage implements OnInit {
 
 
     }
-    return data
+      return data
+    } finally {
+      this.isAddClothModalOpen = false;
+    }
   }
 
   async searchClothModal() {
-    const parentModal = this.showheader ? await this.modalController.getTop() : null;
-    const modal = await this.modalController.create({
+    if (this.isSearchClothModalOpen) return;
+    this.isSearchClothModalOpen = true;
+    try {
+      const parentModal = this.showheader ? await this.modalController.getTop() : null;
+      const modal = await this.modalController.create({
       component: ProdottiOnlinePage,
       componentProps: {
         showHeader: true,
@@ -221,7 +240,10 @@ export class MyWardrobesPage implements OnInit {
     } else {
       this.selectedItem.emit(data);
     }
-    return data
+      return data
+    } finally {
+      this.isSearchClothModalOpen = false;
+    }
   }
 
   generateGUID(): any {
