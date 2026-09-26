@@ -30,7 +30,7 @@ No `.p8`, `.p12`, `.mobileprovision`, or `GoogleService-Info.plist` file must be
 
 ## Apple signing
 
-The Xcode project already uses automatic signing and Team `Z9SD7XVK87`. The workflow authenticates `xcodebuild` with the App Store Connect API key and `-allowProvisioningUpdates`, so Xcode can use Apple cloud-managed distribution signing when the API key has the required provisioning/signing permissions.
+The Xcode project is configured with Team `Z9SD7XVK87`. For TestFlight, the workflow restores the App Store distribution certificate and provisioning profile from GitHub secrets, validates the profile against the team, bundle ID and production push entitlement, then switches the App Release configuration to manual signing with `Apple Distribution` and the validated provisioning profile.
 
 The TestFlight archive is built with the production `aps-environment` entitlement. The App ID in Apple Developer must therefore have Push Notifications enabled.
 
@@ -61,7 +61,7 @@ The workflow:
 3. calculates the next iOS build number;
 4. builds Angular/Ionic and runs `npx cap sync ios`;
 5. restores the Firebase plist, derives and validates the native Google Sign-In configuration, and enables the push entitlement only on the runner;
-6. archives and exports the signed IPA with automatic signing;
+6. archives and exports the signed IPA with manual App Store distribution signing using the restored certificate and validated provisioning profile;
 7. validates and uploads the IPA to App Store Connect/TestFlight;
 8. creates the corresponding `ios-vX.Y.Z-buildN` tag only after a successful upload.
 
