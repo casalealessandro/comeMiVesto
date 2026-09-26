@@ -1,6 +1,6 @@
 # Google Sign-In
 
-Questa integrazione converte l'ID token Google in una credenziale Firebase tramite `GoogleAuthProvider`. Su Android il flusso nativo usa il bridge `LegacyGoogleSignInPlugin` basato su `GoogleSignInClient`; su iOS resta predisposto `@capawesome/capacitor-google-sign-in`.
+Questa integrazione converte l'ID token Google in una credenziale Firebase tramite `GoogleAuthProvider`. Su Android il flusso nativo usa il bridge custom `LegacyGoogleSignInPlugin` basato su `GoogleSignInClient`; su iOS usa `@capawesome/capacitor-google-sign-in`. In entrambi i casi l'autenticazione Firebase finale resta gestita dal Firebase JS SDK (`firebase/auth`).
 
 ## Configurazione richiesta
 
@@ -16,8 +16,30 @@ Questa integrazione converte l'ID token Google in una credenziale Firebase trami
 5. iOS:
    - bundle ID: `com.acasale.comemivesto`
    - creare l'OAuth Client iOS;
-   - aggiungere `GIDClientID` a `ios/App/App/Info.plist`;
-   - aggiungere il reversed client ID Google come ulteriore URL scheme, senza rimuovere lo scheme `comemivesto` già presente.
+   - scaricare dalla stessa app Firebase iOS il relativo `GoogleService-Info.plist`;
+   - usare i valori `CLIENT_ID` e `REVERSED_CLIENT_ID` del plist rispettivamente come `GIDClientID` e URL scheme Google;
+   - preservare lo scheme custom `comemivesto` insieme a quello Google.
+
+`GoogleService-Info.plist` non deve essere committato. La pipeline TestFlight lo ricostruisce dal secret GitHub `IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64`, quindi configura e valida automaticamente l'`Info.plist` realmente usato dal target App (`ios/App/App/Info.plist`). La validazione fallisce prima dell'archive se i client ID mancano o non corrispondono, se lo scheme custom è stato rimosso oppure se il bundle ID non è `com.acasale.comemivesto`.
+
+### Configurazione locale iOS
+
+Su macOS, per una build o un test locale:
+
+1. copiare il plist Firebase iOS in `ios/App/App/GoogleService-Info.plist` senza aggiungerlo a Git;
+2. eseguire la build web e `npx cap sync ios`;
+3. eseguire lo stesso configuratore usato dalla CI:
+
+   ```bash
+   python3 .github/scripts/configure-ios-google-sign-in.py \
+     --google-plist ios/App/App/GoogleService-Info.plist \
+     --info-plist ios/App/App/Info.plist \
+     --project ios/App/App.xcodeproj/project.pbxproj
+   ```
+
+4. aprire `ios/App/App.xcworkspace`, verificare che `GoogleService-Info.plist` appartenga al target App e provare il login su un iPhone reale.
+
+Il plist è escluso da `.gitignore`; non forzarne mai il commit. Le modifiche locali con i client ID nell'`Info.plist` devono rimanere non committate e possono essere ripristinate dopo il test.
 
 ## Flusso
 

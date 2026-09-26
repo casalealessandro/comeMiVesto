@@ -144,6 +144,17 @@ jobs:
           puts "#{plist_name} added to App resources"
           RUBY
 
+      - name: Configure and validate Google Sign-In
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/configure-ios-google-sign-in.py \
+            --google-plist ios/App/App/GoogleService-Info.plist \
+            --info-plist ios/App/App/Info.plist \
+            --project ios/App/App.xcodeproj/project.pbxproj
+          plutil -lint ios/App/App/GoogleService-Info.plist
+          plutil -lint ios/App/App/Info.plist
+
       - name: Enable production push entitlement
         shell: bash
         run: |
