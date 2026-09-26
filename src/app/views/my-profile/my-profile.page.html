@@ -76,9 +76,15 @@
                 </ion-img>
           
 
-                <div  class="del-item">
-                  <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="deleteOutfit($event,userOutfit)">
-                    <i class="fi fi-rr-cross"></i>
+                <div class="del-item">
+                  <ion-button
+                    class="remove-product-btn"
+                    slot="icon-only"
+                    fill="clear"
+                    aria-label="Elimina outfit"
+                    title="Elimina outfit"
+                    (click)="deleteOutfit($event,userOutfit)">
+                    <ion-icon name="trash-outline"></ion-icon>
                   </ion-button>
                 </div>
               </div>
@@ -103,7 +109,7 @@
                 <ion-img [src]="userWardrobe.images" [alt]="userWardrobe.name">
                 </ion-img>
            
-                <div class="del-item wardrobe-delete-action">
+                <div class="del-item">
                   <ion-button
                     class="remove-product-btn"
                     slot="icon-only"
@@ -111,7 +117,7 @@
                     aria-label="Rimuovi prodotto dall'armadio"
                     title="Rimuovi dall'armadio"
                     (click)="deletewardrobesitem($event,userWardrobe)">
-                    <i class="fi fi-rr-trash"></i>
+                    <ion-icon name="trash-outline"></ion-icon>
                   </ion-button>
                 </div>
               </div>
@@ -132,9 +138,15 @@
               <div class="post-image">
                 <ion-img [src]="faveUserOutfit.imageUrl" [alt]="faveUserOutfit.title" forceReload="true">
                 </ion-img>
-                <div  class="del-item">
-                  <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="deleteFaveOutfit($event,faveUserOutfit)">
-                    <i class="fi fi-rr-cross"></i>
+                <div class="del-item">
+                  <ion-button
+                    class="remove-product-btn"
+                    slot="icon-only"
+                    fill="clear"
+                    aria-label="Rimuovi dai desiderati"
+                    title="Rimuovi dai desiderati"
+                    (click)="deleteFaveOutfit($event,faveUserOutfit)">
+                    <ion-icon name="trash-outline"></ion-icon>
                   </ion-button>
                 </div>
               </div>

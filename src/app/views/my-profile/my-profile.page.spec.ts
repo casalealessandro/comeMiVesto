@@ -36,10 +36,11 @@ describe('MyProfilePage data refresh', () => {
     terms = { allowAppAccess: jasmine.createSpy().and.resolveTo('accepted') };
     alertOverlay = {
       present: jasmine.createSpy('present').and.resolveTo(),
-      onDidDismiss: jasmine.createSpy('onDidDismiss').and.resolveTo({ role: 'destructive' })
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.resolveTo({ role: 'confirm' })
     };
     alerts = { create: jasmine.createSpy().and.resolveTo(alertOverlay) };
     appService = jasmine.createSpyObj<AppService>('AppService', ['deleteOutfit', 'deleteWardrobe']);
+    userService.delFaveUserOutfits.and.returnValue(of([]));
     TestBed.configureTestingModule({});
     component = TestBed.runInInjectionContext(() => new MyProfilePage(
       userService,
@@ -58,12 +59,23 @@ describe('MyProfilePage data refresh', () => {
     appService.deleteOutfit.and.resolveTo(true);
     userService.getUserOutfits.and.returnValue(of(outfits));
 
-    await component.deleteOutfit(event, { id: 'deleted' } as outfit);
+    await component.deleteOutfit(event, { id: 'deleted', title: 'Look' } as outfit);
 
+    expect(alerts.create).toHaveBeenCalled();
+    expect(appService.deleteOutfit).toHaveBeenCalledOnceWith('deleted');
     expect(userService.getUserOutfits).toHaveBeenCalled();
     expect(component.userOutfits).toEqual(outfits);
     expect(component.outfitNumber).toBe(1);
     expect(component.segmentButtons[0].number).toBe(1);
+  });
+
+  it('does not delete an outfit when removal is cancelled', async () => {
+    alertOverlay.onDidDismiss.and.resolveTo({ role: 'cancel' });
+
+    await component.deleteOutfit(event, { id: 'deleted', title: 'Look' } as outfit);
+
+    expect(appService.deleteOutfit).not.toHaveBeenCalled();
+    expect(userService.getUserOutfits).not.toHaveBeenCalled();
   });
 
   it('reloads wardrobes and counters after deleting a wardrobe item', async () => {
@@ -88,6 +100,24 @@ describe('MyProfilePage data refresh', () => {
 
     expect(appService.deleteWardrobe).not.toHaveBeenCalled();
     expect(userService.getUserWardrobes).not.toHaveBeenCalled();
+  });
+
+  it('removes a desired outfit after confirmation', async () => {
+    userService.delFaveUserOutfits.and.returnValue(of([{ outfitId: 'remaining' }] as FavoriteOutfit[]));
+
+    await component.deleteFaveOutfit(event, { outfitId: 'deleted', title: 'Look' });
+
+    expect(alerts.create).toHaveBeenCalled();
+    expect(userService.delFaveUserOutfits).toHaveBeenCalledOnceWith('deleted');
+    expect(component.segmentButtons[2].number).toBe(1);
+  });
+
+  it('does not remove a desired outfit when removal is cancelled', async () => {
+    alertOverlay.onDidDismiss.and.resolveTo({ role: 'cancel' });
+
+    await component.deleteFaveOutfit(event, { outfitId: 'deleted', title: 'Look' });
+
+    expect(userService.delFaveUserOutfits).not.toHaveBeenCalled();
   });
 
   it('updates the favorites counter after favorites finish loading', async () => {

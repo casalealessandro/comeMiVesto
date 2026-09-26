@@ -260,8 +260,18 @@ export class MyProfilePage implements OnInit {
     event.stopPropagation();
     event.preventDefault();
 
-    let res = await this.appService.deleteOutfit(String(outfitData.id))
+    const confirmed = await this.confirmRemoval(
+      'Elimina outfit',
+      outfitData?.title
+        ? `Vuoi eliminare "${outfitData.title}"?`
+        : 'Vuoi eliminare questo outfit?',
+      'Elimina'
+    );
+    if (!confirmed) {
+      return;
+    }
 
+    const res = await this.appService.deleteOutfit(String(outfitData.id));
     if (res) {
       await this.loadUserOutfits();
     }
@@ -274,20 +284,14 @@ export class MyProfilePage implements OnInit {
     event.stopPropagation();
     event.preventDefault();
 
-    const alert = await this.alert.create({
-      header: 'Rimuovi prodotto',
-      message: wardrobesItem?.name
+    const confirmed = await this.confirmRemoval(
+      'Rimuovi prodotto',
+      wardrobesItem?.name
         ? `Vuoi rimuovere "${wardrobesItem.name}" dal tuo armadio?`
         : 'Vuoi rimuovere questo prodotto dal tuo armadio?',
-      buttons: [
-        { text: 'Annulla', role: 'cancel' },
-        { text: 'Rimuovi', role: 'destructive' }
-      ]
-    });
-
-    await alert.present();
-    const { role } = await alert.onDidDismiss();
-    if (role !== 'destructive') {
+      'Rimuovi'
+    );
+    if (!confirmed) {
       return;
     }
 
@@ -303,28 +307,39 @@ export class MyProfilePage implements OnInit {
     event.stopPropagation();
     event.preventDefault();
 
+    const confirmed = await this.confirmRemoval(
+      'Rimuovi dai desiderati',
+      faveItem?.title
+        ? `Vuoi rimuovere "${faveItem.title}" dai desiderati?`
+        : 'Vuoi rimuovere questo outfit dai desiderati?',
+      'Rimuovi'
+    );
+    if (!confirmed) {
+      return;
+    }
+
     this.userProfileService.delFaveUserOutfits(faveItem.outfitId).subscribe(res => {
       if (res) {
         this.segmentButtons[2].number = res.length;
-        this.alert.create({
-          header: 'Attenzione!',
-          message: `Outfiti preferiti aggiornati`,
-          buttons: ['Ok'],
-        })
       }
-    })
-    /* 
-        if (res) {
-         this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits(this.uid);
-         this.faveUserOutfits$.subscribe(async faveUserOutfits => {
-          this.faveUserOutfitsNumber = faveUserOutfits.length;
-          this.segmentButtons[2].number =this.faveUserOutfitsNumber 
-          this.faveUserOutfits = faveUserOutfits;
-          console.log(this.faveUserOutfits)
-        }) 
-        }*/
+    });
 
 
+  }
+
+  private async confirmRemoval(header: string, message: string, confirmText: string): Promise<boolean> {
+    const alert = await this.alert.create({
+      header,
+      message,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        { text: confirmText, role: 'confirm' }
+      ]
+    });
+
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    return role === 'confirm';
   }
 
 

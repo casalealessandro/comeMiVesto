@@ -126,13 +126,13 @@ export class MyWardrobesPage implements OnInit {
         : 'Vuoi rimuovere questo prodotto dal tuo armadio?',
       buttons: [
         { text: 'Annulla', role: 'cancel' },
-        { text: 'Rimuovi', role: 'destructive' }
+        { text: 'Rimuovi', role: 'confirm' }
       ]
     });
 
     await alert.present();
     const { role } = await alert.onDidDismiss();
-    if (role !== 'destructive') {
+    if (role !== 'confirm') {
       return;
     }
 

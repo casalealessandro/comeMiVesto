@@ -100,7 +100,7 @@ describe('MyWardrobesPage', () => {
   it('deletes and refreshes the wardrobe after confirmation', async () => {
     alertControllerMock.create.and.resolveTo({
       present: jasmine.createSpy('present').and.resolveTo(),
-      onDidDismiss: jasmine.createSpy('onDidDismiss').and.resolveTo({ role: 'destructive' })
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.resolveTo({ role: 'confirm' })
     } as any);
     appServiceMock.deleteWardrobe.and.resolveTo(true);
     spyOn(component, 'groupItemsByCategory').and.resolveTo();
