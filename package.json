@@ -45,6 +45,7 @@
     "@capacitor/share": "^8.0.0",
     "@capacitor/splash-screen": "^8.0.0",
     "@capacitor/status-bar": "^8.0.0",
+    "@capawesome/capacitor-apple-sign-in": "^0.1.4",
     "@capawesome/capacitor-google-sign-in": "^0.1.4",
     "@flaticon/flaticon-uicons": "^3.3.1",
     "@ionic/angular": "^8.8.16",

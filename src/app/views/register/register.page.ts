@@ -42,12 +42,13 @@ export class RegisterPage {
     private socialAuthService: SocialAuthService,
     private route: ActivatedRoute,
     private router: Router) {
-      this.socialRegistration = this.route.snapshot.queryParamMap.get('social') === 'google';
+      const socialProvider = this.route.snapshot.queryParamMap.get('social');
+      this.socialRegistration = socialProvider === 'google' || socialProvider === 'apple';
       if (this.socialRegistration) {
         const profile = this.userService.gUserProfile()();
-        const googleProfile = this.socialAuthService.getPendingProfile();
-        this.socialNome = profile?.nome?.trim() || googleProfile?.givenName || '';
-        this.socialCognome = profile?.cognome?.trim() || googleProfile?.familyName || '';
+        const pendingProfile = this.socialAuthService.getPendingProfile();
+        this.socialNome = profile?.nome?.trim() || pendingProfile?.givenName || '';
+        this.socialCognome = profile?.cognome?.trim() || pendingProfile?.familyName || '';
         this.socialGender = profile?.gender === 'U' || profile?.gender === 'D' ? profile.gender : '';
         this.termsAccepted = this.userService.gTermsStatus()()?.accepted === true;
       }
