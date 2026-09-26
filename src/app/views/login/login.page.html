@@ -33,7 +33,7 @@
             (submitFormEvent)="submitFormEvent($event)">
           </app-dynamic-form>
 
-          <div class="social-login" *ngIf="showGoogleLogin">
+          <div class="social-login" *ngIf="showGoogleLogin || showAppleLogin">
             <div class="social-separator"><span>oppure</span></div>
             <ion-button
               class="google-login-button"
@@ -43,6 +43,15 @@
               (click)="loginWithGoogle()">
               <ion-icon name="logo-google" slot="start"></ion-icon>
               {{ socialSubmitting ? 'Accesso in corso...' : 'Continua con Google' }}
+            </ion-button>
+            <ion-button
+              *ngIf="showAppleLogin"
+              class="apple-login-button"
+              expand="block"
+              [disabled]="socialSubmitting"
+              (click)="loginWithApple()">
+              <ion-icon name="logo-apple" slot="start"></ion-icon>
+              {{ socialSubmitting ? 'Accesso in corso...' : 'Continua con Apple' }}
             </ion-button>
           </div>
 

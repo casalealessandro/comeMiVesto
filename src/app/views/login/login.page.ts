@@ -27,6 +27,7 @@ export class LoginPage implements OnInit {
   recupPasswordError:string = 'Inserisci un email valida'
   socialSubmitting = false;
   readonly showGoogleLogin = Capacitor.getPlatform() !== 'web';
+  readonly showAppleLogin = Capacitor.getPlatform() === 'ios';
 
   constructor(
     private firebase: FirebaseService,
@@ -109,6 +110,45 @@ export class LoginPage implements OnInit {
         : error?.code === 'auth/account-exists-with-different-credential'
           ? 'Esiste già un account con questa email. Accedi con il metodo usato in precedenza.'
           : 'Impossibile accedere con Google. Riprova.';
+      const socialAlert = await this.alert.create({
+        header: 'Attenzione!',
+        message,
+        buttons: ['Ok'],
+      });
+      await socialAlert.present();
+    } finally {
+      this.socialSubmitting = false;
+    }
+  }
+
+  async loginWithApple(): Promise<void> {
+    if (this.socialSubmitting) return;
+
+    this.socialSubmitting = true;
+    try {
+      await this.socialAuthService.signInWithApple();
+      const state = await this.userService.resolveSocialAuthentication();
+
+      if (state === 'registration-required') {
+        await this.router.navigate(['/register'], {
+          queryParams: { social: 'apple' },
+          replaceUrl: true,
+        });
+        return;
+      }
+
+      this.socialAuthService.clearPendingProfile();
+      await this.router.navigateByUrl(
+        getSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
+        { replaceUrl: true },
+      );
+    } catch (error: any) {
+      if (error?.code === 'SIGN_IN_CANCELED') return;
+
+      console.error('Apple login failed', error);
+      const message = error?.code === 'auth/account-exists-with-different-credential'
+        ? 'Esiste già un account con questa email. Accedi con il metodo usato in precedenza.'
+        : 'Impossibile accedere con Apple. Riprova.';
       const socialAlert = await this.alert.create({
         header: 'Attenzione!',
         message,

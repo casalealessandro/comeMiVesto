@@ -68,3 +68,10 @@ The workflow:
 For a local macOS build, place the uncommitted Firebase plist at `ios/App/App/GoogleService-Info.plist`, run the web build and `npx cap sync ios`, then run `.github/scripts/configure-ios-google-sign-in.py` as documented in `docs/google-sign-in.md`. Open the workspace rather than the project. A physical iPhone and an OAuth Client iOS configured for `com.acasale.comemivesto` are required for the final native sign-in check.
 
 After Apple finishes processing the build, install it through TestFlight on a physical iPhone and run the notification end-to-end checklist in `docs/push-notifications.md`.
+
+
+## Sign in with Apple
+
+The App Store provisioning profile used by this workflow must include the `com.apple.developer.applesignin` entitlement with value `Default`. The workflow validates this before archiving, together with the bundle ID, team and production push entitlement.
+
+If the Sign in with Apple capability is added or changed in Apple Developer, regenerate the App Store provisioning profile and update `IOS_APP_STORE_PROVISIONING_PROFILE_BASE64` before triggering TestFlight.
