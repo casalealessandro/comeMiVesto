@@ -65,3 +65,10 @@ ion-modal.cmv-preferences-onboarding {
   --max-height: 100%;
   --border-radius: 0;
 }
+/* Reserve the fixed bottom tab bar area for every routed tab page.
+ * The bar is absolutely positioned, so without this inset the end of
+ * scrollable ion-content can be hidden behind it. */
+.app-layout-tabs ion-content {
+  --padding-bottom: calc(70px + var(--ion-safe-area-bottom, 0px));
+}
+
