@@ -58,4 +58,33 @@ describe('AddOutfitPage gender and Terms errors', () => {
     expect(await component.handleTermsRequired(new ApiRequestError('Forbidden', 403))).toBeFalse();
     expect(terms.allowAppAccess).not.toHaveBeenCalled();
   });
+
+  it('allows only one concurrent submit and releases the guard after success', async () => {
+    const component = page('U');
+    let resolveCreate!: (value: any) => void;
+    const appService = {
+      uploadImage: jasmine.createSpy('uploadImage').and.resolveTo('image-url'),
+      createOutfit: jasmine.createSpy('createOutfit').and.returnValue(new Promise(resolve => resolveCreate = resolve))
+    };
+    Object.assign(component, {
+      appService,
+      firebase: { auth: { currentUser: Promise.resolve({ uid: 'user' }) } },
+      image: new Blob(),
+      isSubmitting: false
+    });
+    const payload = { title: 'Look', gender: 'U' as Gender };
+
+    const first = component.saveOutfit(payload);
+    const duplicate = component.saveOutfit(payload);
+    while (!appService.createOutfit.calls.count()) {
+      await Promise.resolve();
+    }
+    expect(appService.createOutfit).toHaveBeenCalledTimes(1);
+    resolveCreate({ status: 'pending' });
+    await Promise.all([first, duplicate]);
+
+    appService.createOutfit.and.resolveTo({ status: 'pending' });
+    await component.saveOutfit(payload);
+    expect(appService.createOutfit).toHaveBeenCalledTimes(2);
+  });
 });

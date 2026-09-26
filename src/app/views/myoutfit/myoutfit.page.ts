@@ -39,6 +39,10 @@ export class MyOutFitPage implements OnDestroy {
   outfitUserProfile!: PublicUserProfile[];
   cUserPreference: UserPreference | null = null;
   isOutfitCompositionOpen: boolean = false;
+  private isFilterModalOpen = false;
+  private isOutfitMenuOpen = false;
+  private favoriteActionsInProgress = new Set<string>();
+  private shareActionsInProgress = new Set<string>();
   filtersData: OutfitFilterPayload = { categories: [], season: '', style: '' };
   searchText = '';
   suggestedProducts: AppCatalogProduct[] = [];
@@ -203,6 +207,9 @@ export class MyOutFitPage implements OnDestroy {
    } */
 
   async openFilterModal() {
+    if (this.isFilterModalOpen) return;
+    this.isFilterModalOpen = true;
+    try {
     this.isFiltersSel = false
     const modal = await this.modalController.create({
       component: FilterOutfitsPage,
@@ -225,7 +232,10 @@ export class MyOutFitPage implements OnDestroy {
       season: data.season ?? '',
       style: data.style ?? ''
     };
-    await this.applyOutfitFilters();
+      await this.applyOutfitFilters();
+    } finally {
+      this.isFilterModalOpen = false;
+    }
 
   }
 
@@ -381,7 +391,8 @@ export class MyOutFitPage implements OnDestroy {
     // Imposta la variabile a true quando il modale viene aperto
     this.isOutfitCompositionOpen = true;
 
-    const modal = await this.modalController.create({
+    try {
+      const modal = await this.modalController.create({
       component: ModalListComponent,
       componentProps: {
         items: tags, // Array degli elementi da visualizzare
@@ -406,7 +417,6 @@ export class MyOutFitPage implements OnDestroy {
 
     const { data } = await modal.onDidDismiss();
     console.log('Modal data:', data);
-    this.isOutfitCompositionOpen = false
     let nameEv = data.name;
     let item = data.item;
     let category = !item.outfitCategory ? '' : item.outfitCategory
@@ -438,10 +448,13 @@ export class MyOutFitPage implements OnDestroy {
 
           await alert.present();
         }
-        break;
+          break;
 
       default:
-        break;
+          break;
+      }
+    } finally {
+      this.isOutfitCompositionOpen = false;
     }
   }
 
@@ -576,9 +589,9 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async outfitMenu(outfit: outfit) {
-
-    // Imposta la variabile a true quando il modale viene aperto
-    this.isOutfitCompositionOpen = true;
+    if (this.isOutfitMenuOpen) return;
+    this.isOutfitMenuOpen = true;
+    try {
     let itemsElement = [
       {
         id: "segnalaUtente",
@@ -624,12 +637,10 @@ export class MyOutFitPage implements OnDestroy {
     }
 
     if (this.cUserID === outfit.userId || (id !== 'segnalaUtente' && id !== 'segnalaContenuto')) {
-      this.isOutfitCompositionOpen = false;
       return;
     }
     const reason = await this.selectReportReason();
     if (!reason) {
-      this.isOutfitCompositionOpen = false;
       return;
     }
 
@@ -640,7 +651,6 @@ export class MyOutFitPage implements OnDestroy {
     }
     try {
       await this.appService.createReport(dataS)
-      this.isOutfitCompositionOpen = false;
       const alert = await this.alertController.create({
         header: 'Segnalazione completata',
         message: `Ti ringraziamo per la segnalazione, prenderemo in esame la tua richiesta`,
@@ -649,7 +659,6 @@ export class MyOutFitPage implements OnDestroy {
 
       await alert.present();
     } catch (error: any) {
-      this.isOutfitCompositionOpen = false;
       if (error?.status === 409) {
         const alert = await this.alertController.create({
           header: 'Segnalazione già inviata',
@@ -665,6 +674,9 @@ export class MyOutFitPage implements OnDestroy {
         });
         await alert.present();
       }
+      }
+    } finally {
+      this.isOutfitMenuOpen = false;
     }
 
   }
@@ -705,9 +717,14 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async openShareModal(outfit: outfit) {
-
-
-    await this.sharingSocial.shareVia(outfit)
+    const outfitId = String(outfit.id);
+    if (this.shareActionsInProgress.has(outfitId)) return;
+    this.shareActionsInProgress.add(outfitId);
+    try {
+      await this.sharingSocial.shareVia(outfit)
+    } finally {
+      this.shareActionsInProgress.delete(outfitId);
+    }
     /*  const modal = await this.modalController.create({
        component: SocialSharingComponent,
        componentProps: { outfit: outfit },
@@ -743,32 +760,23 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async addFavoriteOutfit(outfit: any) {
-
-
-    let likes = outfit.likes
-    if (this.favorites.has(outfit.id)) {
-      const outfitId = outfit.id;
-      this.userProfileService.delFaveUserOutfits(outfitId).subscribe(faveUserOutfits => {
+    const outfitId = String(outfit.id);
+    if (this.favoriteActionsInProgress.has(outfitId)) return;
+    this.favoriteActionsInProgress.add(outfitId);
+    try {
+      if (this.favorites.has(outfit.id)) {
+        await firstValueFrom(this.userProfileService.delFaveUserOutfits(outfitId));
         this.favorites.delete(outfit.id);
-      })
-
-      return;
-
-    }
-
-    this.userProfileService.saveFaveUserOutfits(outfit.id).subscribe(res=>{
-      if (res) {
-
-        this.favorites.add(outfit.id);
-
-        if (this.cUserID == outfit.userId) {
-          return;
-        }
-
+        return;
       }
-    })
 
-
+      const res = await firstValueFrom(this.userProfileService.saveFaveUserOutfits(outfit.id));
+      if (res) {
+        this.favorites.add(outfit.id);
+      }
+    } finally {
+      this.favoriteActionsInProgress.delete(outfitId);
+    }
   }
 
   async heartIcon() {

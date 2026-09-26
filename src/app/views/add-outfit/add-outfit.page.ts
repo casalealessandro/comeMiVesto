@@ -43,6 +43,11 @@ export class AddOutfitPage implements OnInit, OnDestroy {
   contentType!: any;
   myOutfit: any = MyOutFitPage
   openModal:any = null
+  isSubmitting: boolean = false;
+  private editingTagIds = new Set<string>();
+  private deletingTagIds = new Set<string>();
+  private isImageUpdateInProgress = false;
+  private isTagUpdateInProgress = false;
   constructor(
 
     private appService: AppService,
@@ -125,14 +130,16 @@ export class AddOutfitPage implements OnInit, OnDestroy {
   }
 
   async setImageCaptured(event: any) {
+    if (this.isImageUpdateInProgress) return;
+    this.isImageUpdateInProgress = true;
 
+    try {
+      this.image = event.img;
+      this.imgFileName = event.imgName;
+      this.contentType = event.contentType;
 
-    this.image = event.img;
-    this.imgFileName = event.imgName;
-    this.contentType = event.contentType;
-
-    if (this.isEditMode) {
-      let imageUrl = null
+      if (this.isEditMode) {
+        let imageUrl = null
 
 
       this.loading.create({
@@ -143,12 +150,18 @@ export class AddOutfitPage implements OnInit, OnDestroy {
       if(!imageUrl){
         return 
       }
-      await this.editOutfit({ imageUrl })
+        await this.editOutfit({ imageUrl })
+      }
+    } finally {
+      this.isImageUpdateInProgress = false;
     }
   }
 
   async setImageTagSet(event: any) {
-    this.tags = event.tags as Tag[];
+    if (this.isTagUpdateInProgress) return;
+    this.isTagUpdateInProgress = true;
+    try {
+      this.tags = event.tags as Tag[];
 
     if (this.isEditMode) {
       let dateEdit = new Date();
@@ -165,11 +178,17 @@ export class AddOutfitPage implements OnInit, OnDestroy {
           ...this.outfit,
           }
       }
+      }
+    } finally {
+      this.isTagUpdateInProgress = false;
     }
   }
 
   async saveOutfit(event: Partial<EditableOutfit> & { color?: string }) {
-    this.title = event.title ?? '';
+    if (this.isSubmitting) return;
+    this.isSubmitting = true;
+    try {
+      this.title = event.title ?? '';
     this.color = event.color;
     this.description = !event.description ? "" : event.description;
     const selectedGender = event.gender?.trim() as Gender | undefined;
@@ -186,7 +205,7 @@ export class AddOutfitPage implements OnInit, OnDestroy {
 
     if (!this.isEditMode) {
 
-      this.confirmOutfit()
+      await this.confirmOutfit()
     } else {
       let partialOutfit = {
 
@@ -207,9 +226,10 @@ export class AddOutfitPage implements OnInit, OnDestroy {
 
         this.handleBackButton()
       }
+      }
+    } finally {
+      this.isSubmitting = false;
     }
-
-
   }
 
   async editOutfit(data: Partial<any>): Promise<boolean> {
@@ -307,9 +327,12 @@ export class AddOutfitPage implements OnInit, OnDestroy {
   }
 
   async editTag(tag: Tag) {
+    const tagId = String(tag.id);
+    if (this.editingTagIds.has(tagId)) return;
+    this.editingTagIds.add(tagId);
 
-
-    const modal = await this.modalController.create({
+    try {
+      const modal = await this.modalController.create({
       component: ModalFormComponent,
       componentProps: {
         service: 'tagForm',
@@ -356,11 +379,14 @@ export class AddOutfitPage implements OnInit, OnDestroy {
       editedAt:dateEdit.getTime()
     }
 
-    let responseSave = await this.editOutfit(dataS)
+      let responseSave = await this.editOutfit(dataS)
 
-    if (responseSave) {
-      this.outfit.tags = this.tags;
-      this.outfitData.tags = this.tags;
+      if (responseSave) {
+        this.outfit.tags = this.tags;
+        this.outfitData.tags = this.tags;
+      }
+    } finally {
+      this.editingTagIds.delete(tagId);
     }
 
 
@@ -370,7 +396,12 @@ export class AddOutfitPage implements OnInit, OnDestroy {
     event.preventDefault()
     event.stopPropagation()
 
-    const alert = await this.alert.create({
+    const tagId = String(id);
+    if (this.deletingTagIds.has(tagId)) return;
+    this.deletingTagIds.add(tagId);
+
+    try {
+      const alert = await this.alert.create({
       header: 'Attenzione!',
       message: `Vuoi rimuovere questo tag dell'outfit?`,
       buttons: [
@@ -388,14 +419,18 @@ export class AddOutfitPage implements OnInit, OnDestroy {
             if (indexTag > -1) {
               this.tags.splice(indexTag, 1);
 
-              this.editOutfit({ tags: this.tags })
+              void this.editOutfit({ tags: this.tags })
             }
           }
         }
       ]
     });
 
-    await alert.present();
+      await alert.present();
+      await alert.onDidDismiss();
+    } finally {
+      this.deletingTagIds.delete(tagId);
+    }
 
 
     //this.tags[indexTag] 

@@ -63,6 +63,11 @@ export class MyProfilePage implements OnInit {
   ];
 
   selectedSegment = 'outfit'; // Valore predefinito
+  private isProfilePictureChanging = false;
+  private isEditProfileModalOpen = false;
+  private isPreferenceModalOpen = false;
+  private isEditOutfitModalOpen = false;
+  private deletionsInProgress = new Set<string>();
 
 
   constructor(
@@ -136,7 +141,10 @@ export class MyProfilePage implements OnInit {
     }
   }
   async changeProfilePicture() {
-    const image = await Camera.getPhoto({
+    if (this.isProfilePictureChanging) return;
+    this.isProfilePictureChanging = true;
+    try {
+      const image = await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
       resultType: CameraResultType.DataUrl,
@@ -147,14 +155,20 @@ export class MyProfilePage implements OnInit {
     });
 
     if (image && image.dataUrl) {
-      this.userProfileService.updateProfilePicture(image.dataUrl)
-        .then(() => console.log('Profile picture updated'))
-        .catch((error: ApiRequestError) => void this.presentProfileError(error, true));
+        await this.userProfileService.updateProfilePicture(image.dataUrl)
+          .then(() => console.log('Profile picture updated'))
+          .catch((error: ApiRequestError) => void this.presentProfileError(error, true));
+      }
+    } finally {
+      this.isProfilePictureChanging = false;
     }
   }
 
   async editProfile() {
-    const modal = await this.modalController.create({
+    if (this.isEditProfileModalOpen) return;
+    this.isEditProfileModalOpen = true;
+    try {
+      const modal = await this.modalController.create({
       component: ModalFormComponent,
       componentProps: {
         service: 'profileForm',
@@ -183,30 +197,36 @@ export class MyProfilePage implements OnInit {
       bio: bio,
       gender: data.gender,
     }
-    this.userProfileService.updateUserProfile(this.uid || '', profileData).subscribe({ next: data => {
-      const isOk = data ? true : false;
-      if (isOk) {
+      const updatedProfile = await firstValueFrom(this.userProfileService.updateUserProfile(this.uid || '', profileData));
+      if (updatedProfile) {
         this.alert.create({
           header: 'Attenzione!',
           message: `Profilo aggiornato`,
           buttons: ['Ok'],
         })
-        //this.userProfile = profileData;
       }
-    }, error: (error: ApiRequestError) => void this.presentProfileError(error) });
-
-
+    } catch (error) {
+      await this.presentProfileError(error as ApiRequestError);
+    } finally {
+      this.isEditProfileModalOpen = false;
+    }
   }
 
   async editUserPreference() {
-    const modal = await this.modalController.create({
+    if (this.isPreferenceModalOpen) return;
+    this.isPreferenceModalOpen = true;
+    try {
+      const modal = await this.modalController.create({
       component: PreferencesOnboardingComponent,
     });
     await modal.present();
 
     const { role } = await modal.onDidDismiss();
     if (role === 'complete') {
-      this.userPreference = this.userProfileService.gUserPreference()();
+        this.userPreference = this.userProfileService.gUserPreference()();
+      }
+    } finally {
+      this.isPreferenceModalOpen = false;
     }
   }
   async presentProfileError(error: ApiRequestError, picture = false): Promise<void> {
@@ -240,7 +260,10 @@ export class MyProfilePage implements OnInit {
   async openEditOutfit(outfitData: outfit) {
     //usersPreferenceForm
 
-    const modal = await this.modalController.create({
+    if (this.isEditOutfitModalOpen) return;
+    this.isEditOutfitModalOpen = true;
+    try {
+      const modal = await this.modalController.create({
       component: AddOutfitPage,
       componentProps: {
         isEditMode: true,
@@ -251,16 +274,21 @@ export class MyProfilePage implements OnInit {
     });
     await modal.present();
 
-    const { data } = await modal.onDidDismiss();
-
-
+      const { data } = await modal.onDidDismiss();
+    } finally {
+      this.isEditOutfitModalOpen = false;
+    }
   }
   async deleteOutfit(event: any, outfitData: outfit) {
 
     event.stopPropagation();
     event.preventDefault();
 
-    const confirmed = await this.confirmRemoval(
+    const lockId = `outfit:${outfitData.id}`;
+    if (this.deletionsInProgress.has(lockId)) return;
+    this.deletionsInProgress.add(lockId);
+    try {
+      const confirmed = await this.confirmRemoval(
       'Elimina outfit',
       outfitData?.title
         ? `Vuoi eliminare "${outfitData.title}"?`
@@ -268,12 +296,15 @@ export class MyProfilePage implements OnInit {
       'Elimina'
     );
     if (!confirmed) {
-      return;
+        return;
     }
 
     const res = await this.appService.deleteOutfit(String(outfitData.id));
     if (res) {
-      await this.loadUserOutfits();
+        await this.loadUserOutfits();
+      }
+    } finally {
+      this.deletionsInProgress.delete(lockId);
     }
 
 
@@ -284,7 +315,11 @@ export class MyProfilePage implements OnInit {
     event.stopPropagation();
     event.preventDefault();
 
-    const confirmed = await this.confirmRemoval(
+    const lockId = `wardrobe:${wardrobesItem.id}`;
+    if (this.deletionsInProgress.has(lockId)) return;
+    this.deletionsInProgress.add(lockId);
+    try {
+      const confirmed = await this.confirmRemoval(
       'Rimuovi prodotto',
       wardrobesItem?.name
         ? `Vuoi rimuovere "${wardrobesItem.name}" dal tuo armadio?`
@@ -292,12 +327,15 @@ export class MyProfilePage implements OnInit {
       'Rimuovi'
     );
     if (!confirmed) {
-      return;
+        return;
     }
 
     const res = await this.appService.deleteWardrobe(String(wardrobesItem.id));
     if (res) {
-      await this.loadUserWardrobes();
+        await this.loadUserWardrobes();
+      }
+    } finally {
+      this.deletionsInProgress.delete(lockId);
     }
 
 
@@ -307,7 +345,11 @@ export class MyProfilePage implements OnInit {
     event.stopPropagation();
     event.preventDefault();
 
-    const confirmed = await this.confirmRemoval(
+    const lockId = `favorite:${faveItem.outfitId}`;
+    if (this.deletionsInProgress.has(lockId)) return;
+    this.deletionsInProgress.add(lockId);
+    try {
+      const confirmed = await this.confirmRemoval(
       'Rimuovi dai desiderati',
       faveItem?.title
         ? `Vuoi rimuovere "${faveItem.title}" dai desiderati?`
@@ -315,14 +357,16 @@ export class MyProfilePage implements OnInit {
       'Rimuovi'
     );
     if (!confirmed) {
-      return;
+        return;
     }
 
-    this.userProfileService.delFaveUserOutfits(faveItem.outfitId).subscribe(res => {
+      const res = await firstValueFrom(this.userProfileService.delFaveUserOutfits(faveItem.outfitId));
       if (res) {
         this.segmentButtons[2].number = res.length;
       }
-    });
+    } finally {
+      this.deletionsInProgress.delete(lockId);
+    }
 
 
   }

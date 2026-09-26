@@ -39,6 +39,8 @@ export class FotoOutfitPage implements OnInit {
   openFullScreen:boolean=false
   showTooltip = signal(false);
   private tagHelperTimeout:any;
+  private isCameraOpen = false;
+  private isWardrobeModalOpen = false;
   constructor(private modalController: ModalController, private alert:AlertController, private router: Router) { }
 
 
@@ -83,12 +85,15 @@ export class FotoOutfitPage implements OnInit {
 
 
   async captureImage() {
+    if (this.isCameraOpen) return;
+    this.isCameraOpen = true;
+    try {
     if (this.tags.length > 0 && typeof this.image !== 'undefined') {
       let respo = await this.confirmChangeFoto();
       if (!respo) {
         return;
       }
-    }
+      }
   
     const image = await Camera.getPhoto({
       quality: 90,
@@ -130,6 +135,9 @@ export class FotoOutfitPage implements OnInit {
       };
       this.eventFotoCaptured.emit(eventToEmit);
 
+      }
+    } finally {
+      this.isCameraOpen = false;
     }
   }
 
@@ -307,7 +315,10 @@ export class FotoOutfitPage implements OnInit {
   }
 
   async openModal(): Promise<{}> {
-    const modal = await this.modalController.create({
+    if (this.isWardrobeModalOpen) return {};
+    this.isWardrobeModalOpen = true;
+    try {
+      const modal = await this.modalController.create({
       component: MyWardrobesPage,
       componentProps: {
         showheader: true
@@ -319,7 +330,10 @@ export class FotoOutfitPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     console.log('Modal data:', data);
 
-    return data
+      return data
+    } finally {
+      this.isWardrobeModalOpen = false;
+    }
   }
 
   async openItmClothing(tag: Tag) {

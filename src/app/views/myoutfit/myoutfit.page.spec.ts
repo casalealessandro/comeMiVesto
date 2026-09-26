@@ -1,11 +1,13 @@
 import { MyOutFitPage } from './myoutfit.page';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 
 describe('MyOutFitPage filters and search', () => {
   function page(): MyOutFitPage {
     const component = Object.create(MyOutFitPage.prototype) as MyOutFitPage;
     component.filtersData = { categories: [], season: '', style: '' };
     component.searchText = '';
+    (component as any).favoriteActionsInProgress = new Set<string>();
+    component.favorites = new Set<string>();
     return component;
   }
 
@@ -163,6 +165,45 @@ describe('MyOutFitPage filters and search', () => {
     Object.assign(component, { router, cUserID: 'me' });
     component.openUserProfile('me');
     expect(router.navigate).toHaveBeenCalledOnceWith(['/tabs/my-profile']);
+  });
+
+  it('allows only one concurrent favorite request per outfit and releases the guard', async () => {
+    const component = page();
+    const pending = new Subject<any>();
+    const userProfileService = {
+      saveFaveUserOutfits: jasmine.createSpy('saveFaveUserOutfits').and.returnValue(pending)
+    };
+    Object.assign(component, { userProfileService });
+
+    const first = component.addFavoriteOutfit({ id: 'one' });
+    const duplicate = component.addFavoriteOutfit({ id: 'one' });
+    component.addFavoriteOutfit({ id: 'two' });
+
+    expect(userProfileService.saveFaveUserOutfits).toHaveBeenCalledTimes(2);
+    pending.next([]);
+    pending.complete();
+    await Promise.all([first, duplicate]);
+
+    userProfileService.saveFaveUserOutfits.and.returnValue(of([]));
+    await component.addFavoriteOutfit({ id: 'one' });
+    expect(userProfileService.saveFaveUserOutfits).toHaveBeenCalledTimes(3);
+  });
+
+  it('releases the favorite guard after an error', async () => {
+    const component = page();
+    const userProfileService = {
+      saveFaveUserOutfits: jasmine.createSpy('saveFaveUserOutfits').and.returnValues(
+        new Subject<any>(), of([])
+      )
+    };
+    Object.assign(component, { userProfileService });
+    const errorRequest = new Subject<any>();
+    userProfileService.saveFaveUserOutfits.and.returnValues(errorRequest, of([]));
+    const request = component.addFavoriteOutfit({ id: 'one' });
+    errorRequest.error(new Error('failed'));
+    await expectAsync(request).toBeRejected();
+    await component.addFavoriteOutfit({ id: 'one' });
+    expect(userProfileService.saveFaveUserOutfits).toHaveBeenCalledTimes(2);
   });
 
   it('refreshes the server-authoritative feed after blocking without calling the lifecycle', async () => {
