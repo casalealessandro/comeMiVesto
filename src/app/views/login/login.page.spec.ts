@@ -1,4 +1,4 @@
-import { getSafeReturnUrl } from './login.page';
+import { getSafeReturnUrl, LoginPage } from './login.page';
 
 describe('LoginPage returnUrl validation', () => {
   it('preserves an internal protected destination', () => {
@@ -10,4 +10,53 @@ describe('LoginPage returnUrl validation', () => {
       expect(getSafeReturnUrl(unsafe)).toBe('/tabs/myoutfit');
     });
   }
+});
+
+describe('LoginPage intro routing', () => {
+  let router: { navigate: jasmine.Spy };
+  let route: { snapshot: { queryParamMap: { get: jasmine.Spy } } };
+
+  beforeEach(() => {
+    localStorage.removeItem('hasSeenIntro');
+    router = { navigate: jasmine.createSpy().and.resolveTo(true) };
+    route = {
+      snapshot: {
+        queryParamMap: {
+          get: jasmine.createSpy().and.returnValue(null),
+        },
+      },
+    };
+  });
+
+  afterEach(() => {
+    localStorage.removeItem('hasSeenIntro');
+  });
+
+  function createPage(): LoginPage {
+    return new LoginPage(
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      router as any,
+      route as any,
+    );
+  }
+
+  it('keeps the login page when the intro flag is already persisted', () => {
+    localStorage.setItem('hasSeenIntro', 'true');
+
+    createPage().ngOnInit();
+
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('redirects to intro when the intro flag is missing', () => {
+    createPage().ngOnInit();
+
+    expect(router.navigate).toHaveBeenCalledOnceWith(['/intro'], {
+      queryParams: undefined,
+      replaceUrl: true,
+    });
+  });
 });
