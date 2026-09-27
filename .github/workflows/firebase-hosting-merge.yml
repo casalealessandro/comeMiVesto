@@ -1,33 +1,58 @@
-name: Deploy develop to Firebase Hosting
+name: Deploy Firebase Hosting
 
 on:
   push:
     branches:
       - develop
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comemivesto-hosting-${{ github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
-      - run: npm ci
-      - run: npm run build -- --configuration=dev
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            npm run build -- --configuration=production
+          else
+            npm run build -- --configuration=dev
+          fi
 
       - name: Configure Firebase credentials
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_COMEMIVESTO_5E5F9 }}
         run: |
+          set -euo pipefail
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
+          chmod 600 "$RUNNER_TEMP/firebase-service-account.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
 
       - name: Ensure develop Hosting site exists
+        if: github.ref == 'refs/heads/develop'
         run: |
           set +e
           OUTPUT=$(npx firebase-tools@15.22.1 hosting:sites:create comemivesto-5e5f9-develop --project comemivesto-5e5f9 2>&1)
@@ -38,7 +63,8 @@ jobs:
             echo "$OUTPUT" | grep -Eiq "already exists|409|duplicate" || exit $STATUS
           fi
 
-      - name: Deploy develop site
+      - name: Deploy develop Hosting
+        if: github.ref == 'refs/heads/develop'
         run: |
           npx firebase-tools@15.22.1 deploy \
             --only hosting \
@@ -46,9 +72,29 @@ jobs:
             --project comemivesto-5e5f9 \
             --non-interactive
 
-      - name: Smoke test develop site
+      - name: Deploy production Hosting
+        if: github.ref == 'refs/heads/main'
         run: |
-          URL="https://comemivesto-5e5f9-develop.web.app"
+          npx firebase-tools@15.22.1 deploy \
+            --only hosting \
+            --config firebase.json \
+            --project comemivesto-5e5f9 \
+            --non-interactive
+
+      - name: Smoke test Hosting
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            URL="https://comemivesto.app"
+          else
+            URL="https://comemivesto-5e5f9-develop.web.app"
+          fi
+
           echo "Testing $URL"
-          curl --fail --location --retry 5 --retry-delay 5 "$URL" -o /tmp/develop.html
-          grep -q "<app-root" /tmp/develop.html
+          curl --fail --location --retry 8 --retry-delay 5 --retry-all-errors "$URL" -o /tmp/comemivesto.html
+          grep -q "<app-root" /tmp/comemivesto.html
+
+      - name: Remove temporary Firebase credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/firebase-service-account.json"
