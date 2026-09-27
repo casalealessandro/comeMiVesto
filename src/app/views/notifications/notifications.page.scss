@@ -1,0 +1,101 @@
+.notifications-content {
+  max-width: 520px;
+  margin: 0 auto;
+  color: var(--outfit-secondary-color);
+}
+
+.notifications-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 24px 0 28px;
+
+  i {
+    font-size: 28px;
+    line-height: 32px;
+  }
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #000;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 18px;
+    color: #666;
+  }
+}
+
+.notifications-list {
+  background: transparent;
+  padding: 0;
+  border-top: 0.5px solid #9f9f9f;
+
+  ion-item {
+    --background: transparent;
+    --padding-start: 0;
+    --inner-padding-end: 0;
+    --min-height: 78px;
+
+    ion-label {
+      margin: 14px 14px 14px 0;
+      white-space: normal;
+
+      h2 {
+        margin: 0 0 5px;
+        font-size: 15px;
+        font-weight: 500;
+        color: #000;
+      }
+
+      p {
+        margin: 0;
+        font-size: 12px;
+        line-height: 16px;
+        color: #666;
+      }
+    }
+
+    ion-toggle {
+      --track-background: #d6d6d6;
+      --track-background-checked: #3f3f3f;
+      --handle-background: #fff;
+      --handle-background-checked: #fff;
+    }
+  }
+}
+
+.device-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 28px;
+  padding: 16px 0;
+  border-bottom: 0.5px solid #9f9f9f;
+  font-size: 13px;
+
+  .device-status-label {
+    color: #000;
+  }
+
+  .device-status-value {
+    font-weight: 500;
+    color: #3f3f3f;
+
+    &.disabled {
+      color: #777;
+    }
+  }
+}
+
+.device-message {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: #666;
+}

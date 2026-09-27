@@ -85,7 +85,7 @@
         }
 
         .register-container {
-          border-top: 0.5px solid #9F9F9F;
+          border-top: 1px solid var(--outfit-hairline-divider-color);
           margin: 40px 16px 0px 16px;
           height: 111px;
           display: flex;
@@ -124,7 +124,7 @@
 
 
             --background: transparent;
-            border: 0.5px solid #000000;
+            border: 1px solid var(--outfit-hairline-border-color);
             color: #000;
             border-radius: 5px;
 
@@ -176,4 +176,45 @@
 .pass {
   text-align: center;
 
+}
+
+.social-login {
+  padding: 8px 16px 0;
+
+  .social-separator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0 14px;
+    color: #777;
+    font-size: 12px;
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #d7d7d7;
+    }
+  }
+
+  .google-login-button,
+  .apple-login-button {
+    height: 48px;
+    text-transform: none;
+    font-weight: 500;
+  }
+
+  .google-login-button {
+    --border-color: #d0d0d0;
+    --color: #222;
+    --background: #fff;
+  }
+
+  .apple-login-button {
+    margin-top: 10px;
+    --background: #000;
+    --background-activated: #222;
+    --color: #fff;
+  }
 }

@@ -15,17 +15,49 @@ export interface UserProfile {
 
 }
 
+export interface PublicUserProfile {
+  uid: string;
+  displayName: string;
+  photoURL: string;
+  bio?: string;
+  aiCreator?: boolean;
+}
+
+export interface FollowStatus {
+  following: boolean;
+}
+
 export type EditableUserProfile = Partial<Pick<UserProfile,
   'displayName' | 'nome' | 'cognome' | 'bio' | 'photoURL' | 'gender'>>;
+
+export type AgeRange = 'under_18' | '18_24' | '25_34' | '35_44' | '45_54' | '55_64' | '65_plus';
 
 export interface UserPreference {
   uid: string;
   color: string[];
   brend: string[];
   style: string[];
+  age?: number | null;
+  ageRange?: AgeRange | null;
 }
 
-export type OutfitPreferencePayload = Omit<UserPreference, 'uid'>;
+export interface SocialRegistrationStatus {
+  social: boolean;
+  provider: string | null;
+  profileExists: boolean;
+  profileComplete: boolean;
+  missingRequiredFields: Array<'gender' | 'terms'>;
+}
+
+export interface UserBootstrap {
+  profile: UserProfile;
+  terms: TermsStatus;
+  preferences: UserPreference | null;
+  preferencesConfigured: boolean;
+  registration?: SocialRegistrationStatus;
+}
+
+export type OutfitPreferencePayload = Pick<UserPreference, 'color' | 'brend' | 'style'>;
 
 export interface RegisterPayload {
   email: string;
@@ -37,6 +69,15 @@ export interface RegisterPayload {
   gender: 'U' | 'D';
   termsAccepted: boolean;
 }
+
+export interface CompleteRegistrationPayload {
+  nome?: string;
+  cognome?: string;
+  gender: 'U' | 'D';
+  termsAccepted: true;
+}
+
+export type SocialAuthenticationState = 'ready' | 'registration-required';
 
 export interface TermsStatus {
   accepted: boolean;

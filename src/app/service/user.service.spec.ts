@@ -37,6 +37,83 @@ describe('UserService REST contracts', () => {
 
   afterEach(() => http.verify());
 
+  it('gets and changes follow relationships using only the viewed uid', async () => {
+    const status = firstValueFrom(service.getFollowStatus('other/user'));
+    let request = http.expectOne(`${environment.BASE_API_URL}/gen/user-follows/other%2Fuser/status`);
+    expect(request.request.method).toBe('GET');
+    request.flush({ message: 'Success', data: { following: false } });
+    expect((await status).following).toBeFalse();
+
+    const follow = firstValueFrom(service.followUser('other/user'));
+    request = http.expectOne(`${environment.BASE_API_URL}/gen/user-follows/other%2Fuser`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({});
+    request.flush({
+      message: 'Success',
+      data: { id: 'relation-id', userId: 'me', followedUserId: 'other/user', createdAt: 123 }
+    });
+    await expectAsync(follow).toBeResolvedTo(undefined);
+
+    const unfollow = firstValueFrom(service.unfollowUser('other/user'));
+    request = http.expectOne(`${environment.BASE_API_URL}/gen/user-follows/other%2Fuser`);
+    expect(request.request.method).toBe('DELETE');
+    request.flush({ message: 'Success' });
+    await expectAsync(unfollow).toBeResolvedTo(undefined);
+  });
+
+  it('bootstraps profile, Terms and preferences with one request', async () => {
+    const bootstrapPromise = service.loadBootstrap();
+    const request = http.expectOne(`${environment.BASE_API_URL}/user/bootstrap`);
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      message: 'Success',
+      data: {
+        profile: {
+          uid: 'user-id', displayName: 'User', cognome: '', name: '', email: 'user@example.com',
+          password: '', photoURL: '', gender: 'U', createAt: 1
+        },
+        terms: { accepted: true, acceptedVersion: '1', currentVersion: '1' },
+        preferences: { uid: 'user-id', color: ['N'], brend: ['Z'], style: ['C'], ageRange: '35_44' },
+        preferencesConfigured: true
+      }
+    });
+
+    const bootstrap = await bootstrapPromise;
+    expect(bootstrap.preferencesConfigured).toBeTrue();
+    expect(service.gUserProfile()()?.uid).toBe('user-id');
+    expect(service.gUserPreference()()?.style).toEqual(['C']);
+    expect(service.gUserPreference()()?.ageRange).toBe('35_44');
+    expect(service.gPreferencesConfigured()()).toBeTrue();
+    expect(service.gTermsStatus()()?.accepted).toBeTrue();
+    expect(service.isBootstrapReady('user-id')).toBeTrue();
+  });
+
+  it('saves onboarding preferences using the existing endpoint', async () => {
+    const result = service.setUserPreference({
+      uid: 'user-id',
+      color: ['N'],
+      brend: ['Z'],
+      style: ['C'],
+      ageRange: '35_44'
+    });
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/user-preferences`);
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({
+      color: ['N'],
+      brend: ['Z'],
+      style: ['C'],
+      ageRange: '35_44'
+    });
+    request.flush({
+      message: 'Success',
+      data: { uid: 'user-id', color: ['N'], brend: ['Z'], style: ['C'], ageRange: '35_44' }
+    });
+
+    expect(await result).toBeTrue();
+    expect(service.gPreferencesConfigured()()).toBeTrue();
+    expect(service.gUserPreference()()?.ageRange).toBe('35_44');
+  });
+
   it('gets the versioned terms status', async () => {
     const result = firstValueFrom(service.getTermsStatus());
     const request = http.expectOne(`${environment.BASE_API_URL}/user/terms-status`);

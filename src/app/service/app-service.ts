@@ -3,14 +3,76 @@ import { DynamicFormField } from './interface/dynamic-form-field';
 import { lastValueFrom, Observable, throwError } from 'rxjs';
 import { catchError, map, retry, tap } from 'rxjs/operators';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { BlockedUser, OutfitPreferencePayload, UserProfile } from './interface/user-interface';
+import { BlockedUser, OutfitPreferencePayload, PublicUserProfile, UserProfile } from './interface/user-interface';
 import { EditableOutfit, OutfitFilterPayload, ReportPayload, WardrobePayload, outfit, wardrobesItem } from './interface/outfit-all-interface';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { FirebaseService } from './firebase.service';
+import { OutfitStyle } from './interface/outfit-style-interface';
 export interface ApiResponse<T> {
   message: string;
   data: T;
+}
+
+export interface OutfitColor {
+  id: string;
+  value: string;
+  parent: null;
+  hex: string;
+}
+
+export interface OutfitBrand {
+  id: string;
+  value: string;
+  parent: null;
+}
+
+export interface AppCatalogProduct {
+  id: string;
+  name: string;
+  brand: string;
+  brend: string;
+  outfitCategory: string;
+  outfitSubCategory: string;
+  color: string;
+  genderTargets: string[];
+  images: string[];
+  imageUrl: string;
+  price: number;
+  prezzo: number;
+  currency: string;
+  link: string;
+  affiliateProgramId: string;
+}
+
+export interface CatalogPagination {
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+export interface CatalogProductsResponse {
+  data: AppCatalogProduct[];
+  pagination: CatalogPagination;
+}
+
+export interface OutfitRecommendations {
+  mode: 'NEXT_DAY' | 'CURRENT_DAY' | 'DAYTIME_RANDOM';
+  targetDate: string;
+  targetWeekday: number;
+  title: string;
+  context: string;
+  outfits: outfit[];
+}
+
+export interface CatalogProductsFilters {
+  ids?: string[];
+  outfitCategory?: string[];
+  outfitSubCategory?: string[];
+  color?: string[];
+  brend?: string[];
+  gender?: string;
+  limit?: number;
+  cursor?: string;
 }
 
 export class ApiRequestError extends Error {
@@ -117,11 +179,58 @@ export class AppService {
   }
 
   getUserOutfits(): Observable<outfit[]> { return this.getAll<outfit>('user-outfits'); }
+  getOutfitRecommendations(gender: string): Observable<OutfitRecommendations> {
+    const params = new HttpParams().set('gender', gender);
+    return this.http.get<ApiResponse<OutfitRecommendations>>(`${this.apiFire}outfit-recommendations`, { params }).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    );
+  }
+  getOutfitStyles(): Observable<OutfitStyle[]> {
+    return this.http
+      .get<OutfitStyle[] | ApiResponse<OutfitStyle[]>>(`${this.apiFire}outfitStyles`)
+      .pipe(
+        map(response => Array.isArray(response) ? response : response.data),
+        catchError(this.handleError)
+      );
+  }
+
+  getOutfitColors(): Observable<OutfitColor[]> {
+    return this.http
+      .get<OutfitColor[] | ApiResponse<OutfitColor[]>>(`${this.apiFire}outfitColors`)
+      .pipe(
+        map(response => Array.isArray(response) ? response : response.data),
+        catchError(this.handleError)
+      );
+  }
+
+  getOutfitBrands(): Observable<OutfitBrand[]> {
+    return this.http
+      .get<OutfitBrand[] | ApiResponse<OutfitBrand[]>>(`${this.apiFire}outfitBrands`)
+      .pipe(
+        map(response => Array.isArray(response) ? response : response.data),
+        catchError(this.handleError)
+      );
+  }
   createOutfit(payload: EditableOutfit): Promise<outfit> { return lastValueFrom(this.http.post<ApiResponse<outfit>>(`${this.apiFire}outfits`, this.editableOutfitPayload(payload)).pipe(map(r => r.data), catchError(this.handleError))); }
   updateOutfit(id: string, payload: EditableOutfit): Promise<outfit> { return lastValueFrom(this.http.put<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`, this.editableOutfitPayload(payload)).pipe(map(r => r.data), catchError(this.handleError))); }
   deleteOutfit(id: string): Promise<boolean> { return lastValueFrom(this.http.delete<ApiResponse<unknown>>(`${this.apiFire}outfits/${encodeURIComponent(id)}`).pipe(map(() => true), catchError(this.handleError))); }
   recordOutfitVisit(id: string): Promise<outfit> { return lastValueFrom(this.http.post<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}/visit`, {}).pipe(map(r => r.data), catchError(this.handleError))); }
-  filterOutfitProducts(filters: { ids?: string[]; outfitCategory?: string[]; outfitSubCategory?: string[] }): Promise<any[]> { return lastValueFrom(this.http.post<ApiResponse<any[]>>(`${this.apiFire}filter-outfit-products`, filters).pipe(map(r => r.data), catchError(this.handleError))); }
+  getOutfitProduct(id: string): Promise<AppCatalogProduct> {
+    return lastValueFrom(this.http.get<ApiResponse<AppCatalogProduct>>(`${this.apiFire}outfit-products/${encodeURIComponent(id)}`).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    ));
+  }
+
+  getOutfitProducts(params: { limit?: number; cursor?: string; gender?: string } = {}): Promise<CatalogProductsResponse> {
+    let httpParams = new HttpParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') httpParams = httpParams.set(key, String(value));
+    });
+    return lastValueFrom(this.http.get<CatalogProductsResponse>(`${this.apiFire}outfit-products`, { params: httpParams }).pipe(catchError(this.handleError)));
+  }
+  filterOutfitProducts(filters: CatalogProductsFilters): Promise<CatalogProductsResponse> { return lastValueFrom(this.http.post<CatalogProductsResponse>(`${this.apiFire}filter-outfit-products`, filters).pipe(catchError(this.handleError))); }
   getWardrobes(): Observable<wardrobesItem[]> { return this.getAll<wardrobesItem>('wardrobes'); }
   getWardrobe(id: string): Promise<wardrobesItem> { return lastValueFrom(this.http.get<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes/${encodeURIComponent(id)}`).pipe(map(r => r.data), catchError(this.handleError))); }
   createWardrobe(data: WardrobePayload): Promise<wardrobesItem> { return lastValueFrom(this.http.post<ApiResponse<wardrobesItem>>(`${this.apiFire}wardrobes`, this.wardrobePayload(data, true)).pipe(map(r => r.data), catchError(this.handleError))); }
@@ -130,7 +239,8 @@ export class AppService {
   createReport(data: ReportPayload): Promise<unknown> { const payload: ReportPayload = { outFitId: data.outFitId, typeSegnaletion: data.typeSegnaletion, reason: data.reason }; return lastValueFrom(this.http.post<ApiResponse<unknown>>(`${this.apiFire}reports`, payload).pipe(map(r => r.data), catchError(this.handleError))); }
   getBlockedUsers(): Observable<BlockedUser[]> { return this.getAll<BlockedUser>('blocked-users'); }
   blockUser(uid: string): Promise<BlockedUser> { return lastValueFrom(this.http.post<ApiResponse<BlockedUser>>(`${this.apiFire}blocked-users/${encodeURIComponent(uid)}`, {}).pipe(map(r => r.data), catchError(this.handleError))); }
-  getPublicUserProfile(uid: string): Observable<UserProfile> { return this.http.get<ApiResponse<UserProfile>>(`${this.apiFire}public-user-profile/${encodeURIComponent(uid)}`).pipe(map(r => r.data), catchError(this.handleError)); }
+  getPublicUserProfile(uid: string): Observable<PublicUserProfile> { return this.http.get<ApiResponse<PublicUserProfile>>(`${this.apiFire}public-user-profile/${encodeURIComponent(uid)}`).pipe(map(r => r.data), catchError(this.handleError)); }
+  getPublicUserOutfits(uid: string): Observable<outfit[]> { return this.http.get<ApiResponse<outfit[]>>(`${this.apiFire}public-user-outfits/${encodeURIComponent(uid)}`).pipe(map(r => r.data), catchError(this.handleError)); }
 
    getFilteredOutfits(queryString:string,conditions: OutfitFilterPayload): Observable<outfit[]> {
     const completeApi = `${this.apiFire}filter-outfits?${queryString}`;
@@ -144,7 +254,8 @@ export class AppService {
       }).filter(category => Object.keys(category).length > 0),
       season: conditions.season ?? '',
       style: conditions.style ?? '',
-      ...(conditions.search?.trim() ? { search: conditions.search.trim() } : {})
+      ...(conditions.search?.trim() ? { search: conditions.search.trim() } : {}),
+      ...(conditions.catalogProductId ? { catalogProductId: conditions.catalogProductId } : {})
     };
     return this.http.post<ApiResponse<outfit[]>>(completeApi,payload).pipe(
       tap(() => console.info('Richiesta all’API effettuata con successo')),
@@ -206,7 +317,7 @@ export class AppService {
     return throwError(() => new ApiRequestError(userFriendlyMessage, error.status, error.error?.code, error.error?.categories));
   }
 
-  getUserProfilebyId(userUid: any): Observable<UserProfile> {
+  getUserProfilebyId(userUid: any): Observable<PublicUserProfile> {
     return this.getPublicUserProfile(userUid);
   }
   private editableOutfitPayload(data: EditableOutfit): EditableOutfit {
@@ -220,7 +331,7 @@ export class AppService {
   }
 
   private wardrobePayload(data: Partial<WardrobePayload>, normalizeMissingImages: boolean): Partial<WardrobePayload> {
-    const allowed = ['name', 'outfitCategory', 'outfitSubCategory', 'brend', 'color', 'images', 'imageUrl', 'ImageUrl', 'prezzo', 'link'] as const;
+    const allowed = ['name', 'outfitCategory', 'outfitSubCategory', 'brend', 'color', 'images', 'imageUrl', 'ImageUrl', 'prezzo', 'link', 'catalogProductId'] as const;
     const payload: any = {};
     allowed.forEach(field => {
       if (Object.prototype.hasOwnProperty.call(data, field) && data[field] !== undefined) payload[field] = data[field];

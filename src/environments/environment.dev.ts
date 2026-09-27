@@ -2,6 +2,9 @@ export const environment = {
     production:false,
     BASE_API_URL: 'https://us-central1-comemivesto-5e5f9.cloudfunctions.net/apiDev',
     useEmulators: false,
+    googleAuth: {
+        webClientId: '124990581718-s9ltha0qm8jcc75b93jchk216jb18kgs.apps.googleusercontent.com'
+    },
     firebase: {
         apiKey: "AIzaSyBNWYDp0fPgLU0npKMC0RoS6C14fHp2mpk",
         authDomain: "comemivesto-5e5f9.firebaseapp.com",

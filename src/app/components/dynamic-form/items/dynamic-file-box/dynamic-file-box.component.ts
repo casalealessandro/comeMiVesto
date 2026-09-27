@@ -38,6 +38,7 @@ export class DynamicFileBoxComponent implements AfterViewInit {
   format: string = '';
   openFullScreen: boolean = false;
   base64String: string | undefined;
+  private isCameraOpen = false;
 
   constructor(private alert: AlertController) {}
 
@@ -60,7 +61,10 @@ export class DynamicFileBoxComponent implements AfterViewInit {
   }
 
   async captureImage() {
-    const image = await Camera.getPhoto({
+    if (this.isCameraOpen) return;
+    this.isCameraOpen = true;
+    try {
+      const image = await Camera.getPhoto({
       quality: 50,
       allowEditing: false,
       resultType: CameraResultType.DataUrl,
@@ -99,7 +103,10 @@ export class DynamicFileBoxComponent implements AfterViewInit {
         imgName: this.fileName,
         contentType: contentType,
       };
-      this.eventFotoCaptured.emit(eventToEmit);
+        this.eventFotoCaptured.emit(eventToEmit);
+      }
+    } finally {
+      this.isCameraOpen = false;
     }
   }
 

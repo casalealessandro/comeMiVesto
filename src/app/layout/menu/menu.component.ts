@@ -28,7 +28,7 @@ export class MenuComponent {
 
     },
     {
-      link: 'notifiche', label: 'Notifiche', click: () => { }, icon: 'fi fi-rr-bell'
+      link: 'notifiche', label: 'Notifiche', click: () => { this.navNotifications() }, icon: 'fi fi-rr-bell'
     },
     {
       link: 'help', label: 'Aiuto', click: () => {  }, icon: 'fi fi-rr-interrogation'
@@ -47,6 +47,9 @@ export class MenuComponent {
 
   navUserProfile() {
     this.router.navigate(['/tabs/my-profile']).then(() => {this.closeMenu()});
+  }
+  navNotifications() {
+    this.router.navigate(['/tabs/notifications']).then(() => { this.closeMenu() });
   }
   closeMenu(){
     this.menuCtrl.close()

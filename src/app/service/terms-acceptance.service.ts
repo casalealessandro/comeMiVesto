@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AlertController, ModalController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { TermsConditionsPage } from '../views/terms-conditions/terms-conditions.page';
+import { TermsStatus } from './interface/user-interface';
 import { UserService } from './user.service';
 
 @Injectable({ providedIn: 'root' })
@@ -10,10 +11,10 @@ export class TermsAcceptanceService {
   private acceptedUserId?: string;
   constructor(private users: UserService, private modals: ModalController, private alerts: AlertController) {}
 
-  async allowAppAccess(userId?: string): Promise<TermsAccessDecision> {
+  async allowAppAccess(userId?: string, knownStatus?: TermsStatus): Promise<TermsAccessDecision> {
     if (userId && this.acceptedUserId === userId) return 'accepted';
     if (this.activeCheck) return this.activeCheck;
-    this.activeCheck = this.checkTerms(userId).catch(async () => {
+    this.activeCheck = this.checkTerms(userId, knownStatus).catch(async () => {
       const alert = await this.alerts.create({
         header: 'Verifica dei Termini non riuscita',
         message: 'Impossibile verificare l’accettazione dei Termini. Controlla la connessione e riprova.',
@@ -29,8 +30,8 @@ export class TermsAcceptanceService {
     }
   }
 
-  private async checkTerms(userId?: string): Promise<TermsAccessDecision> {
-    const status = await firstValueFrom(this.users.getTermsStatus());
+  private async checkTerms(userId?: string, knownStatus?: TermsStatus): Promise<TermsAccessDecision> {
+    const status = knownStatus ?? await firstValueFrom(this.users.getTermsStatus());
     if (status.accepted) {
       this.acceptedUserId = userId;
       return 'accepted';

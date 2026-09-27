@@ -2,38 +2,206 @@
   display: flex;
   gap: 24px;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
 
-  .outfit-detail {
-    &::after {
-      display: block;
-      content: "";
-      border: 0.5px solid #D9D9D9;
-      margin: 20px 0;
+  .outfit-hero {
+    width: 100%;
+    min-height: 260px;
+    max-height: 520px;
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    background-color: #F7F7F7;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: zoom-in;
+
+    ion-img {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      max-height: 520px;
+
+      &::part(image) {
+        object-fit: contain;
+      }
     }
   }
 
+  .outfit-info {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+
+    .outfit-title {
+      color: #000;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 24px;
+    }
+
+    .outfit-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      .outfit-chip {
+        height: 26px;
+        margin: 0;
+        padding: 0 10px;
+        border: 1px solid var(--outfit-hairline-border-color);
+        border-radius: 4px;
+        background: #fff;
+        color: #000;
+        font-size: 11px;
+        font-weight: 500;
+      }
+    }
+
+    .outfit-description {
+      color: var(--outfit-primary-text-color);
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 18px;
+    }
+
+    .outfit-stats {
+      display: flex;
+      gap: 16px;
+      color: var(--outfit-primary-text-color);
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 14px;
+    }
+  }
+
+  .section-title {
+    display: flex;
+    min-height: 20px;
+    align-items: center;
+    justify-content: space-between;
+
+    .section-title-text {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 19.5px;
+      text-align: left;
+      text-underline-position: from-font;
+      text-decoration-skip-ink: none;
+    }
+
+    .section-count {
+      color: var(--outfit-primary-text-color);
+      font-size: 12px;
+      font-weight: 400;
+    }
+  }
+
+  .outfit-detail {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+
+    &::after {
+      display: block;
+      content: "";
+      border: 1px solid var(--outfit-hairline-light-divider-color);
+      margin-top: 10px;
+    }
+  }
+
+  .outfit-empty {
+    padding: 14px 0 4px;
+    color: var(--outfit-primary-text-color);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 18px;
+  }
 
   .products-related {
     display: flex;
     gap: 10px;
     flex-direction: column;
-    .related-title {
-      height: 20px;
-      gap: 6px;
+    padding-bottom: 12px;
+  }
+}
 
-      .related-title-text {
-        font-size: 16px;
-        font-weight: 600;
-        line-height: 19.5px;
-        text-align: left;
-        text-underline-position: from-font;
-        text-decoration-skip-ink: none;
-      }
+
+.outfit-image-modal {
+  --width: 100%;
+  --height: 100%;
+  --border-radius: 0;
+}
+
+.outfit-image-preview {
+  --background: #000;
+  --overflow: hidden;
+  position: relative;
+
+  .image-preview-close {
+    position: fixed;
+    top: max(10px, env(safe-area-inset-top));
+    right: 10px;
+    z-index: 10;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    --padding-start: 0;
+    --padding-end: 0;
+    --color: #fff;
+    --background: rgba(0, 0, 0, 0.45);
+    --border-radius: 22px;
+
+    ion-icon {
+      font-size: 26px;
     }
+  }
 
+  .outfit-image-zoom {
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+  }
 
+  swiper-slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
 
+  .swiper-zoom-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
+    img {
+      display: block;
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  }
+
+  .image-preview-hint {
+    position: fixed;
+    left: 50%;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    z-index: 10;
+    transform: translateX(-50%);
+    max-width: calc(100% - 48px);
+    padding: 7px 12px;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 11px;
+    line-height: 14px;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
   }
 }

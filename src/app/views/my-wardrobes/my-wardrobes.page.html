@@ -9,7 +9,11 @@
   [showMenuBtn]="false"
   
   ></app-header>
-  <div class="main-content">
+  <div class="ion-text-center ion-padding" *ngIf="isLoading">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <div class="main-content" *ngIf="!isLoading">
     <div class="clothes-intro">
 
       <div class="clothes-intro-container">

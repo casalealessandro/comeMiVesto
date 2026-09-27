@@ -15,39 +15,52 @@ swiper-container {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  padding: 16px 20px 56px;
   text-align: center;
   background: var(--ion-color-light);
 
   img {
-    width: 80%;
-    max-width: 300px;
+    width: auto;
+    max-width: 88%;
+    max-height: 46vh;
     height: auto;
-    margin-bottom: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
     object-fit: contain;
   }
 
   h2 {
-    font-size: 24px;
+    font-size: 30px;
+    line-height: 1.1;
     font-weight: 700;
     color: var(--ion-color-primary);
-    margin-bottom: 1rem;
+    margin: 0 0 1rem;
   }
 
   p {
     font-size: 16px;
-    line-height: 1.5;
+    line-height: 1.45;
     color: var(--ion-color-medium);
-    margin-bottom: 2rem;
-    max-width: 80%;
+    margin: 0 0 1.5rem;
+    max-width: 420px;
   }
 
-  ion-button {
-    margin-top: 1rem;
+  ion-button:not(.skip-button) {
+    width: min(100%, 520px);
+    min-height: 52px;
+    margin: 0.5rem 0 0;
     --padding-start: 2rem;
     --padding-end: 2rem;
+    --border-radius: 10px;
+    --box-shadow: none;
+    text-transform: none;
+    font-size: 18px;
+  }
+
+  .skip-button {
+    margin-top: 0.25rem;
+    --color: var(--ion-color-dark);
+    text-decoration: underline;
+    text-transform: none;
   }
 }
 
@@ -55,17 +68,41 @@ swiper-container {
 ::ng-deep {
   .swiper-pagination {
     position: absolute;
-    bottom: 20px;
+    bottom: 14px;
     left: 0;
     right: 0;
     z-index: 10;
   }
 
   .swiper-pagination-bullet {
+    width: 9px;
+    height: 9px;
     background: var(--ion-color-primary);
-    opacity: 0.5;
+    opacity: 0.25;
+
     &-active {
       opacity: 1;
+    }
+  }
+}
+
+@media (max-height: 700px) {
+  .slide-content {
+    padding-top: 8px;
+
+    img {
+      max-height: 40vh;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 26px;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      font-size: 15px;
+      margin-bottom: 1rem;
     }
   }
 }

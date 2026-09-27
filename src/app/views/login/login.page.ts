@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
+import { Capacitor } from '@capacitor/core';
 import { browserLocalPersistence, browserSessionPersistence, sendPasswordResetEmail, setPersistence, signInWithEmailAndPassword } from 'firebase/auth';
 import { UserService } from 'src/app/service/user.service';
-import { firstValueFrom } from 'rxjs';
 import { FirebaseService } from 'src/app/service/firebase.service';
+import { SocialAuthService } from 'src/app/service/social-auth.service';
 
 export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
   if (!returnUrl || !returnUrl.startsWith('/tabs') || returnUrl.startsWith('//') || returnUrl.includes('://') || returnUrl.split(/[?#]/, 1)[0].split('/').includes('..')) return '/tabs/myoutfit';
@@ -17,21 +18,41 @@ export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
   email: string = '';
   password: string = '';
   showLogin:boolean=true;
   stayConnected:boolean=true;
   emailRecup:string=''
   recupPasswordError:string = 'Inserisci un email valida'
+  socialSubmitting = false;
+  readonly showGoogleLogin = Capacitor.getPlatform() !== 'web';
+  readonly showAppleLogin = Capacitor.getPlatform() === 'ios';
 
   constructor(
     private firebase: FirebaseService,
     private userService: UserService,
+    private socialAuthService: SocialAuthService,
     private alert:AlertController,
     private router :Router,
     private route: ActivatedRoute
   ) {}
+
+  ngOnInit(): void {
+    try {
+      const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+      if (hasSeenIntro !== 'true') {
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+
+        void this.router.navigate(['/intro'], {
+          queryParams: returnUrl ? { returnUrl } : undefined,
+          replaceUrl: true,
+        });
+      }
+    } catch (error) {
+      console.error('Error checking intro status:', error);
+    }
+  }
 
   async login() {
     try {
@@ -44,11 +65,11 @@ export class LoginPage {
         return;
       }
 
-      const uid = userCredential.user.uid;
-      const userData = await firstValueFrom(this.userService.getUserProfile(uid));
-      this.userService.setUserInfo(userData);
-      sessionStorage.setItem('userProfile',JSON.stringify(userData));
-      await this.router.navigateByUrl(getSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')));
+      await this.userService.completeAuthenticatedSession();
+      await this.router.navigateByUrl(
+        getSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
+        { replaceUrl: true }
+      );
     } catch (error) {
       console.error(error)
       this.alert.create(
@@ -58,6 +79,84 @@ export class LoginPage {
         buttons: ['Ok'],
         }
       ).then(alert => alert.present());
+    }
+  }
+
+  async loginWithGoogle(): Promise<void> {
+    if (this.socialSubmitting) return;
+
+    this.socialSubmitting = true;
+    try {
+      await this.socialAuthService.signInWithGoogle();
+      const state = await this.userService.resolveSocialAuthentication();
+
+      if (state === 'registration-required') {
+        await this.router.navigate(['/register'], {
+          queryParams: { social: 'google' },
+          replaceUrl: true,
+        });
+        return;
+      }
+
+      this.socialAuthService.clearPendingProfile();
+      await this.router.navigateByUrl(
+        getSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
+        { replaceUrl: true },
+      );
+    } catch (error: any) {
+      console.error('Google login failed', error);
+      const message = error?.message === 'GOOGLE_CLIENT_ID_NOT_CONFIGURED'
+        ? 'Login Google non ancora configurato per questa build.'
+        : error?.code === 'auth/account-exists-with-different-credential'
+          ? 'Esiste già un account con questa email. Accedi con il metodo usato in precedenza.'
+          : 'Impossibile accedere con Google. Riprova.';
+      const socialAlert = await this.alert.create({
+        header: 'Attenzione!',
+        message,
+        buttons: ['Ok'],
+      });
+      await socialAlert.present();
+    } finally {
+      this.socialSubmitting = false;
+    }
+  }
+
+  async loginWithApple(): Promise<void> {
+    if (this.socialSubmitting) return;
+
+    this.socialSubmitting = true;
+    try {
+      await this.socialAuthService.signInWithApple();
+      const state = await this.userService.resolveSocialAuthentication();
+
+      if (state === 'registration-required') {
+        await this.router.navigate(['/register'], {
+          queryParams: { social: 'apple' },
+          replaceUrl: true,
+        });
+        return;
+      }
+
+      this.socialAuthService.clearPendingProfile();
+      await this.router.navigateByUrl(
+        getSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
+        { replaceUrl: true },
+      );
+    } catch (error: any) {
+      if (error?.code === 'SIGN_IN_CANCELED') return;
+
+      console.error('Apple login failed', error);
+      const message = error?.code === 'auth/account-exists-with-different-credential'
+        ? 'Esiste già un account con questa email. Accedi con il metodo usato in precedenza.'
+        : 'Impossibile accedere con Apple. Riprova.';
+      const socialAlert = await this.alert.create({
+        header: 'Attenzione!',
+        message,
+        buttons: ['Ok'],
+      });
+      await socialAlert.present();
+    } finally {
+      this.socialSubmitting = false;
     }
   }
 

@@ -38,7 +38,15 @@
 
 <ion-content  class="ion-padding scroll-y"
 >
+  <div class="ion-text-center ion-padding" *ngIf="isLoading && products.length === 0">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
 
-  <app-products-grid [products]="products" (productsEvent)="saveToWardrobe($event)"></app-products-grid>
+  <app-products-grid *ngIf="!isLoading || products.length > 0" [products]="products" [openProductDetail]="!showHeader" (productsEvent)="saveToWardrobe($event)"></app-products-grid>
+  <ion-infinite-scroll *ngIf="!isLoading || products.length > 0" threshold="100px" (ionInfinite)="loadMoreProducts($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Caricamento prodotti...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
 </ion-content>
-

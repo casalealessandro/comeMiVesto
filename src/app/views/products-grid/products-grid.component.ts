@@ -1,8 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges, OnChanges } from '@angular/core';
 import { Browser } from '@capacitor/browser';
-import { AppService } from 'src/app/service/app-service';
+import { AppCatalogProduct } from 'src/app/service/app-service';
 import { CategoryService } from 'src/app/service/category.service';
-import { Tag } from 'src/app/service/interface/outfit-all-interface';
+import { Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
+import { Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -11,11 +12,13 @@ import { Tag } from 'src/app/service/interface/outfit-all-interface';
   styleUrls: ['./products-grid.component.scss'],
 })
 export class ProductsGridComponent implements  OnChanges {
-  @Input() products: Tag[] = [];
+  @Input() products: Array<Tag | AppCatalogProduct | wardrobesItem> = [];
   @Input() showRemoveBtn: boolean = false;
   @Input() showSaveBtn: boolean = true;
+  @Input() openProductDetail: boolean = false;
+  @Input() horizontalScroll: boolean = false;
   @Output() productsEvent = new EventEmitter<any>();
-  constructor(private categoryService:CategoryService) { }
+  constructor(private categoryService:CategoryService, private router: Router) { }
   
   categoryNames = new Map<any, string>();
 
@@ -45,12 +48,46 @@ export class ProductsGridComponent implements  OnChanges {
 
 
 
-  async buyToStore(itm: any) {
+  async buyToStore(evt: MouseEvent, itm: any) {
+    evt.stopImmediatePropagation();
+    evt.preventDefault();
     let link = !itm.link ? '#' : itm.link
 
     if (link != '#') {
       await Browser.open({ url: link });
     }
+  }
+
+  openProduct(evt: MouseEvent, product: Tag | AppCatalogProduct | wardrobesItem) {
+    if (!this.openProductDetail) {
+      this.saveToWardrobe(evt, product);
+      return;
+    }
+
+    evt.stopImmediatePropagation();
+    evt.preventDefault();
+
+    const catalogProductId = 'catalogProductId' in product && product.catalogProductId
+      ? product.catalogProductId
+      : 'affiliateProgramId' in product
+        ? String(product.id)
+        : '';
+
+    if (!catalogProductId) {
+      void this.buyToStore(evt, product);
+      return;
+    }
+
+    void this.router.navigate(['/tabs/product', catalogProductId]);
+  }
+
+  getProductPrice(product: Tag | AppCatalogProduct | wardrobesItem): number | undefined {
+    const price = 'price' in product ? product.price : undefined;
+    return price ?? product.prezzo;
+  }
+
+  hasStoreLink(product: Tag | AppCatalogProduct | wardrobesItem): boolean {
+    return Boolean(product.link && product.link !== '#');
   }
 
     /**

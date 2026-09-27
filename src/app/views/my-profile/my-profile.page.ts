@@ -1,5 +1,5 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, effect, OnInit } from '@angular/core';
-import { firstValueFrom, Observable } from 'rxjs';
+import { finalize, firstValueFrom, Observable } from 'rxjs';
 import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { UserService } from 'src/app/service/user.service';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { ApiRequestError, AppService } from 'src/app/service/app-service';
 import { SharedDataService } from 'src/app/service/shared-data.service';
 import { TermsAcceptanceService } from 'src/app/service/terms-acceptance.service';
+import { PreferencesOnboardingComponent } from 'src/app/components/preferences-onboarding/preferences-onboarding.component';
 @Component({
   standalone: false,
   selector: 'app-my-profile',
@@ -22,6 +23,7 @@ import { TermsAcceptanceService } from 'src/app/service/terms-acceptance.service
 export class MyProfilePage implements OnInit {
 
   outfitNumber: number = 0;
+  isLoading: boolean = true;
 
   userProfile$ = this.userProfileService.gUserProfile();
   userOutfits$!: Observable<outfit[]>;
@@ -61,6 +63,11 @@ export class MyProfilePage implements OnInit {
   ];
 
   selectedSegment = 'outfit'; // Valore predefinito
+  private isProfilePictureChanging = false;
+  private isEditProfileModalOpen = false;
+  private isPreferenceModalOpen = false;
+  private isEditOutfitModalOpen = false;
+  private deletionsInProgress = new Set<string>();
 
 
   constructor(
@@ -85,15 +92,19 @@ export class MyProfilePage implements OnInit {
   async ngOnInit() {
 
     //this.userProfile$ = this.userProfileService.getUserProfile();
-    this.userPreference = await this.userProfileService.getUserPreference();
+    this.userPreference = this.userProfileService.gUserPreference()();
 
 
 
     this.uid = this.userProfile$()?.uid;
 
-
-    await Promise.all([this.loadUserOutfits(), this.loadUserWardrobes(), this.loadFavoriteOutfits()]);
-    this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits();
+    this.isLoading = true;
+    try {
+      await Promise.all([this.loadUserOutfits(), this.loadUserWardrobes(), this.loadFavoriteOutfits()]);
+      this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits();
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   async loadUserOutfits(): Promise<void> {
@@ -130,7 +141,10 @@ export class MyProfilePage implements OnInit {
     }
   }
   async changeProfilePicture() {
-    const image = await Camera.getPhoto({
+    if (this.isProfilePictureChanging) return;
+    this.isProfilePictureChanging = true;
+    try {
+      const image = await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
       resultType: CameraResultType.DataUrl,
@@ -143,12 +157,22 @@ export class MyProfilePage implements OnInit {
     if (image && image.dataUrl) {
       this.userProfileService.updateProfilePicture(image.dataUrl)
         .then(() => console.log('Profile picture updated'))
-        .catch((error: ApiRequestError) => void this.presentProfileError(error, true));
+        .catch((error: ApiRequestError) => void this.presentProfileError(error, true))
+        .finally(() => this.isProfilePictureChanging = false);
+      return;
+      }
+      this.isProfilePictureChanging = false;
+    } catch (error) {
+      this.isProfilePictureChanging = false;
+      throw error;
     }
   }
 
   async editProfile() {
-    const modal = await this.modalController.create({
+    if (this.isEditProfileModalOpen) return;
+    this.isEditProfileModalOpen = true;
+    try {
+      const modal = await this.modalController.create({
       component: ModalFormComponent,
       componentProps: {
         service: 'profileForm',
@@ -188,42 +212,26 @@ export class MyProfilePage implements OnInit {
         //this.userProfile = profileData;
       }
     }, error: (error: ApiRequestError) => void this.presentProfileError(error) });
-
-
+    } finally {
+      this.isEditProfileModalOpen = false;
+    }
   }
 
   async editUserPreference() {
-    //usersPreferenceForm
-    console.log('editUserPreference', this.userPreference)
-    const modal = await this.modalController.create({
-      component: ModalFormComponent,
-      componentProps: {
-        service: 'usersPreferenceForm',
-        editData: this.userPreference
-      }
+    if (this.isPreferenceModalOpen) return;
+    this.isPreferenceModalOpen = true;
+    try {
+      const modal = await this.modalController.create({
+      component: PreferencesOnboardingComponent,
     });
     await modal.present();
 
-    const { data } = await modal.onDidDismiss();
-
-    let color = !data.color ? [] : data.color
-    let brend = !data.brend ? [] : data.brend
-    let style = !data.style ? [] : data.style
-    let profilePrefData: Partial<UserPreference> = {
-      uid: this.uid,
-      color: color,
-      brend: brend,
-      style: style
-
-    }
-    let isOk = await this.userProfileService.setUserPreference(profilePrefData)
-    if (isOk) {
-
-      this.alert.create({
-        header: 'Attenzione!',
-        message: `Preferenze aggiornate`,
-        buttons: ['Ok'],
-      })
+    const { role } = await modal.onDidDismiss();
+    if (role === 'complete') {
+        this.userPreference = this.userProfileService.gUserPreference()();
+      }
+    } finally {
+      this.isPreferenceModalOpen = false;
     }
   }
   async presentProfileError(error: ApiRequestError, picture = false): Promise<void> {
@@ -257,7 +265,10 @@ export class MyProfilePage implements OnInit {
   async openEditOutfit(outfitData: outfit) {
     //usersPreferenceForm
 
-    const modal = await this.modalController.create({
+    if (this.isEditOutfitModalOpen) return;
+    this.isEditOutfitModalOpen = true;
+    try {
+      const modal = await this.modalController.create({
       component: AddOutfitPage,
       componentProps: {
         isEditMode: true,
@@ -268,33 +279,74 @@ export class MyProfilePage implements OnInit {
     });
     await modal.present();
 
-    const { data } = await modal.onDidDismiss();
-
-
+      const { data } = await modal.onDidDismiss();
+    } finally {
+      this.isEditOutfitModalOpen = false;
+    }
   }
   async deleteOutfit(event: any, outfitData: outfit) {
 
     event.stopPropagation();
     event.preventDefault();
 
-    let res = await this.appService.deleteOutfit(String(outfitData.id))
+    const lockId = `outfit:${outfitData.id}`;
+    if (this.deletionsInProgress.has(lockId)) return;
+    this.deletionsInProgress.add(lockId);
+    try {
+      const confirmed = await this.confirmRemoval(
+      'Elimina outfit',
+      outfitData?.title
+        ? `Vuoi eliminare "${outfitData.title}"?`
+        : 'Vuoi eliminare questo outfit?',
+      'Elimina'
+    );
+    if (!confirmed) {
+        return;
+    }
 
+    const res = await this.appService.deleteOutfit(String(outfitData.id));
     if (res) {
-      await this.loadUserOutfits();
+        await this.loadUserOutfits();
+      }
+    } finally {
+      this.deletionsInProgress.delete(lockId);
     }
 
 
   }
 
-  async deletewardrobesitem(event: any, wardrobesItem: wardrobesItem) {
+  onWardrobeProductEvent(event: { name: string; data: wardrobesItem }): void {
+    if (event.name === 'removeProduct') {
+      void this.deletewardrobesitem(undefined, event.data);
+    }
+  }
 
-    event.stopPropagation();
-    event.preventDefault();
+  async deletewardrobesitem(event: any | undefined, wardrobesItem: wardrobesItem) {
 
-    let res = await this.appService.deleteWardrobe(String(wardrobesItem.id))
+    event?.stopPropagation();
+    event?.preventDefault();
 
+    const lockId = `wardrobe:${wardrobesItem.id}`;
+    if (this.deletionsInProgress.has(lockId)) return;
+    this.deletionsInProgress.add(lockId);
+    try {
+      const confirmed = await this.confirmRemoval(
+      'Rimuovi prodotto',
+      wardrobesItem?.name
+        ? `Vuoi rimuovere "${wardrobesItem.name}" dal tuo armadio?`
+        : 'Vuoi rimuovere questo prodotto dal tuo armadio?',
+      'Rimuovi'
+    );
+    if (!confirmed) {
+        return;
+    }
+
+    const res = await this.appService.deleteWardrobe(String(wardrobesItem.id));
     if (res) {
-      await this.loadUserWardrobes();
+        await this.loadUserWardrobes();
+      }
+    } finally {
+      this.deletionsInProgress.delete(lockId);
     }
 
 
@@ -304,28 +356,49 @@ export class MyProfilePage implements OnInit {
     event.stopPropagation();
     event.preventDefault();
 
-    this.userProfileService.delFaveUserOutfits(faveItem.outfitId).subscribe(res => {
+    const lockId = `favorite:${faveItem.outfitId}`;
+    if (this.deletionsInProgress.has(lockId)) return;
+    this.deletionsInProgress.add(lockId);
+    let confirmed: boolean;
+    try {
+      confirmed = await this.confirmRemoval(
+      'Rimuovi dai desiderati',
+      faveItem?.title
+        ? `Vuoi rimuovere "${faveItem.title}" dai desiderati?`
+        : 'Vuoi rimuovere questo outfit dai desiderati?',
+      'Rimuovi'
+    );
+    } catch (error) {
+      this.deletionsInProgress.delete(lockId);
+      throw error;
+    }
+    if (!confirmed) {
+      this.deletionsInProgress.delete(lockId);
+      return;
+    }
+
+    this.userProfileService.delFaveUserOutfits(faveItem.outfitId)
+    .pipe(finalize(() => this.deletionsInProgress.delete(lockId)))
+    .subscribe(res => {
       if (res) {
         this.segmentButtons[2].number = res.length;
-        this.alert.create({
-          header: 'Attenzione!',
-          message: `Outfiti preferiti aggiornati`,
-          buttons: ['Ok'],
-        })
       }
-    })
-    /* 
-        if (res) {
-         this.faveUserOutfits$ = this.userProfileService.getFaveUserOutfits(this.uid);
-         this.faveUserOutfits$.subscribe(async faveUserOutfits => {
-          this.faveUserOutfitsNumber = faveUserOutfits.length;
-          this.segmentButtons[2].number =this.faveUserOutfitsNumber 
-          this.faveUserOutfits = faveUserOutfits;
-          console.log(this.faveUserOutfits)
-        }) 
-        }*/
+    });
+  }
 
+  private async confirmRemoval(header: string, message: string, confirmText: string): Promise<boolean> {
+    const alert = await this.alert.create({
+      header,
+      message,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        { text: confirmText, role: 'confirm' }
+      ]
+    });
 
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    return role === 'confirm';
   }
 
 

@@ -33,9 +33,16 @@ export class DynamicSelectBoxComponent implements OnChanges, OnInit {
   formService=inject(AppService)
   selectedValue!: string | string[];
   multiple: boolean= false;
+  multiSelectInterfaceOptions = {
+    cssClass: 'cmv-multiselect-modal',
+    initialBreakpoint: 0.8,
+    breakpoints: [0, 0.8, 1],
+    handle: true
+  };
   noCustom: boolean = true;
   noCustomOptions:any[]=[];
   isRemote:boolean=false;
+  private isCustomSelectOpen = false;
   ngOnInit(): void {
     this.initializeOptions();
   }
@@ -91,7 +98,10 @@ export class DynamicSelectBoxComponent implements OnChanges, OnInit {
   }
 
   async openCustomSelect() {
-    const modal = await this.modalController.create({
+    if (this.isCustomSelectOpen) return;
+    this.isCustomSelectOpen = true;
+    try {
+      const modal = await this.modalController.create({
       component: ModalListComponent,
       /* componentProps: {
         selectedValues: this.selectedValues,
@@ -102,8 +112,11 @@ export class DynamicSelectBoxComponent implements OnChanges, OnInit {
     await modal.present();
 
     const { data } = await modal.onWillDismiss();
-    if (data) {
+      if (data) {
       //this.selectedValues = data;
+      }
+    } finally {
+      this.isCustomSelectOpen = false;
     }
   }
 

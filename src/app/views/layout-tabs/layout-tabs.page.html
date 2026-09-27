@@ -7,9 +7,9 @@
 <ion-tabs class="app-layout-tabs" id="main-content" (ionTabsWillChange)="onTabWillChange()" (ionTabsDidChange)="onTabChange($event)">
   <app-header slot="top"></app-header>
   <ion-tab-bar
-    style="padding-bottom: 0px !important"
     slot="bottom"
     class="outfit-bottom-bar"
+    [class.outfit-bottom-bar-hidden]="hideBottomBar"
     [translucent]="true"
   >
     <div class="toolbar-container">
@@ -34,6 +34,7 @@
             <ion-ripple-effect></ion-ripple-effect>
             <span class="fi fi-rr-plus"></span>
           </ion-tab-button>
+          <span class="center-tab-text">Crea outfit</span>
         </div>
       </div>
       <div class="button-block">

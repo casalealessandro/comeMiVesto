@@ -1,7 +1,6 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { UserService } from './service/user.service';
-import { firstValueFrom } from 'rxjs';
 import { TermsAcceptanceService } from './service/terms-acceptance.service';
 import { FirebaseService } from './service/firebase.service';
 
@@ -28,22 +27,62 @@ export const authGuard: CanActivateFn = async (route, state) => {
       return loginRedirect();
     }
 
-    // Recuperiamo il profilo utente solo se non è già caricato
-    const currentProfile = userService.gUserProfile()();
-    if (currentProfile?.uid !== user.uid) {
+    // Inizializziamo una sola volta lo stato applicativo dell'utente
+    if (!userService.isBootstrapReady(user.uid)) {
       try {
-        const profile = await firstValueFrom(userService.getUserProfile(user.uid));
-        userService.setUserInfo(profile); // Salviamo il profilo nel service
+        await userService.loadBootstrap();
       } catch (error) {
-        console.error('Errore nel recupero del profilo utente:', error);
+        console.error('Errore nel bootstrap della sessione utente:', error);
         return false;
       }
     }
 
-    const decision = await termsAcceptance.allowAppAccess(user.uid);
+    const registration = userService.gRegistrationStatus()();
+    if (registration?.social && !registration.profileComplete) {
+      return router.createUrlTree(['/register'], {
+        queryParams: {
+          social: registration.provider === 'google.com' ? 'google' : registration.provider === 'apple.com' ? 'apple' : 'social',
+          returnUrl: state.url,
+        },
+      });
+    }
+
+    const decision = await termsAcceptance.allowAppAccess(user.uid, userService.gTermsStatus()() ?? undefined);
     return decision === 'accepted' ? true : decision === 'declined' ? loginRedirect() : false;
   } catch (error) {
     console.error('Errore nella verifica dello stato di autenticazione:', error);
     return loginRedirect();
+  }
+};
+
+
+export const guestGuard: CanActivateFn = async (route) => {
+  const firebase = inject(FirebaseService);
+  const userService = inject(UserService);
+  const router = inject(Router);
+
+  try {
+    const user = await firebase.waitForAuthState();
+    if (!user) {
+      return true;
+    }
+
+    const token = await user.getIdToken();
+    if (!token) return true;
+
+    if (route.routeConfig?.path === 'register' && route.queryParamMap.get('social')) {
+      if (!userService.isBootstrapReady(user.uid)) {
+        await userService.loadBootstrap();
+      }
+      const registration = userService.gRegistrationStatus()();
+      if (registration?.social && !registration.profileComplete) {
+        return true;
+      }
+    }
+
+    return router.createUrlTree(['/tabs/myoutfit']);
+  } catch (error) {
+    console.error('Errore nella verifica della sessione guest:', error);
+    return true;
   }
 };

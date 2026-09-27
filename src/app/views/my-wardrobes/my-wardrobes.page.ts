@@ -1,12 +1,12 @@
 import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
 import { FirebaseService } from 'src/app/service/firebase.service';
-import { ModalController } from '@ionic/angular';
+import { AlertController, ModalController } from '@ionic/angular';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
 import { AppService } from 'src/app/service/app-service';
 import { categoryCloth, outfitCategories, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
 import { ProdottiOnlinePage } from '../prodotti-online/prodotti-online.page';
 import { Browser } from '@capacitor/browser';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { UserProfile } from 'firebase/auth';
 import { UserService } from 'src/app/service/user.service';
 import { Router } from '@angular/router';
@@ -32,29 +32,47 @@ export class MyWardrobesPage implements OnInit {
   categoryCloth: outfitCategories[] = [];
   subCategoryCloth: outfitCategories[] = [];
   openModal: any = null
+  isLoading: boolean = true;
+  private isAddClothModalOpen = false;
+  private isSearchClothModalOpen = false;
+  private wardrobeDeletionsInProgress = new Set<string>();
   
-  constructor(private appService: AppService, private firebase: FirebaseService, private modalController: ModalController, private userProfileService: UserService, private router: Router) { }
+  constructor(
+    private appService: AppService,
+    private firebase: FirebaseService,
+    private modalController: ModalController,
+    private userProfileService: UserService,
+    private router: Router,
+    private alertController: AlertController
+  ) { }
 
   ngOnInit() {
 
 
     this.firebase.authState.subscribe(async user => {
-      if (user) {
+      if (!user) {
+        this.isLoading = false;
+        return;
+      }
+
+      this.isLoading = true;
+      try {
         console.log('user', user)
         this.userID = user.uid;
 
         this.categoryCloth = await this.appService.getData('outfitCategories', '')
         this.userWardrobes$ = this.userProfileService.getUserWardrobes();
 
-        this.groupItemsByCategory();
+        await this.groupItemsByCategory();
 
         this.openModal = await this.modalController.getTop();
-
+      } finally {
+        this.isLoading = false;
       }
     });
   }
 
-  async groupItemsByCategory() {
+  async groupItemsByCategory(): Promise<void> {
 
     let filter = [{
       field: 'userId',
@@ -62,42 +80,38 @@ export class MyWardrobesPage implements OnInit {
       value: this.userID
     }]
 
-    this.userWardrobes$.subscribe(dataR => {
+    const dataR = await firstValueFrom(this.userWardrobes$);
 
+    this.wardrobesGrupped = this.categoryCloth;
 
+    const groupedItems = dataR.reduce((result: any[], item: wardrobesItem) => {
+      const category = item.outfitCategory;
 
+      // Filtrare la categoria corrispondente dal tuo array `categoryCloth`
+      const filter = this.categoryCloth.find(ress => ress.id == category);
+      const subCategores = this.categoryCloth.filter(res => res.parentCategory == category);
 
-      this.wardrobesGrupped = this.categoryCloth;
+      // Trova l'oggetto della categoria esistente o crea un nuovo oggetto
+      let categoryObject = result.find(cat => cat.wardrobesCategory === (filter ? filter.categoryName : '-'));
 
-      const groupedItems = dataR.reduce((result: any[], item: wardrobesItem) => {
-        const category = item.outfitCategory;
+      if (!categoryObject) {
+        categoryObject = {
+          wardrobesCategory: filter ? filter.categoryName : '-',
+          outfitCategoryID: filter?.id,
+          wardrobesSubCategory: subCategores.map(reM => reM.categoryName).join(','),
+          items: []
+        };
+        result.push(categoryObject);
+      }
 
-        // Filtrare la categoria corrispondente dal tuo array `categoryCloth`
-        const filter = this.categoryCloth.find(ress => ress.id == category);
-        const subCategores = this.categoryCloth.filter(res => res.parentCategory == category);
+      // Aggiungere l'outfit alla categoria corretta
+      categoryObject.items.push(item);
 
-        // Trova l'oggetto della categoria esistente o crea un nuovo oggetto
-        let categoryObject = result.find(cat => cat.wardrobesCategory === (filter ? filter.categoryName : '-'));
+      return result;
+    }, []);
 
-        if (!categoryObject) {
-          categoryObject = {
-            wardrobesCategory: filter ? filter.categoryName : '-',
-            outfitCategoryID: filter?.id,
-            wardrobesSubCategory: subCategores.map(reM => reM.categoryName).join(','),
-            items: []
-          };
-          result.push(categoryObject);
-        }
-
-        // Aggiungere l'outfit alla categoria corretta
-        categoryObject.items.push(item);
-
-        return result;
-      }, []);
-
-      this.wardrobesItems.set(groupedItems); // Aggiorna il segnale con il nuovo array
-      this.userWardrobes = [...groupedItems]
-    })
+    this.wardrobesItems.set(groupedItems); // Aggiorna il segnale con il nuovo array
+    this.userWardrobes = [...groupedItems]
   }
 
 
@@ -108,15 +122,41 @@ export class MyWardrobesPage implements OnInit {
   }
 
   async deleteItemWadro(item: any) {
-    let res = await this.appService.deleteWardrobe(String(item.id))
+    const itemId = String(item.id);
+    if (this.wardrobeDeletionsInProgress.has(itemId)) return;
+    this.wardrobeDeletionsInProgress.add(itemId);
+    try {
+      const alert = await this.alertController.create({
+      header: 'Rimuovi prodotto',
+      message: item?.name
+        ? `Vuoi rimuovere "${item.name}" dal tuo armadio?`
+        : 'Vuoi rimuovere questo prodotto dal tuo armadio?',
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        { text: 'Rimuovi', role: 'confirm' }
+      ]
+    });
 
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'confirm') {
+        return;
+    }
+
+    const res = await this.appService.deleteWardrobe(String(item.id));
     if (res) {
-      this.groupItemsByCategory();
+        await this.groupItemsByCategory();
+      }
+    } finally {
+      this.wardrobeDeletionsInProgress.delete(itemId);
     }
   }
 
   async addClothModal() {
-    const modal = await this.modalController.create({
+    if (this.isAddClothModalOpen) return;
+    this.isAddClothModalOpen = true;
+    try {
+      const modal = await this.modalController.create({
       component: ModalFormComponent,
       componentProps: {
         service: 'tagForm',
@@ -168,11 +208,18 @@ export class MyWardrobesPage implements OnInit {
 
 
     }
-    return data
+      return data
+    } finally {
+      this.isAddClothModalOpen = false;
+    }
   }
 
   async searchClothModal() {
-    const modal = await this.modalController.create({
+    if (this.isSearchClothModalOpen) return;
+    this.isSearchClothModalOpen = true;
+    try {
+      const parentModal = this.showheader ? await this.modalController.getTop() : null;
+      const modal = await this.modalController.create({
       component: ProdottiOnlinePage,
       componentProps: {
         showHeader: true,
@@ -182,46 +229,21 @@ export class MyWardrobesPage implements OnInit {
     });
     await modal.present();
 
-    const { data } = await modal.onDidDismiss();
-    if (!data) {
+    const { data, role } = await modal.onDidDismiss();
+    if (role !== 'selected' || !data) {
       return
     }
-    const dataP = data.data;
-    const categoryID = dataP.outfitCategory;
-    const subCategoryID = dataP.outfitSubCategory;
-    const link = !dataP.link ? '#' : dataP.link
 
-    const id = this.generateGUID();
-
-    let saveData = {
-      brend: dataP.brend,
-      images: Array.isArray(dataP.images) ? dataP.images : dataP.imageUrl ? [dataP.imageUrl] : [],
-      imageUrl: dataP.imageUrl,
-      name: dataP.name,
-      outfitCategory: categoryID,
-      outfitSubCategory: subCategoryID,
-      color: dataP.color,
-      prezzo: parseInt(dataP.price, 10),
-      link: link
+    await this.groupItemsByCategory();
+    if (parentModal) {
+      await parentModal.dismiss(data);
+    } else {
+      this.selectedItem.emit(data);
     }
-
-    let resSave = await this.appService.createWardrobe(saveData)
-    if (resSave) {
-
-      this.groupItemsByCategory();
-
-      //Mando i dati on uscita
-      const modal = await this.modalController.getTop();
-      if (modal) {
-        this.modalController.dismiss(saveData)
-      } else {
-        this.selectedItem.emit(saveData);
-      }
-
-
-
+      return data
+    } finally {
+      this.isSearchClothModalOpen = false;
     }
-    return data
   }
 
   generateGUID(): any {

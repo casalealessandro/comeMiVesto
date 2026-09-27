@@ -6,6 +6,7 @@ import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.com
 import { AlertController, ModalController } from '@ionic/angular';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { MyWardrobesPage } from '../my-wardrobes/my-wardrobes.page';
+import { Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -37,7 +38,10 @@ export class FotoOutfitPage implements OnInit {
   format: string = '';
   openFullScreen:boolean=false
   showTooltip = signal(false);
-  constructor(private modalController: ModalController,private alert:AlertController) { }
+  private tagHelperTimeout:any;
+  private isCameraOpen = false;
+  private isWardrobeModalOpen = false;
+  constructor(private modalController: ModalController, private alert:AlertController, private router: Router) { }
 
 
   ngOnInit(): void {
@@ -81,12 +85,15 @@ export class FotoOutfitPage implements OnInit {
 
 
   async captureImage() {
+    if (this.isCameraOpen) return;
+    this.isCameraOpen = true;
+    try {
     if (this.tags.length > 0 && typeof this.image !== 'undefined') {
       let respo = await this.confirmChangeFoto();
       if (!respo) {
         return;
       }
-    }
+      }
   
     const image = await Camera.getPhoto({
       quality: 90,
@@ -101,7 +108,6 @@ export class FotoOutfitPage implements OnInit {
     if (image && image.dataUrl) {  // Aggiungi un controllo per verificare che dataUrl non sia undefined
       const maxWidth = 1080; // Larghezza massima per i post verticali tipo Instagram
       const maxHeight = 1350; // Altezza massima per i post verticali tipo Instagram
-      this.showTooltip.set(true);
       // Ridimensionamento dell'immagine
       const resizedImage = await this.resizeImage(image.dataUrl, maxWidth, maxHeight);
   
@@ -120,6 +126,7 @@ export class FotoOutfitPage implements OnInit {
       });
       */
       this.image = resizedImage.dataUrl;
+      this.showTagHelper();
   
       let eventToEmit = {
         img: this.dataURLtoBlob(this.image),
@@ -128,11 +135,21 @@ export class FotoOutfitPage implements OnInit {
       };
       this.eventFotoCaptured.emit(eventToEmit);
 
-     
-
-      // Nasconde il tooltip dopo 3 secondi
-      setTimeout(() => this.showTooltip.set(false), 5500)
+      }
+    } finally {
+      this.isCameraOpen = false;
     }
+  }
+
+  showTagHelper() {
+    if (this.tagHelperTimeout) {
+      clearTimeout(this.tagHelperTimeout);
+    }
+
+    this.showTooltip.set(true);
+    this.tagHelperTimeout = setTimeout(() => {
+      this.showTooltip.set(false);
+    }, 30000);
   }
   
   
@@ -217,6 +234,11 @@ export class FotoOutfitPage implements OnInit {
       return
     }
 
+    if (this.tagHelperTimeout) {
+      clearTimeout(this.tagHelperTimeout);
+    }
+    this.showTooltip.set(false);
+
     let name = ''
     let link = ''
 
@@ -235,6 +257,7 @@ export class FotoOutfitPage implements OnInit {
       this.tags.push(
         {
           id: id,
+          catalogProductId: result.catalogProductId,
           name: result.name,
           x: x,
           y: y,
@@ -292,7 +315,10 @@ export class FotoOutfitPage implements OnInit {
   }
 
   async openModal(): Promise<{}> {
-    const modal = await this.modalController.create({
+    if (this.isWardrobeModalOpen) return {};
+    this.isWardrobeModalOpen = true;
+    try {
+      const modal = await this.modalController.create({
       component: MyWardrobesPage,
       componentProps: {
         showheader: true
@@ -304,10 +330,17 @@ export class FotoOutfitPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     console.log('Modal data:', data);
 
-    return data
+      return data
+    } finally {
+      this.isWardrobeModalOpen = false;
+    }
   }
 
   async openItmClothing(tag: Tag) {
+    if (tag.catalogProductId) {
+      await this.router.navigate(['/tabs/product', tag.catalogProductId]);
+      return;
+    }
 
     let link = !tag.link ? '#' : tag.link
 

@@ -3,17 +3,18 @@ import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.com
 import { AlertController, ModalController, NavController, RefresherEventDetail } from '@ionic/angular';
 
 
-import { AppService } from 'src/app/service/app-service';
-import { buttons, filterItmClothing, outfit, OutfitFilterPayload, ReportReason, ReportType, seasons, Tag } from 'src/app/service/interface/outfit-all-interface';
+import { AppCatalogProduct, AppService, CatalogProductsResponse } from 'src/app/service/app-service';
+import { buttons, filterItmClothing, outfit, OutfitFilterPayload, ReportReason, ReportType, seasons, style, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom, lastValueFrom, Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
-import { OutfitPreferencePayload, UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
+import { finalize, take } from 'rxjs/operators';
+import { OutfitPreferencePayload, PublicUserProfile, UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { FilterOutfitsPage } from '../filter-outfits/filter-outfits.page';
 import { IonRefresherCustomEvent } from '@ionic/core';
 import { DetailOutfitPage } from '../detail-outfit/detail-outfit.page';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { SocialSharing } from 'src/app/service/social-sharing.service';
 import { CategoryService } from 'src/app/service/category.service';
 
@@ -34,13 +35,23 @@ export class MyOutFitPage implements OnDestroy {
   cUserInfo: any  = this.userProfileService.gUserProfile();
   favorites: Set<string> = new Set();
   currentUserProfile$!: Observable<UserProfile | null>;
-  outfitUserProfile$!: Observable<UserProfile>;
-  outfitUserProfile!: UserProfile[];
+  outfitUserProfile$!: Observable<PublicUserProfile>;
+  outfitUserProfile!: PublicUserProfile[];
   cUserPreference: UserPreference | null = null;
   isOutfitCompositionOpen: boolean = false;
+  private isFilterModalOpen = false;
+  private isOutfitMenuOpen = false;
+  private favoriteActionsInProgress = new Set<string>();
+  private shareActionsInProgress = new Set<string>();
   filtersData: OutfitFilterPayload = { categories: [], season: '', style: '' };
   searchText = '';
+  suggestedProducts: AppCatalogProduct[] = [];
+  isSuggestedProductsLoading = false;
+  recommendedOutfits: outfit[] = [];
+  recommendationTitle = '';
+  recommendationContext = '';
   private searchDebounce?: ReturnType<typeof setTimeout>;
+  private productFilterFromDetailActive = false;
 
   isFiltersSel: boolean = false
   backgroundImage: any = "url(assets/fallback-image.jpg);";
@@ -50,14 +61,14 @@ export class MyOutFitPage implements OnDestroy {
       value: 'outfit',
       contentId: 'outfit',
       icon: 'fi fi-rs-hourglass-end',
-      label: 'Ultimi outifit',
+      label: 'Ultimi outfit',
 
     },
     {
       value: 'suggeriti',
       contentId: 'suggeriti',
       icon: 'fi fi-rs-rocket-lunch',
-      label: 'Suggeriti',
+      label: 'Per te',
 
     },
 
@@ -66,6 +77,8 @@ export class MyOutFitPage implements OnDestroy {
   selectedSegment = 'outfit'; // Valore predefinito
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
+    private location: Location,
     private appService: AppService,
     private userProfileService: UserService,
     private modalController: ModalController,
@@ -82,6 +95,7 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async refreshOutfitsFromServer(): Promise<void> {
+    this.clearConsumedProductFilter();
     this.isLoading = true;
     this.filteredOutfits = [];
 
@@ -98,6 +112,7 @@ export class MyOutFitPage implements OnDestroy {
       const outfits = await firstValueFrom(this.appService.getAll<outfit>('outfitsList', queryString));
       this.outfits = outfits ?? [];
       await this.loadOutfits();
+      await this.applyProductFilterFromRoute();
     } catch (err) {
       console.error('Errore durante il caricamento degli outfit:', err);
       this.filteredOutfits = [];
@@ -106,6 +121,40 @@ export class MyOutFitPage implements OnDestroy {
       requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
     }
 
+  }
+
+  private async applyProductFilterFromRoute(): Promise<void> {
+    const queryParams = this.route.snapshot.queryParamMap;
+    if (queryParams.get('source') !== 'product') return;
+
+    const outfitCategory = queryParams.get('outfitCategory') || undefined;
+    const outfitSubCategory = queryParams.get('outfitSubCategory') || undefined;
+    const color = queryParams.get('color') || undefined;
+
+    if (!outfitCategory && !outfitSubCategory && !color) return;
+
+    this.filtersData = {
+      categories: [{ outfitCategory, outfitSubCategory, color }],
+      season: '',
+      style: ''
+    };
+    this.searchText = '';
+    this.productFilterFromDetailActive = true;
+    await this.applyOutfitFilters();
+
+    // Il filtro proveniente dal dettaglio prodotto vale solo per questa visita.
+    // Pulisco la URL senza creare una nuova navigazione, così non viene riapplicato
+    // quando l'utente lascia MyOutfit e poi ci ritorna.
+    this.location.replaceState(this.router.url.split('?')[0]);
+  }
+
+  private clearConsumedProductFilter(): void {
+    const isProductNavigation = this.route.snapshot.queryParamMap.get('source') === 'product';
+    if (isProductNavigation || !this.productFilterFromDetailActive) return;
+
+    this.filtersData = { categories: [], season: '', style: '' };
+    this.searchText = '';
+    this.productFilterFromDetailActive = false;
   }
 
   private async getReadyUserProfile(): Promise<UserProfile | null> {
@@ -143,7 +192,7 @@ export class MyOutFitPage implements OnDestroy {
 
 
       this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
-      this.outfitUserProfile$.pipe(take(1)).subscribe((outfitUserProfile: UserProfile) => {
+      this.outfitUserProfile$.pipe(take(1)).subscribe((outfitUserProfile: PublicUserProfile) => {
 
         this.outfitUserProfile[rr.userId] = outfitUserProfile
       })
@@ -158,6 +207,9 @@ export class MyOutFitPage implements OnDestroy {
    } */
 
   async openFilterModal() {
+    if (this.isFilterModalOpen) return;
+    this.isFilterModalOpen = true;
+    try {
     this.isFiltersSel = false
     const modal = await this.modalController.create({
       component: FilterOutfitsPage,
@@ -180,7 +232,10 @@ export class MyOutFitPage implements OnDestroy {
       season: data.season ?? '',
       style: data.style ?? ''
     };
-    await this.applyOutfitFilters();
+      await this.applyOutfitFilters();
+    } finally {
+      this.isFilterModalOpen = false;
+    }
 
   }
 
@@ -197,6 +252,26 @@ export class MyOutFitPage implements OnDestroy {
       style: this.filtersData.style ?? '',
       ...(this.searchText.trim() ? { search: this.searchText.trim() } : {})
     };
+  }
+
+  getOutfitMeta(item: outfit): string {
+    const meta: string[] = [];
+
+    if (item.tags?.length) {
+      meta.push(`${item.tags.length} ${item.tags.length === 1 ? 'capo' : 'capi'}`);
+    }
+
+    const styleLabel = style.find(styleItem => styleItem.id === item.style)?.value;
+    if (styleLabel) {
+      meta.push(styleLabel);
+    }
+
+    const seasonLabel = seasons.find(seasonItem => seasonItem.id === item.season)?.value;
+    if (seasonLabel) {
+      meta.push(seasonLabel);
+    }
+
+    return meta.join(' · ');
   }
 
   async applyOutfitFilters(): Promise<void> {
@@ -316,7 +391,8 @@ export class MyOutFitPage implements OnDestroy {
     // Imposta la variabile a true quando il modale viene aperto
     this.isOutfitCompositionOpen = true;
 
-    const modal = await this.modalController.create({
+    try {
+      const modal = await this.modalController.create({
       component: ModalListComponent,
       componentProps: {
         items: tags, // Array degli elementi da visualizzare
@@ -341,7 +417,6 @@ export class MyOutFitPage implements OnDestroy {
 
     const { data } = await modal.onDidDismiss();
     console.log('Modal data:', data);
-    this.isOutfitCompositionOpen = false
     let nameEv = data.name;
     let item = data.item;
     let category = !item.outfitCategory ? '' : item.outfitCategory
@@ -353,8 +428,13 @@ export class MyOutFitPage implements OnDestroy {
           name: item.name,
           outfitCategory: category,
           outfitSubCategory: subCategory,
-          brend: '',
-          images: []
+          brend: item.brend || '',
+          color: item.color,
+          images: Array.isArray(item.images) ? item.images : item.imageUrl ? [item.imageUrl] : [],
+          imageUrl: item.imageUrl,
+          prezzo: item.prezzo ?? item.price,
+          link: item.link,
+          catalogProductId: item.catalogProductId
 
         }
         let res = await this.appService.createWardrobe(data)
@@ -368,22 +448,25 @@ export class MyOutFitPage implements OnDestroy {
 
           await alert.present();
         }
-        break;
+          break;
 
       default:
-        break;
+          break;
+      }
+    } finally {
+      this.isOutfitCompositionOpen = false;
     }
   }
 
 
   async loadOutfits(): Promise<void> {
-    this.cUserPreference = await this.userProfileService.getUserPreference();
+    this.cUserPreference = this.userProfileService.gUserPreference()();
     this.filteredOutfits = JSON.parse(JSON.stringify(this.outfits));
     this.outfitUserProfile = [];
     await this.heartIcon();
     this.outfits.forEach(rr => {
       this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
-      this.outfitUserProfile$.pipe(take(1)).subscribe((profile: UserProfile) => {
+      this.outfitUserProfile$.pipe(take(1)).subscribe((profile: PublicUserProfile) => {
         this.outfitUserProfile[rr.userId] = profile;
       });
     });
@@ -416,30 +499,99 @@ export class MyOutFitPage implements OnDestroy {
     const profile = await this.getReadyUserProfile();
     if (!profile?.gender) {
       this.filteredOutfits = [];
+      this.suggestedProducts = [];
+      this.recommendedOutfits = [];
       return;
     }
     const payload: OutfitPreferencePayload = this.userProfileService.toOutfitPreferencePayload(this.cUserPreference);
     this.isLoading = true;
     try {
       const queryString = `gender=${encodeURIComponent(profile.gender)}`;
-      this.filteredOutfits = await firstValueFrom(this.appService.getSuggestOutfits(queryString, payload)) ?? [];
+      const [outfits] = await Promise.all([
+        firstValueFrom(this.appService.getSuggestOutfits(queryString, payload)),
+        this.loadSuggestedProducts(profile.gender),
+        this.loadOutfitRecommendations(profile.gender)
+      ]);
+      this.filteredOutfits = outfits ?? [];
     } catch (error) {
-      console.error('Impossibile caricare gli outfit suggeriti:', error);
+      console.error('Impossibile caricare i contenuti suggeriti:', error);
       this.filteredOutfits = [];
+      this.recommendedOutfits = [];
     } finally {
       this.isLoading = false;
     }
+  }
 
+  get suggestedOutfitsForGrid(): outfit[] {
+    if (!this.recommendedOutfits.length) {
+      return this.filteredOutfits;
+    }
 
+    const recommendedIds = new Set(this.recommendedOutfits.map(item => String(item.id)));
+    return this.filteredOutfits.filter(item => !recommendedIds.has(String(item.id)));
+  }
+
+  private async loadOutfitRecommendations(gender: string): Promise<void> {
+    try {
+      const recommendation = await firstValueFrom(this.appService.getOutfitRecommendations(gender));
+      this.recommendedOutfits = recommendation.outfits ?? [];
+      this.recommendationTitle = recommendation.title;
+      this.recommendationContext = recommendation.context;
+    } catch (error) {
+      console.error('Impossibile caricare gli outfit consigliati:', error);
+      this.recommendedOutfits = [];
+      this.recommendationTitle = '';
+      this.recommendationContext = '';
+    }
+  }
+
+  async loadSuggestedProducts(gender: string): Promise<void> {
+    this.isSuggestedProductsLoading = true;
+    try {
+      const color = (this.cUserPreference?.color ?? []).slice(0, 10);
+      const brend = (this.cUserPreference?.brend ?? []).slice(0, 10);
+      let response: CatalogProductsResponse;
+
+      if (color.length || brend.length) {
+        response = await this.appService.filterOutfitProducts({
+          ...(color.length ? { color } : {}),
+          ...(brend.length ? { brend } : {}),
+          gender,
+          limit: 6
+        });
+
+        if (!response.data.length && color.length && brend.length) {
+          response = await this.appService.filterOutfitProducts({ color, gender, limit: 6 });
+        }
+
+        if (!response.data.length && color.length && brend.length) {
+          response = await this.appService.filterOutfitProducts({ brend, gender, limit: 6 });
+        }
+      } else {
+        response = await this.appService.getOutfitProducts({ gender, limit: 6 });
+      }
+
+      if (!response.data.length) {
+        response = await this.appService.getOutfitProducts({ gender, limit: 6 });
+      }
+
+      this.suggestedProducts = response.data.slice(0, 6);
+    } catch (error) {
+      console.error('Impossibile caricare i prodotti suggeriti:', error);
+      this.suggestedProducts = [];
+    } finally {
+      this.isSuggestedProductsLoading = false;
+    }
+  }
+
+  async openSuggestedProduct(product: AppCatalogProduct): Promise<void> {
+    await this.router.navigate(['/tabs/product', product.id]);
   }
 
   async outfitMenu(outfit: outfit) {
-
-    this.modalController.dismiss()
-
-
-    // Imposta la variabile a true quando il modale viene aperto
-    this.isOutfitCompositionOpen = true;
+    if (this.isOutfitMenuOpen) return;
+    this.isOutfitMenuOpen = true;
+    try {
     let itemsElement = [
       {
         id: "segnalaUtente",
@@ -485,12 +637,10 @@ export class MyOutFitPage implements OnDestroy {
     }
 
     if (this.cUserID === outfit.userId || (id !== 'segnalaUtente' && id !== 'segnalaContenuto')) {
-      this.isOutfitCompositionOpen = false;
       return;
     }
     const reason = await this.selectReportReason();
     if (!reason) {
-      this.isOutfitCompositionOpen = false;
       return;
     }
 
@@ -501,7 +651,6 @@ export class MyOutFitPage implements OnDestroy {
     }
     try {
       await this.appService.createReport(dataS)
-      this.isOutfitCompositionOpen = false;
       const alert = await this.alertController.create({
         header: 'Segnalazione completata',
         message: `Ti ringraziamo per la segnalazione, prenderemo in esame la tua richiesta`,
@@ -510,7 +659,6 @@ export class MyOutFitPage implements OnDestroy {
 
       await alert.present();
     } catch (error: any) {
-      this.isOutfitCompositionOpen = false;
       if (error?.status === 409) {
         const alert = await this.alertController.create({
           header: 'Segnalazione già inviata',
@@ -526,6 +674,9 @@ export class MyOutFitPage implements OnDestroy {
         });
         await alert.present();
       }
+      }
+    } finally {
+      this.isOutfitMenuOpen = false;
     }
 
   }
@@ -566,9 +717,14 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async openShareModal(outfit: outfit) {
-
-
-    this.sharingSocial.shareVia(outfit)
+    const outfitId = String(outfit.id);
+    if (this.shareActionsInProgress.has(outfitId)) return;
+    this.shareActionsInProgress.add(outfitId);
+    try {
+      await this.sharingSocial.shareVia(outfit)
+    } finally {
+      this.shareActionsInProgress.delete(outfitId);
+    }
     /*  const modal = await this.modalController.create({
        component: SocialSharingComponent,
        componentProps: { outfit: outfit },
@@ -604,12 +760,15 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async addFavoriteOutfit(outfit: any) {
-
+    const outfitId = String(outfit.id);
+    if (this.favoriteActionsInProgress.has(outfitId)) return;
+    this.favoriteActionsInProgress.add(outfitId);
 
     let likes = outfit.likes
     if (this.favorites.has(outfit.id)) {
-      const outfitId = outfit.id;
-      this.userProfileService.delFaveUserOutfits(outfitId).subscribe(faveUserOutfits => {
+      this.userProfileService.delFaveUserOutfits(outfitId)
+      .pipe(finalize(() => this.favoriteActionsInProgress.delete(outfitId)))
+      .subscribe(faveUserOutfits => {
         this.favorites.delete(outfit.id);
       })
 
@@ -617,7 +776,9 @@ export class MyOutFitPage implements OnDestroy {
 
     }
 
-    this.userProfileService.saveFaveUserOutfits(outfit.id).subscribe(res=>{
+    this.userProfileService.saveFaveUserOutfits(outfit.id)
+    .pipe(finalize(() => this.favoriteActionsInProgress.delete(outfitId)))
+    .subscribe(res=>{
       if (res) {
 
         this.favorites.add(outfit.id);
@@ -657,9 +818,6 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async hasOutfitVisitFull(outfit: outfit) {
-    if (outfit.tags.length == 0) {
-      return
-    }
     this.router.navigate(['tabs/detail-outfit', outfit.id]).then(async res => {
 
 
@@ -668,6 +826,13 @@ export class MyOutFitPage implements OnDestroy {
       }
       await this.appService.recordOutfitVisit(String(outfit.id));
     })
+  }
+
+  openUserProfile(userId: string): void {
+    const destination = userId === this.cUserID
+      ? ['/tabs/my-profile']
+      : ['/tabs/user-profile', userId];
+    void this.router.navigate(destination);
   }
 
   @HostListener('window:scroll', ['$event'])
@@ -689,6 +854,13 @@ export class MyOutFitPage implements OnDestroy {
   onSegmentChange(event: CustomEvent) {
     const selectedSegment = event.detail.value; // Valore del pulsante selezionato
     this.selectedSegment = event.detail.value; // Valore del pulsante selezionato
+
+    if (selectedSegment !== 'outfit' && this.productFilterFromDetailActive) {
+      this.filtersData = { categories: [], season: '', style: '' };
+      this.searchText = '';
+      this.productFilterFromDetailActive = false;
+    }
+
     switch (selectedSegment) {
       case 'outfit':
         this.loadOutfits();

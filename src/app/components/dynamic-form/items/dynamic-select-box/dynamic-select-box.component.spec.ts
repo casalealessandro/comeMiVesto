@@ -44,4 +44,13 @@ describe('DynamicSelectBoxComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should use modal interface for multiple select', () => {
+    component.selectOptions.multiple = true;
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('ion-select');
+    expect(select.interface).toBe('modal');
+    expect(select.interfaceOptions.cssClass).toBe('cmv-multiselect-modal');
+  });
 });

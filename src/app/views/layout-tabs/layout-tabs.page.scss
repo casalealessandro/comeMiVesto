@@ -6,9 +6,7 @@
 
 }
 
-.app-layout-tabs {
-    min-height: 100vh;
-}
+
 
 .tab-loading-overlay {
     position: fixed;
@@ -49,9 +47,22 @@
 
 .outfit-bottom-bar {
 
-    --background: transparent;
-    height: 121px;
+    --background: #fff;
+    height: 70px;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10;
     align-items: flex-end;
+    overflow: visible;
+    background: linear-gradient(
+        to bottom,
+        #fff 0,
+        #fff calc(100% - var(--ion-safe-area-bottom, 0px)),
+        #F1F1F1 calc(100% - var(--ion-safe-area-bottom, 0px)),
+        #F1F1F1 100%
+    );
     /*
     height: 121px;
     position: absolute;
@@ -63,12 +74,13 @@
 
     .toolbar-container {
 
-        //background-color: #F1F1F1;
+        background-color: #fff;
         background-image: url('../../../assets/toolbarbottom-frame.png');
 
 
         width: 100%;
         display: flex;
+        overflow: visible;
         justify-content: space-around;
         align-items: center;
         background-repeat: no-repeat;
@@ -88,7 +100,7 @@
         } */
         .button-block {
             width: 68px;
-            height: 55px;
+            height: 52px;
             display: block;
             color: var(--outfit-secondary-color);
 
@@ -96,28 +108,30 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                border-radius: 8px;
-                transition: color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
-
-                --color: var(--outfit-secondary-color);
-                --color-selected: #000;
-                --padding-top: 15.5px;
-                --padding-bottom: 12.5px;
+                transition: color 100ms ease, box-shadow 100ms ease;
+                --background: transparent;
+                --padding-top: 7px;
+                --padding-bottom: 6px;
                 --padding-end: 15px;
                 --padding-start: 15px;
-                gap: 8px;
+                gap: 4px;
 
+                  &.center-tab-button {
+                  
+                      .fi {
+                        font-size: 18px;
+                      }
+                    }
 
                 .fi {
-                    font-size: 24px;
-                    transition: transform 120ms ease;
+                    font-size: 23px;
                 }
 
                 .outfit-tab-text {
 
-                    font-size: 12px;
+                    font-size: 11px;
                     font-weight: 500;
-                    line-height: 14.63px;
+                    line-height: 13.4px;
                     text-align: left;
                     text-underline-position: from-font;
                     text-decoration-skip-ink: none;
@@ -127,13 +141,13 @@
                     color: rgba(255, 255, 255, 0.3);
                 }
 
-                &.tab-selected {
-                    --background: rgba(0, 0, 0, 0.06);
-                    color: #000;
-                    box-shadow: inset 0 -3px 0 #000;
+                &:not(.center-tab-button).tab-selected {
+                    --color-selected: #1f1f1f;
+                    color: #1f1f1f;
+                    box-shadow: inset 0 -3px 0 #3f3f3f;
 
                     .fi {
-                        transform: scale(1.12);
+                        transform: scale(1.08);
                     }
 
                     .outfit-tab-text {
@@ -146,36 +160,52 @@
 
         .outfit-center-button {
             position: absolute;
+            z-index: 2;
             background-color: transparent;
             width: 84px;
             height: 34px;
             border-radius: 0 0 32px 32px;
-            top: 39%;
+            top: 36%;
             left: 50%;
             transform: translate(-50%);
 
             ion-tab-button {
                 display: block !important;
                 margin: auto;
-                width: 64px;
-                height: 64px;
+                width: 45px;
+                  height: 45px;
                 color: #fff;
-                border-radius: 50px;
+                border-radius: 45px;
                 background: #333;
                 position: absolute;
-                top: -44px;
+                top: -25px;
                 left: 50%;
                 transform: translate(-50%);
-
-                &.tab-selected {
-                    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.15);
-                }
-
+                &.enter-tab-button {
+                    font-size: 18px;
+                  }
                 .center-icon {
-                    font-size: 24px;
+                    font-size: 23px;
                 }
+            }
+
+            .center-tab-text {
+                position: absolute;
+                top: 27px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 11px;
+                font-weight: 500;
+                line-height: 13.4px;
+                color: var(--outfit-secondary-color);
+                white-space: nowrap;
             }
 
         }
     }
+}
+
+
+.outfit-bottom-bar-hidden {
+    display: none;
 }

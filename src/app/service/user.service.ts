@@ -1,7 +1,7 @@
 import { effect, Injectable, signal } from '@angular/core';
 import { firstValueFrom, forkJoin, lastValueFrom, Observable, of, throwError } from 'rxjs';
 import { catchError, map, retry, switchMap, tap } from 'rxjs/operators';
-import { EditableUserProfile, OutfitPreferencePayload, TermsAcceptanceResult, TermsStatus, UserPreference, UserProfile } from './interface/user-interface';
+import { CompleteRegistrationPayload, EditableUserProfile, FollowStatus, OutfitPreferencePayload, SocialAuthenticationState, SocialRegistrationStatus, TermsAcceptanceResult, TermsStatus, UserBootstrap, UserPreference, UserProfile } from './interface/user-interface';
 import { ApiRequestError, ApiResponse, AppService } from './app-service';
 import { signOut } from 'firebase/auth';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
@@ -10,6 +10,7 @@ import { environment } from 'src/environments/environment';
 import { FavoriteOutfit, FavoriteRelation } from './interface/outfit-all-interface';
 import { FirebaseService } from './firebase.service';
 import { PushNotificationService } from './push-notification.service';
+import { SocialAuthService } from './social-auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -33,12 +34,18 @@ export class UserService {
     gender: '',
     createAt: 0
   }); // Signal che tiene traccia del profilo utente
+  _userPreference = signal<UserPreference | null>(null);
+  _termsStatus = signal<TermsStatus | null>(null);
+  _preferencesConfigured = signal<boolean>(false);
+  _registrationStatus = signal<SocialRegistrationStatus | null>(null);
+  private _bootstrapUid: string | null = null;
 
   constructor(
     private firebase: FirebaseService,
     private appService: AppService,
     private httpClient: HttpClient,
     private pushNotificationService: PushNotificationService,
+    private socialAuthService: SocialAuthService,
   ) {
 
     // Effetto per ascoltare i cambiamenti
@@ -59,27 +66,92 @@ export class UserService {
   // Metodo per caricare le informazioni dell'utente
   async loadUser(): Promise<boolean> {
     const user = await this.firebase.waitForAuthState();
-  if (user) {
-    await user.getIdToken();
-    
-    // Rendi questa operazione asincrona con una Promise
-    return new Promise<boolean>((resolve, reject) => {
-      this.getUserProfile(user.uid).subscribe({
-        next: (profile) => {
-          
-          resolve(true);  // Risolvi con true quando l'operazione è completata
-        },
-        error: (err) => {
-          console.error('Error loading user profile', err);
-          resolve(false);  // Risolvi con false se c'è un errore
-        }
-      });
-    });
+    if (!user) return false;
+
+    try {
+      await user.getIdToken();
+      if (!this.isBootstrapReady(user.uid)) {
+        await this.loadBootstrap();
+      }
+      return true;
+    } catch (err) {
+      console.error('Error loading user profile', err);
+      return false;
+    }
   }
-    return false;  // Ritorna false se l'utente non è trovato
-  }
+
   gUserProfile() {
     return this._userInfo;
+  }
+
+  gUserPreference() {
+    return this._userPreference;
+  }
+
+  gTermsStatus() {
+    return this._termsStatus;
+  }
+
+  gPreferencesConfigured() {
+    return this._preferencesConfigured;
+  }
+
+  gRegistrationStatus() {
+    return this._registrationStatus;
+  }
+
+  isBootstrapReady(uid: string): boolean {
+    return this._bootstrapUid === uid && this._userInfo()?.uid === uid;
+  }
+
+  async loadBootstrap(): Promise<UserBootstrap> {
+    const response = await firstValueFrom(
+      this.httpClient.get<ApiResponse<UserBootstrap>>(this.apiFire + '/user/bootstrap').pipe(
+        catchError(this.handleError)
+      )
+    );
+    this.setUserInfo(response.data.profile);
+    this._userPreference.set(response.data.preferences);
+    this._termsStatus.set(response.data.terms);
+    this._preferencesConfigured.set(response.data.preferencesConfigured);
+    this._registrationStatus.set(response.data.registration ?? null);
+    this._bootstrapUid = response.data.profile.uid;
+    return response.data;
+  }
+
+  async completeAuthenticatedSession(): Promise<UserBootstrap> {
+    const user = await this.firebase.waitForAuthState();
+    if (!user) {
+      throw new ApiRequestError('La sessione non è disponibile.', 401);
+    }
+
+    await user.getIdToken(true);
+    const bootstrap = await this.loadBootstrap();
+    sessionStorage.setItem('userProfile', JSON.stringify(bootstrap.profile));
+    return bootstrap;
+  }
+
+  async resolveSocialAuthentication(): Promise<SocialAuthenticationState> {
+    try {
+      const bootstrap = await this.completeAuthenticatedSession();
+      if (bootstrap.registration?.social && !bootstrap.registration.profileComplete) {
+        return 'registration-required';
+      }
+      return 'ready';
+    } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 404) {
+        this.clearApplicationSessionState();
+        return 'registration-required';
+      }
+      throw error;
+    }
+  }
+
+  completeRegistration(payload: CompleteRegistrationPayload): Observable<UserProfile> {
+    return this.httpClient.post<ApiResponse<UserProfile>>(this.apiFire + '/user/complete-registration', payload).pipe(
+      map((response) => response.data),
+      catchError(this.handleError)
+    );
   }
 
   registerUser<T>(api: string, payloadData: T): Observable<T> {
@@ -90,10 +162,22 @@ export class UserService {
     );
   }
   getTermsStatus(): Observable<TermsStatus> {
-    return this.httpClient.get<ApiResponse<TermsStatus>>(`${this.apiFire}/user/terms-status`).pipe(map(response => response.data), catchError(this.handleError));
+    return this.httpClient.get<ApiResponse<TermsStatus>>(this.apiFire + '/user/terms-status').pipe(
+      map(response => response.data),
+      tap(status => this._termsStatus.set(status)),
+      catchError(this.handleError)
+    );
   }
   acceptTerms(): Observable<TermsAcceptanceResult> {
-    return this.httpClient.post<ApiResponse<TermsAcceptanceResult>>(`${this.apiFire}/user/accept-terms`, { accepted: true }).pipe(map(response => response.data), catchError(this.handleError));
+    return this.httpClient.post<ApiResponse<TermsAcceptanceResult>>(this.apiFire + '/user/accept-terms', { accepted: true }).pipe(
+      map(response => response.data),
+      tap(result => this._termsStatus.set({
+        accepted: true,
+        acceptedVersion: result.termsVersion,
+        currentVersion: result.termsVersion
+      })),
+      catchError(this.handleError)
+    );
   }
   loginUser<T>(api: string, payloadData: T): Observable<T> {
     const completeApi = `${this.apiFire}${api}`;
@@ -114,6 +198,18 @@ export class UserService {
 
       catchError(this.handleError)
     );
+  }
+
+  getFollowStatus(uid: string): Observable<FollowStatus> {
+    return this.httpClient.get<ApiResponse<FollowStatus>>(`${this.apiFire}/gen/user-follows/${encodeURIComponent(uid)}/status`).pipe(map(response => response.data), catchError(this.handleError));
+  }
+
+  followUser(uid: string): Observable<void> {
+    return this.httpClient.post<ApiResponse<unknown>>(`${this.apiFire}/gen/user-follows/${encodeURIComponent(uid)}`, {}).pipe(map(() => undefined), catchError(this.handleError));
+  }
+
+  unfollowUser(uid: string): Observable<void> {
+    return this.httpClient.delete<ApiResponse<unknown>>(`${this.apiFire}/gen/user-follows/${encodeURIComponent(uid)}`).pipe(map(() => undefined), catchError(this.handleError));
   }
 
   updateUserProfile(uid: string, profileData: EditableUserProfile): Observable<UserProfile> {
@@ -148,9 +244,18 @@ export class UserService {
       const payload = {
         color: profilePreferData.color ?? [],
         brend: profilePreferData.brend ?? [],
-        style: profilePreferData.style ?? []
+        style: profilePreferData.style ?? [],
+        ...(Number.isInteger(profilePreferData.age) ? { age: profilePreferData.age } : {}),
+        ...(profilePreferData.ageRange ? { ageRange: profilePreferData.ageRange } : {})
       };
-      await lastValueFrom(this.httpClient.put<ApiResponse<UserPreference>>(`${this.apiFire}/gen/user-preferences`, payload));
+      const response = await lastValueFrom(this.httpClient.put<ApiResponse<UserPreference>>(this.apiFire + '/gen/user-preferences', payload));
+      this._userPreference.set({
+        ...this._userPreference(),
+        ...response.data,
+        age: response.data.age ?? profilePreferData.age ?? this._userPreference()?.age ?? null,
+        ageRange: response.data.ageRange ?? profilePreferData.ageRange ?? this._userPreference()?.ageRange ?? null
+      });
+      this._preferencesConfigured.set(true);
       return true;
     } catch (error) {
 
@@ -235,10 +340,14 @@ export class UserService {
       if (user) {
         const response = await firstValueFrom(this.httpClient.get<ApiResponse<UserPreference | UserPreference[] | null>>(`${this.apiFire}/gen/user-preferences`));
         const preference = Array.isArray(response.data) ? response.data[0] : response.data;
-        return preference ? {
+        const normalizedPreference = preference ? {
           uid: preference.uid ?? '',
-          ...this.toOutfitPreferencePayload(preference)
+          ...this.toOutfitPreferencePayload(preference),
+          age: Number.isInteger(preference.age) ? preference.age : null
         } : null;
+        this._userPreference.set(normalizedPreference);
+        this._preferencesConfigured.set(normalizedPreference !== null);
+        return normalizedPreference;
       }
     } catch (error) {
       console.error('Errore durante il recupero delle preferenze utente:', error);
@@ -257,11 +366,27 @@ export class UserService {
 
   async logOut(): Promise<boolean> {
     try {
-      await Promise.race([
-        this.pushNotificationService.disableCurrentDevice(),
-        new Promise<void>((resolve) => setTimeout(resolve, 2000)),
-      ]);
+      const isGoogleUser = this.firebase.auth.currentUser?.providerData
+        ?.some((provider) => provider.providerId === 'google.com') === true;
+
+      try {
+        await this.pushNotificationService.disableCurrentDevice();
+      } catch (error) {
+        console.warn('Disabilitazione notifiche push non riuscita, continuo con il logout:', error);
+      }
+
+      if (isGoogleUser) {
+        try {
+          await this.socialAuthService.signOutGoogle();
+        } catch (error) {
+          console.warn('Google Sign-In logout non riuscito, continuo con il logout Firebase:', error);
+        }
+      } else {
+        this.socialAuthService.clearPendingProfile();
+      }
+
       await signOut(this.firebase.auth);
+      this.clearApplicationSessionState();
       console.log('Logout effettuato con successo');
       return true; // Logout completato con successo
     } catch (error) {
@@ -306,6 +431,16 @@ export class UserService {
       return false;
     }
 
+  }
+
+  private clearApplicationSessionState(): void {
+    this._userInfo.set(null);
+    this._userPreference.set(null);
+    this._termsStatus.set(null);
+    this._preferencesConfigured.set(false);
+    this._registrationStatus.set(null);
+    this._bootstrapUid = null;
+    sessionStorage.removeItem('userProfile');
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

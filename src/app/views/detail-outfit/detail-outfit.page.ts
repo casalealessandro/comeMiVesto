@@ -4,8 +4,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
 import { IonModal, ModalController, NavController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
-import { Tag } from 'src/app/service/interface/outfit-all-interface';
+import { seasons, style, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { SharedDataService } from 'src/app/service/shared-data.service';
+import { register } from 'swiper/element/bundle';
+
+register();
 
 @Component({
   standalone: false,
@@ -21,8 +24,12 @@ export class DetailOutfitPage implements OnInit {
   outfitId: any
   isOpen: boolean = false;
   outfitComposed: any
+  outfitStyle: string = '';
+  outfitSeason: string = '';
   userID: string = '';
   relatedProducts:any[] = []
+  isLoading: boolean = true;
+  isImagePreviewOpen: boolean = false;
   constructor(
     private modalController: ModalController, 
     private router:Router, 
@@ -35,30 +42,41 @@ export class DetailOutfitPage implements OnInit {
   ngOnInit() {
     this.route.paramMap.subscribe(async params => {
       this.outfitId = params.get('id');
-      if (this.outfitId) {
+      if (!this.outfitId) {
+        this.isLoading = false;
+        return;
+      }
 
-
+      this.isLoading = true;
+      try {
         const selectedOutfit = await this.appService.getOutfit(this.outfitId);
+        this.outfitComposed = selectedOutfit;
         this.image = selectedOutfit.imageUrl
-        this.tags = selectedOutfit.tags;
+        this.tags = Array.isArray(selectedOutfit.tags) ? selectedOutfit.tags : [];
+        this.outfitStyle = style.find(item => item.id === selectedOutfit.style)?.value || '';
+        this.outfitSeason = seasons.find(item => item.id === selectedOutfit.season)?.value || '';
+        this.isOpen = false;
+        this.relatedProducts = [];
 
         if (this.tags.length > 0) {
           this.isOpen = true;
           console.log(this.tags)
-        }
-        
-        let products: any[] = await this.appService.filterOutfitProducts({
-          outfitSubCategory: selectedOutfit.outfitSubCategory,
-        });
-        products = products.filter(product => !selectedOutfit.gender || product.gender === selectedOutfit.gender);
-       
-        if (this.tags.length > 0 && this.isOpen) {
-          const tags =this.tags
-          this.relatedProducts = products.filter(prod => 
+
+          const response = await this.appService.filterOutfitProducts({
+            outfitSubCategory: selectedOutfit.outfitSubCategory,
+            gender: selectedOutfit.gender,
+            limit: 20
+          });
+          const products = response.data;
+
+          this.relatedProducts = products.filter(prod =>
             !this.tags.some(tag => String(tag.id) === String(prod.id)) // Confronta gli ID come stringhe
-        );
-          
+          );
         }
+      } catch (error) {
+        console.error('Impossibile caricare il dettaglio outfit:', error);
+      } finally {
+        this.isLoading = false;
       }
     });
 
@@ -83,6 +101,15 @@ export class DetailOutfitPage implements OnInit {
 
 
 
+
+  openImagePreview(): void {
+    if (!this.image) return;
+    this.isImagePreviewOpen = true;
+  }
+
+  closeImagePreview(): void {
+    this.isImagePreviewOpen = false;
+  }
 
   closeModalFullScreen() {
     this.modalController.dismiss()
@@ -117,6 +144,7 @@ export class DetailOutfitPage implements OnInit {
     const link = !data.link ? '#' : data.link
    
     const saveData = {
+      catalogProductId: data.id,
       brend: data.brend,
       images: Array.isArray(data.images) ? data.images : data.imageUrl ? [data.imageUrl] : [],
       imageUrl: data.imageUrl,
@@ -124,7 +152,7 @@ export class DetailOutfitPage implements OnInit {
       outfitCategory: categoryID,
       outfitSubCategory: subCategoryID,
       color:data.color,
-      prezzo:parseInt(data.price, 10),
+      prezzo:data.prezzo ?? data.price,
       link:link
     }
 

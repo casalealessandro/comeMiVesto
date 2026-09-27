@@ -3,6 +3,8 @@
   flex-direction: row;
   align-items: center;
   height: 65px;
+  background: #fff;
+
   ion-segment{
     --background: #fff;
   }
@@ -24,7 +26,7 @@
       ion-chip {
 
         background: white;
-        border: 0.5px solid #000;
+        border: 1px solid var(--outfit-hairline-border-color);
         border-radius: 5px;
       
         padding-inline: 5px;

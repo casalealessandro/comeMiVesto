@@ -1,5 +1,9 @@
 <ion-content class="ion-padding" id="main-content">
-  <div class="main-content ">
+  <div class="ion-text-center ion-padding" *ngIf="isLoading">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <div class="main-content" *ngIf="!isLoading">
 
     <div class="profile-content">
       <div class="profile-avatar-container">
@@ -72,9 +76,15 @@
                 </ion-img>
           
 
-                <div  class="del-item">
-                  <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="deleteOutfit($event,userOutfit)">
-                    <i class="fi fi-rr-cross"></i>
+                <div class="del-item">
+                  <ion-button
+                    class="remove-product-btn"
+                    slot="icon-only"
+                    fill="clear"
+                    aria-label="Elimina outfit"
+                    title="Elimina outfit"
+                    (click)="deleteOutfit($event,userOutfit)">
+                    <ion-icon name="trash-outline"></ion-icon>
                   </ion-button>
                 </div>
               </div>
@@ -90,26 +100,17 @@
 
       <div *ngIf="selectedSegment === 'wardrobes'" class="content">
         <ng-container *ngIf="!wardrobesNumber">
-          <ion-text>Nessun vestino nel tuo armadio</ion-text>
+          <ion-text>Nessun vestito nel tuo armadio</ion-text>
         </ng-container>
-        <ion-grid>
-          <ion-row class="style">
-            <ion-col class="post-col" size="6" *ngFor="let userWardrobe of userWardrobes">
-              <div class="post-image">
-                <ion-img [src]="userWardrobe.images" [alt]="userWardrobe.name">
-                </ion-img>
-           
-                <div  class="del-item">
-                  <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="deletewardrobesitem($event,userWardrobe)">
-                    <i class="fi fi-rr-cross"></i>
-                  </ion-button>
-                </div>
-              </div>
 
-            </ion-col>
-
-          </ion-row>
-        </ion-grid>
+        <app-products-grid
+          *ngIf="wardrobesNumber"
+          [products]="userWardrobes"
+          [showRemoveBtn]="true"
+          [showSaveBtn]="false"
+          [openProductDetail]="true"
+          (productsEvent)="onWardrobeProductEvent($event)">
+        </app-products-grid>
       </div>
 
       <div *ngIf="selectedSegment === 'fave'" class="content">
@@ -122,9 +123,15 @@
               <div class="post-image">
                 <ion-img [src]="faveUserOutfit.imageUrl" [alt]="faveUserOutfit.title" forceReload="true">
                 </ion-img>
-                <div  class="del-item">
-                  <ion-button  class="remove-product-btn" size="small" slot="icon-only"  fill="clear"  (click)="deleteFaveOutfit($event,faveUserOutfit)">
-                    <i class="fi fi-rr-cross"></i>
+                <div class="del-item">
+                  <ion-button
+                    class="remove-product-btn"
+                    slot="icon-only"
+                    fill="clear"
+                    aria-label="Rimuovi dai desiderati"
+                    title="Rimuovi dai desiderati"
+                    (click)="deleteFaveOutfit($event,faveUserOutfit)">
+                    <ion-icon name="trash-outline"></ion-icon>
                   </ion-button>
                 </div>
               </div>

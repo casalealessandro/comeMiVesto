@@ -115,7 +115,7 @@
             ion-chip {
 
                 background: white;
-                border: 0.5px solid #000;
+                border: 1px solid var(--outfit-hairline-border-color);
                 border-radius: 5px;
 
                 padding-inline: 5px;
@@ -175,8 +175,9 @@
        
         gap: 10px;
         border-radius: 5px;
-        border: 0.5px;
-        --border-width: 0.5px;
+        border: 1px solid var(--outfit-hairline-border-color);
+        --border-width: 1px;
+        --border-color: var(--outfit-hairline-border-color);
         --border-radius: 5px;
         --padding-top: 10px;
         --padding-bottom: 10px;
@@ -215,7 +216,7 @@
             ion-chip {
 
                 background: white;
-                border: 0.5px solid #000;
+                border: 1px solid var(--outfit-hairline-border-color);
                 border-radius: 5px;
 
                 padding-inline: 5px;
@@ -264,7 +265,7 @@
     --padding-top: 8px;
 
     --inner-padding-end: 8px;
-    border-bottom: 0.5px solid var(--ion-color-light-shade);
+    border-bottom: 1px solid var(--outfit-hairline-light-divider-color);
 
     .category-divider-label {
         font-size: 13px;

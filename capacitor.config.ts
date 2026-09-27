@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
     allowNavigation: ['*', 'comemivesto.app']
   },
   ios: {
-    contentInset: 'always'
+    contentInset: 'never'
   },
   plugins: {
     PushNotifications: {

@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { LayoutTabsPage } from './views/layout-tabs/layout-tabs.page';
-import { authGuard } from './auth.guard';
+import { authGuard, guestGuard } from './auth.guard';
 import { IntroSliderComponent } from './components/intro-slider/intro-slider.component';
 
 export const routes: Routes = [
@@ -22,6 +22,20 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./views/detail-outfit/detail-outfit.module').then(
             (m) => m.DetailOutfitPageModule
+          ),
+      },
+      {
+        path: 'product/:id',
+        loadChildren: () =>
+          import('./views/product-detail/product-detail.module').then(
+            (m) => m.ProductDetailPageModule
+          ),
+      },
+      {
+        path: 'product-outfits/:id',
+        loadChildren: () =>
+          import('./views/product-outfits/product-outfits.module').then(
+            (m) => m.ProductOutfitsPageModule
           ),
       },
       {
@@ -53,6 +67,20 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'notifications',
+        loadChildren: () =>
+          import('./views/notifications/notifications.module').then(
+            (m) => m.NotificationsPageModule
+          ),
+      },
+      {
+        path: 'user-profile/:uid',
+        loadChildren: () =>
+          import('./views/user-profile/user-profile.module').then(
+            (m) => m.UserProfilePageModule
+          ),
+      },
+      {
         path: 'layout-tabs',
         loadChildren: () =>
           import('./views/layout-tabs/layout-tabs.module').then(
@@ -79,6 +107,7 @@ export const routes: Routes = [
   },
   {
     path: 'register',
+    canActivate: [guestGuard],
     loadChildren: () =>
       import('./views/register/register.module').then(
         (m) => m.RegisterPageModule
@@ -86,6 +115,7 @@ export const routes: Routes = [
   },
   {
     path: 'login',
+    canActivate: [guestGuard],
     loadChildren: () =>
       import('./views/login/login.module').then((m) => m.LoginPageModule),
   },
