@@ -65,8 +65,13 @@
         </ion-item>
         <!--  Griglia dei prodotti -->
         <ng-container>
-          <app-products-grid [products]="wardrobeItem.items" [showRemoveBtn]="true" [showSaveBtn]="false"
-            (productsEvent)="selectItem($event)"> </app-products-grid>
+          <app-products-grid
+            [products]="wardrobeItem.items"
+            [showRemoveBtn]="true"
+            [showSaveBtn]="false"
+            [openProductDetail]="!showheader"
+            (productsEvent)="selectItem($event)">
+          </app-products-grid>
         </ng-container>
       </div>
 
