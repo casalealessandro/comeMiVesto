@@ -67,7 +67,7 @@
 
     .profile-btn {
       color: var(--outfit-btn-text-color);
-      border: 0.5px solid var(--outfit-btn-text-color);
+      border: 1px solid var(--outfit-hairline-action-border-color);
       border-radius: 3px;
       font-size: 10px;
       max-height: 32px;
@@ -87,7 +87,7 @@
 
 .stats {
   --background: transparent
-  border-top: 0.5px solid #9F9F9F;
+  border-top: 1px solid var(--outfit-hairline-divider-color);
   margin-top: 28px;
   height: 78px;
   padding-top: 22px;

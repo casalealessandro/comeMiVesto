@@ -40,7 +40,7 @@ ion-card-subtitle {
     }
 
     .native-wrapper {
-        border: 0.5px solid var(--input-border-color);
+        border: 1px solid var(--outfit-hairline-border-color);
         border-radius: 5px;
         font-size: 16px;
         margin-top: 13px;
@@ -249,7 +249,7 @@ ion-checkbox {
 
     &::part(container) {
         border-radius: 2px;
-        border: 0.5px solid #000000;
+        border: 1px solid var(--outfit-hairline-border-color);
     }
 }
 

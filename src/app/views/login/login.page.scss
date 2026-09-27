@@ -85,7 +85,7 @@
         }
 
         .register-container {
-          border-top: 0.5px solid #9F9F9F;
+          border-top: 1px solid var(--outfit-hairline-divider-color);
           margin: 40px 16px 0px 16px;
           height: 111px;
           display: flex;
@@ -124,7 +124,7 @@
 
 
             --background: transparent;
-            border: 0.5px solid #000000;
+            border: 1px solid var(--outfit-hairline-border-color);
             color: #000;
             border-radius: 5px;
 
