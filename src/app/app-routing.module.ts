@@ -135,7 +135,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'intro',
+    redirectTo: 'login',
     pathMatch: 'full',
   },
   {
