@@ -29,14 +29,14 @@
             <ion-text class="category-title">{{ getCategoryText(product.outfitSubCategory) }}</ion-text>
 
           </div>
-          <div class="product-wrap-title" [ngStyle]="{ 'flex-direction': !product.price ? 'row' : null }">
+          <div class="product-wrap-title" [ngStyle]="{ 'flex-direction': !getProductPrice(product) ? 'row' : null }">
             <ion-card-title class="product-title">{{ product.name }}</ion-card-title>
 
               <div class="product-price-wrapper">
-                <ion-card-subtitle class="product-price">{{ product.price | currencyFormat }}</ion-card-subtitle>
+                <ion-card-subtitle class="product-price" *ngIf="getProductPrice(product) !== undefined">{{ getProductPrice(product) | currencyFormat }}</ion-card-subtitle>
 
                 <div class="product-card-action">
-                 <ion-button size="small" slot="icon-only"  fill="clear" (click)="buyToStore($event,product)">
+                 <ion-button size="small" *ngIf="hasStoreLink(product)" slot="icon-only" fill="clear" (click)="buyToStore($event,product)">
                   <i class="fi fi-rr-shopping-cart"></i>
                  </ion-button>
                  <ion-button size="small" *ngIf="showSaveBtn" slot="icon-only" fill="clear" (click)="saveToWardrobe($event,product)">

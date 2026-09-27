@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges, OnChange
 import { Browser } from '@capacitor/browser';
 import { AppCatalogProduct } from 'src/app/service/app-service';
 import { CategoryService } from 'src/app/service/category.service';
-import { Tag } from 'src/app/service/interface/outfit-all-interface';
+import { Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
 import { Router } from '@angular/router';
 
 @Component({
@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./products-grid.component.scss'],
 })
 export class ProductsGridComponent implements  OnChanges {
-  @Input() products: Array<Tag | AppCatalogProduct> = [];
+  @Input() products: Array<Tag | AppCatalogProduct | wardrobesItem> = [];
   @Input() showRemoveBtn: boolean = false;
   @Input() showSaveBtn: boolean = true;
   @Input() openProductDetail: boolean = false;
@@ -58,7 +58,7 @@ export class ProductsGridComponent implements  OnChanges {
     }
   }
 
-  openProduct(evt: MouseEvent, product: Tag | AppCatalogProduct) {
+  openProduct(evt: MouseEvent, product: Tag | AppCatalogProduct | wardrobesItem) {
     if (!this.openProductDetail) {
       this.saveToWardrobe(evt, product);
       return;
@@ -79,6 +79,15 @@ export class ProductsGridComponent implements  OnChanges {
     }
 
     void this.router.navigate(['/tabs/product', catalogProductId]);
+  }
+
+  getProductPrice(product: Tag | AppCatalogProduct | wardrobesItem): number | undefined {
+    const price = 'price' in product ? product.price : undefined;
+    return price ?? product.prezzo;
+  }
+
+  hasStoreLink(product: Tag | AppCatalogProduct | wardrobesItem): boolean {
+    return Boolean(product.link && product.link !== '#');
   }
 
     /**

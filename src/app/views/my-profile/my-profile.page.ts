@@ -315,10 +315,16 @@ export class MyProfilePage implements OnInit {
 
   }
 
-  async deletewardrobesitem(event: any, wardrobesItem: wardrobesItem) {
+  onWardrobeProductEvent(event: { name: string; data: wardrobesItem }): void {
+    if (event.name === 'removeProduct') {
+      void this.deletewardrobesitem(undefined, event.data);
+    }
+  }
 
-    event.stopPropagation();
-    event.preventDefault();
+  async deletewardrobesitem(event: any | undefined, wardrobesItem: wardrobesItem) {
+
+    event?.stopPropagation();
+    event?.preventDefault();
 
     const lockId = `wardrobe:${wardrobesItem.id}`;
     if (this.deletionsInProgress.has(lockId)) return;
