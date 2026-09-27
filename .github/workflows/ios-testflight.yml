@@ -3,7 +3,9 @@ name: Come Mi Vesto iOS TestFlight
 on:
   push:
     branches:
-      - develop
+      - main
+
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,12 +21,11 @@ env:
 jobs:
   testflight:
     name: Build and upload to TestFlight
-    if: contains(github.event.head_commit.message, '[testflight]')
     runs-on: macos-latest
     timeout-minutes: 60
 
     steps:
-      - name: Checkout develop commit
+      - name: Checkout release commit
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -100,8 +101,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build web application for apiDev
-        run: npm run build -- --configuration dev
+      - name: Build production web application
+        run: npm run build -- --configuration production
 
       - name: Synchronize iOS
         run: npx cap sync ios
