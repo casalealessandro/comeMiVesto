@@ -288,18 +288,22 @@ describe('PushNotificationService', () => {
     request.flush({ message: 'error' }, { status: 503, statusText: 'Unavailable' });
 
     await expectAsync(result).toBeResolved();
+    expect(localStorage.getItem(pushTokenStorageKey)).toBe('stored-token');
     expect(FCM.getToken).not.toHaveBeenCalled();
   });
 
-  it('disables the current device with a token restored after an app restart', async () => {
+  it('clears a restored token only after disabling the current device successfully', async () => {
     localStorage.setItem(pushTokenStorageKey, 'persisted-token');
 
     const result = service.disableCurrentDevice();
     const request = http.expectOne(`${environment.BASE_API_URL}/gen/notifications/device`);
+    expect(request.request.method).toBe('DELETE');
     expect(request.request.body).toEqual({ token: 'persisted-token' });
     request.flush({ message: 'Success', data: null });
 
     await expectAsync(result).toBeResolved();
+    expect(localStorage.getItem(pushTokenStorageKey)).toBeNull();
+    expect(FCM.getToken).not.toHaveBeenCalled();
   });
 
   it('finishes logout cleanup when deleting the device times out', fakeAsync(() => {
@@ -313,6 +317,7 @@ describe('PushNotificationService', () => {
 
     expect(request.cancelled).toBeTrue();
     expect(completed).toBeTrue();
+    expect(localStorage.getItem(pushTokenStorageKey)).toBe('stored-token');
   }));
 
   it('finishes logout cleanup without native calls when no token is known', async () => {

@@ -109,6 +109,7 @@ export class PushNotificationService {
             body: { token },
           }).pipe(timeout(1500)),
         );
+        this.clearStoredToken();
       } catch {
         console.warn('Could not disable the push device on the server.');
       }
@@ -206,6 +207,14 @@ export class PushNotificationService {
       localStorage.setItem(PUSH_TOKEN_STORAGE_KEY, token);
     } catch {
       console.warn('Could not persist the push token.');
+    }
+  }
+
+  private clearStoredToken(): void {
+    try {
+      localStorage.removeItem(PUSH_TOKEN_STORAGE_KEY);
+    } catch {
+      console.warn('Could not clear the stored push token.');
     }
   }
 
