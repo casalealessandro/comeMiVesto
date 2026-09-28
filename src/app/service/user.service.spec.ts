@@ -1,5 +1,7 @@
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { deleteApp, initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 import { firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ApiRequestError, AppService } from './app-service';
@@ -8,17 +10,20 @@ import { UserPreference } from './interface/user-interface';
 import { UserService } from './user.service';
 import { FirebaseService } from './firebase.service';
 import { PushNotificationService } from './push-notification.service';
+import { SocialAuthService } from './social-auth.service';
 
 describe('UserService REST contracts', () => {
   let service: UserService;
   let http: HttpTestingController;
   let appService: jasmine.SpyObj<AppService>;
   let pushNotifications: jasmine.SpyObj<PushNotificationService>;
+  let socialAuth: jasmine.SpyObj<SocialAuthService>;
 
   beforeEach(() => {
     appService = jasmine.createSpyObj<AppService>('AppService', ['getOutfit', 'getUserOutfits', 'getWardrobes']);
     pushNotifications = jasmine.createSpyObj<PushNotificationService>('PushNotificationService', ['disableCurrentDevice']);
     pushNotifications.disableCurrentDevice.and.resolveTo();
+    socialAuth = jasmine.createSpyObj<SocialAuthService>('SocialAuthService', ['clearPendingProfile', 'signOutGoogle']);
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [
@@ -29,6 +34,7 @@ describe('UserService REST contracts', () => {
         } },
         { provide: AppService, useValue: appService },
         { provide: PushNotificationService, useValue: pushNotifications },
+        { provide: SocialAuthService, useValue: socialAuth },
       ],
     });
     service = TestBed.inject(UserService);
@@ -36,6 +42,20 @@ describe('UserService REST contracts', () => {
   });
 
   afterEach(() => http.verify());
+
+  it('continues with Firebase logout when push cleanup fails', async () => {
+    pushNotifications.disableCurrentDevice.and.rejectWith(new Error('push unavailable'));
+    const firebaseApp = initializeApp({ apiKey: 'test', projectId: 'test' }, 'logout-push-cleanup-test');
+    (service as any).firebase.auth = getAuth(firebaseApp);
+
+    try {
+      await expectAsync(service.logOut()).toBeResolvedTo(true);
+    } finally {
+      await deleteApp(firebaseApp);
+    }
+
+    expect(socialAuth.clearPendingProfile).toHaveBeenCalled();
+  });
 
   it('gets and changes follow relationships using only the viewed uid', async () => {
     const status = firstValueFrom(service.getFollowStatus('other/user'));
