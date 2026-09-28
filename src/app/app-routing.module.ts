@@ -127,6 +127,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'terms',
+    loadChildren: () =>
+      import('./views/terms-conditions/terms-conditions.module').then(
+        (m) => m.TermsConditionsPageModule
+      ),
+  },
+  {
     path: 'privacy',
     loadChildren: () =>
       import('./views/privacy/privacy.module').then(
