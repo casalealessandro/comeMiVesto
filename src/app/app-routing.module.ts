@@ -127,6 +127,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'privacy',
+    loadChildren: () =>
+      import('./views/privacy/privacy.module').then(
+        (m) => m.PrivacyPageModule
+      ),
+  },
+  {
     path: 'prodotti-online',
     loadChildren: () =>
       import('./views/prodotti-online/prodotti-online.module').then(
