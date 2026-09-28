@@ -1,6 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, flushMicrotasks, TestBed, tick } from '@angular/core/testing';
 import { Capacitor } from '@capacitor/core';
 import { FCM } from '@capacitor-community/fcm';
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -12,6 +12,7 @@ import { FirebaseService } from './firebase.service';
 import { PushNotificationService } from './push-notification.service';
 
 describe('PushNotificationService', () => {
+  const pushTokenStorageKey = 'come-mivesto.push-notifications.fcm-token';
   let service: PushNotificationService;
   let http: HttpTestingController;
   let authState: BehaviorSubject<unknown>;
@@ -19,6 +20,7 @@ describe('PushNotificationService', () => {
   let listeners: Record<string, (event: any) => void>;
 
   beforeEach(() => {
+    localStorage.removeItem(pushTokenStorageKey);
     authState = new BehaviorSubject<unknown>(null);
     deepLinks = jasmine.createSpyObj<DeepLinkService>('DeepLinkService', ['handle']);
     listeners = {};
@@ -51,7 +53,10 @@ describe('PushNotificationService', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    localStorage.removeItem(pushTokenStorageKey);
+    http.verify();
+  });
 
   it('skips initialization on web', async () => {
     (Capacitor.isNativePlatform as jasmine.Spy).and.returnValue(false);
@@ -69,7 +74,7 @@ describe('PushNotificationService', () => {
     expect(LocalNotifications.addListener).toHaveBeenCalledTimes(1);
   });
 
-  it('registers the FCM token for the authenticated user', async () => {
+  it('uses the Android registration token for the authenticated user without asking FCM again', async () => {
     await service.initialize();
     authState.next({ uid: 'user' });
     await Promise.resolve();
@@ -97,8 +102,24 @@ describe('PushNotificationService', () => {
     await Promise.resolve();
     const request = http.expectOne(`${environment.BASE_API_URL}/gen/notifications/device`);
     expect(request.request.method).toBe('POST');
-    expect(request.request.body).toEqual({ token: 'fcm-token', platform: 'android' });
+    expect(request.request.body).toEqual({ token: 'native-token', platform: 'android' });
+    expect(localStorage.getItem(pushTokenStorageKey)).toBe('native-token');
+    expect(FCM.getToken).not.toHaveBeenCalled();
     request.flush({ message: 'Success', data: null });
+  });
+
+  it('does not start native registration when push is globally disabled', async () => {
+    await service.initialize();
+    authState.next({ uid: 'user' });
+    await Promise.resolve();
+
+    http.expectOne(`${environment.BASE_API_URL}/user/bootstrap`).flush({
+      data: { features: { pushNotifications: { enabled: false, androidEnabled: true } } },
+    });
+    await Promise.resolve();
+
+    expect(PushNotifications.checkPermissions).not.toHaveBeenCalled();
+    expect(PushNotifications.register).not.toHaveBeenCalled();
   });
 
   it('does not start native registration when Android push is disabled by bootstrap', async () => {
@@ -125,6 +146,37 @@ describe('PushNotificationService', () => {
     expect(PushNotifications.register).not.toHaveBeenCalled();
   });
 
+  it('does not register when notification permission is denied', async () => {
+    (PushNotifications.checkPermissions as jasmine.Spy).and.resolveTo({ receive: 'denied' });
+    await service.initialize();
+    authState.next({ uid: 'user' });
+    await Promise.resolve();
+
+    http.expectOne(`${environment.BASE_API_URL}/user/bootstrap`).flush({
+      data: { features: { pushNotifications: { enabled: true, androidEnabled: true } } },
+    });
+    await Promise.resolve();
+
+    expect(PushNotifications.requestPermissions).not.toHaveBeenCalled();
+    expect(PushNotifications.register).not.toHaveBeenCalled();
+  });
+
+  it('requests a prompted permission and registers when permission is granted', async () => {
+    (PushNotifications.checkPermissions as jasmine.Spy).and.resolveTo({ receive: 'prompt' });
+    await service.initialize();
+    authState.next({ uid: 'user' });
+    await Promise.resolve();
+
+    http.expectOne(`${environment.BASE_API_URL}/user/bootstrap`).flush({
+      data: { features: { pushNotifications: { enabled: true, androidEnabled: true } } },
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(PushNotifications.requestPermissions).toHaveBeenCalled();
+    expect(PushNotifications.register).toHaveBeenCalled();
+  });
+
   it('fails safe when the bootstrap feature check is unavailable', async () => {
     await service.initialize();
     authState.next({ uid: 'user' });
@@ -139,25 +191,47 @@ describe('PushNotificationService', () => {
     expect(PushNotifications.register).not.toHaveBeenCalled();
   });
 
-  it('upserts a refreshed FCM token emitted by native registration', async () => {
-    (FCM.getToken as jasmine.Spy).and.returnValues(
-      Promise.resolve({ token: 'first-token' }),
-      Promise.resolve({ token: 'refreshed-token' }),
-    );
+  it('upserts refreshed Android FCM tokens emitted by native registration', async () => {
     await service.initialize();
 
-    listeners['registration']({ value: 'native-token' });
+    listeners['registration']({ value: 'first-token' });
     await Promise.resolve();
     const firstRequest = http.expectOne(`${environment.BASE_API_URL}/gen/notifications/device`);
     expect(firstRequest.request.body.token).toBe('first-token');
     firstRequest.flush({ message: 'Success', data: null });
     await Promise.resolve();
 
-    listeners['registration']({ value: 'updated-native-token' });
+    listeners['registration']({ value: 'refreshed-token' });
     await Promise.resolve();
     const refreshedRequest = http.expectOne(`${environment.BASE_API_URL}/gen/notifications/device`);
     expect(refreshedRequest.request.body.token).toBe('refreshed-token');
     refreshedRequest.flush({ message: 'Success', data: null });
+    expect(FCM.getToken).not.toHaveBeenCalled();
+  });
+
+  it('keeps iOS on the FCM token path instead of sending the APNs token', async () => {
+    (Capacitor.getPlatform as jasmine.Spy).and.returnValue('ios');
+    await service.initialize();
+
+    listeners['registration']({ value: 'apns-token' });
+    await Promise.resolve();
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/notifications/device`);
+    expect(request.request.body).toEqual({ token: 'fcm-token', platform: 'ios' });
+    request.flush({ message: 'Success', data: null });
+
+    expect(FCM.getToken).toHaveBeenCalledTimes(1);
+    expect(localStorage.getItem(pushTokenStorageKey)).toBe('fcm-token');
+  });
+
+  it('fails safe when backend token synchronization fails', async () => {
+    await service.initialize();
+
+    listeners['registration']({ value: 'native-token' });
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/notifications/device`);
+    request.flush({ message: 'Unavailable' }, { status: 503, statusText: 'Unavailable' });
+    await Promise.resolve();
+
+    expect(localStorage.getItem(pushTokenStorageKey)).toBe('native-token');
   });
 
   it('passes notification deep links to DeepLinkService', async () => {
@@ -205,16 +279,70 @@ describe('PushNotificationService', () => {
   });
 
   it('disables the current device without throwing when the backend fails', async () => {
-    await service.initialize();
+    localStorage.setItem(pushTokenStorageKey, 'stored-token');
     const result = service.disableCurrentDevice();
-    await Promise.resolve();
 
     const request = http.expectOne(`${environment.BASE_API_URL}/gen/notifications/device`);
     expect(request.request.method).toBe('DELETE');
-    expect(request.request.body).toEqual({ token: 'fcm-token' });
+    expect(request.request.body).toEqual({ token: 'stored-token' });
     request.flush({ message: 'error' }, { status: 503, statusText: 'Unavailable' });
 
     await expectAsync(result).toBeResolved();
-    expect(FCM.getToken).toHaveBeenCalled();
+    expect(FCM.getToken).not.toHaveBeenCalled();
+  });
+
+  it('disables the current device with a token restored after an app restart', async () => {
+    localStorage.setItem(pushTokenStorageKey, 'persisted-token');
+
+    const result = service.disableCurrentDevice();
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/notifications/device`);
+    expect(request.request.body).toEqual({ token: 'persisted-token' });
+    request.flush({ message: 'Success', data: null });
+
+    await expectAsync(result).toBeResolved();
+  });
+
+  it('finishes logout cleanup when deleting the device times out', fakeAsync(() => {
+    localStorage.setItem(pushTokenStorageKey, 'stored-token');
+    let completed = false;
+
+    void service.disableCurrentDevice().then(() => completed = true);
+    const request = http.expectOne(`${environment.BASE_API_URL}/gen/notifications/device`);
+    tick(1501);
+    flushMicrotasks();
+
+    expect(request.cancelled).toBeTrue();
+    expect(completed).toBeTrue();
+  }));
+
+  it('finishes logout cleanup without native calls when no token is known', async () => {
+    await expectAsync(service.disableCurrentDevice()).toBeResolved();
+
+    http.expectNone(`${environment.BASE_API_URL}/gen/notifications/device`);
+    expect(FCM.getToken).not.toHaveBeenCalled();
+  });
+
+  it('fails safe when push listener setup is unavailable', async () => {
+    (PushNotifications.addListener as jasmine.Spy).and.rejectWith(new Error('plugin unavailable'));
+
+    await expectAsync(service.initialize()).toBeResolved();
+    authState.next({ uid: 'user' });
+
+    http.expectNone(`${environment.BASE_API_URL}/user/bootstrap`);
+  });
+
+  it('fails safe when native registration rejects', async () => {
+    (PushNotifications.register as jasmine.Spy).and.rejectWith(new Error('plugin unavailable'));
+    await service.initialize();
+    authState.next({ uid: 'user' });
+    await Promise.resolve();
+
+    http.expectOne(`${environment.BASE_API_URL}/user/bootstrap`).flush({
+      data: { features: { pushNotifications: { enabled: true, androidEnabled: true } } },
+    });
+
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(PushNotifications.register).toHaveBeenCalled();
   });
 });

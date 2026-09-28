@@ -10,6 +10,7 @@ import {
   ActionPerformed,
   PushNotificationSchema,
   PushNotifications,
+  Token,
 } from '@capacitor/push-notifications';
 import { firstValueFrom, map, Subscription, timeout } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -38,6 +39,8 @@ interface BootstrapResponse {
 
 type MobilePlatform = 'android' | 'ios';
 
+const PUSH_TOKEN_STORAGE_KEY = 'come-mivesto.push-notifications.fcm-token';
+
 @Injectable({ providedIn: 'root' })
 export class PushNotificationService {
   private initialized = false;
@@ -63,8 +66,8 @@ export class PushNotificationService {
     this.initialized = true;
 
     try {
-      await PushNotifications.addListener('registration', () => {
-        void this.synchronizeToken(platform);
+      await PushNotifications.addListener('registration', (token: Token) => {
+        void this.synchronizeRegistrationToken(token, platform);
       });
       await PushNotifications.addListener('registrationError', () => {
         console.warn('Push registration is unavailable.');
@@ -97,12 +100,7 @@ export class PushNotificationService {
       return;
     }
 
-    let token: string | undefined;
-    try {
-      token = (await FCM.getToken()).token;
-    } catch {
-      console.warn('Could not read the push token during logout.');
-    }
+    const token = this.getStoredToken();
 
     if (token) {
       try {
@@ -172,19 +170,42 @@ export class PushNotificationService {
     }
   }
 
-  private async synchronizeToken(platform: MobilePlatform): Promise<void> {
+  private async synchronizeRegistrationToken(registrationToken: Token, platform: MobilePlatform): Promise<void> {
     try {
-      const { token } = await FCM.getToken();
+      // Capacitor emits an FCM token on Android, but an APNs token on iOS.
+      const token = platform === 'android'
+        ? registrationToken.value
+        : (await FCM.getToken()).token;
       if (!token) {
         console.warn('No FCM token is available.');
         return;
       }
+
+      this.storeToken(token);
       await firstValueFrom(this.http.post(`${environment.BASE_API_URL}/gen/notifications/device`, {
         token,
         platform,
       }));
     } catch {
       console.warn('Push device synchronization failed.');
+    }
+  }
+
+  private getStoredToken(): string | undefined {
+    try {
+      return localStorage.getItem(PUSH_TOKEN_STORAGE_KEY) || undefined;
+    } catch {
+      console.warn('Could not read the stored push token.');
+      return undefined;
+    }
+  }
+
+  private storeToken(token: string): void {
+    try {
+      // The FCM token belongs to this app installation and must survive app restarts for logout cleanup.
+      localStorage.setItem(PUSH_TOKEN_STORAGE_KEY, token);
+    } catch {
+      console.warn('Could not persist the push token.');
     }
   }
 
