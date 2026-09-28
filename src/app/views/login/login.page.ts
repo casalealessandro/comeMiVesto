@@ -8,7 +8,8 @@ import { FirebaseService } from 'src/app/service/firebase.service';
 import { SocialAuthService } from 'src/app/service/social-auth.service';
 
 export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
-  if (!returnUrl || !returnUrl.startsWith('/tabs') || returnUrl.startsWith('//') || returnUrl.includes('://') || returnUrl.split(/[?#]/, 1)[0].split('/').includes('..')) return '/tabs/myoutfit';
+  if (!returnUrl || returnUrl.startsWith('//') || returnUrl.includes('://') || returnUrl.split(/[?#]/, 1)[0].split('/').includes('..')) return '/tabs/myoutfit';
+  if (returnUrl === '/delete-account') return returnUrl;
   return /^\/tabs(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?$/.test(returnUrl) ? returnUrl : '/tabs/myoutfit';
 }
 
