@@ -1,0 +1,49 @@
+.delete-account-content {
+  --padding-top: 12px;
+  --padding-bottom: 24px;
+}
+
+.delete-account-content ion-card {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.delete-account-content h2 {
+  margin-top: 24px;
+}
+
+.delete-account-content ion-list {
+  margin: 8px 0 16px;
+}
+
+.delete-account-content ion-item {
+  --padding-start: 0;
+}
+
+.delete-account-content ion-note {
+  display: block;
+  margin-top: 20px;
+}
+
+.delete-account-actions {
+  margin-top: 24px;
+}
+
+.delete-account-privacy {
+  margin-top: 24px;
+}
+
+.delete-account-state {
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.delete-account-state ion-icon {
+  font-size: 48px;
+}
