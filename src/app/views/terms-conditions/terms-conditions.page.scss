@@ -1,0 +1,20 @@
+.terms-state {
+  min-height: 240px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.terms-state--error ion-icon {
+  font-size: 32px;
+}
+
+.terms-text {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
