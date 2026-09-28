@@ -1,7 +1,9 @@
 import { Component, inject, Input, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AlertController, IonContent, ModalController, NavController } from '@ionic/angular';
-import { UserService } from 'src/app/service/user.service';
 import { firstValueFrom } from 'rxjs';
+import { StaticPage } from 'src/app/service/interface/static-page-interface';
+import { StaticPageService } from 'src/app/service/static-page.service';
+import { UserService } from 'src/app/service/user.service';
 
 export type TermsPageMode = 'view' | 'registration' | 'authenticated';
 
@@ -14,33 +16,35 @@ export type TermsPageMode = 'view' | 'registration' | 'authenticated';
 export class TermsConditionsPage implements OnInit, OnDestroy {
   @Input() mode: TermsPageMode = 'view';
   @ViewChild(IonContent, { static: false }) content: IonContent | undefined;
-  isScrollAtBottom: boolean = false; // Flag per tenere traccia se l'utente ha raggiunto il fondo della pagina
-  modalController = inject(ModalController)
-  Data:any
+
+  page?: StaticPage;
+  loading = false;
+  error = '';
+  isScrollAtBottom = false;
   accepting = false;
+
+  modalController = inject(ModalController);
   private scrollElement?: HTMLElement;
   private readonly scrollHandler = (): void => {
     this.zone.run(() => this.updateScrollState());
   };
-  get requiresAcceptance(): boolean { return this.mode !== 'view'; }
-  constructor(private navController: NavController, private users: UserService, private alerts: AlertController, private zone: NgZone) { }
 
-  ngOnInit() {  
-    const da =  new Date()
-    this.Data =`${da.getMonth() +1}/${da.getFullYear()}`
+  get requiresAcceptance(): boolean { return this.mode !== 'view'; }
+
+  constructor(
+    private navController: NavController,
+    private users: UserService,
+    private staticPages: StaticPageService,
+    private alerts: AlertController,
+    private zone: NgZone
+  ) {}
+
+  ngOnInit(): void {
+    this.loadTerms();
   }
-  
+
   async ionViewDidEnter(): Promise<void> {
-    this.detachScrollListener();
-    if (!this.requiresAcceptance || !this.content) return;
-    try {
-      this.scrollElement = await this.content.getScrollElement();
-      this.scrollElement.addEventListener('scroll', this.scrollHandler, { passive: true });
-      this.updateScrollState();
-    } catch {
-      this.detachScrollListener();
-      this.isScrollAtBottom = false;
-    }
+    await this.attachScrollListener();
   }
 
   ionViewWillLeave(): void {
@@ -51,12 +55,45 @@ export class TermsConditionsPage implements OnInit, OnDestroy {
     this.detachScrollListener();
   }
 
+  loadTerms(): void {
+    this.loading = true;
+    this.error = '';
+    this.page = undefined;
+    this.isScrollAtBottom = false;
+    this.detachScrollListener();
+
+    this.staticPages.getStaticPage('terms').subscribe({
+      next: async (page) => {
+        this.page = page;
+        this.loading = false;
+        await this.attachScrollListener();
+      },
+      error: (error) => {
+        this.loading = false;
+        this.error = error?.message || 'Impossibile caricare i Termini di Servizio.';
+      }
+    });
+  }
+
   updateScrollState(): void {
-    if (!this.requiresAcceptance || !this.scrollElement) return;
+    if (!this.requiresAcceptance || !this.scrollElement || !this.page) return;
     const { scrollTop, scrollHeight, clientHeight } = this.scrollElement;
     const tolerance = 4;
     this.isScrollAtBottom = scrollHeight <= clientHeight
       || scrollTop + clientHeight >= scrollHeight - tolerance;
+  }
+
+  private async attachScrollListener(): Promise<void> {
+    this.detachScrollListener();
+    if (!this.requiresAcceptance || !this.content || !this.page) return;
+    try {
+      this.scrollElement = await this.content.getScrollElement();
+      this.scrollElement.addEventListener('scroll', this.scrollHandler, { passive: true });
+      this.updateScrollState();
+    } catch {
+      this.detachScrollListener();
+      this.isScrollAtBottom = false;
+    }
   }
 
   private detachScrollListener(): void {
@@ -65,7 +102,7 @@ export class TermsConditionsPage implements OnInit, OnDestroy {
   }
 
   async acceptAndContinue(): Promise<void> {
-    if (!this.requiresAcceptance || !this.isScrollAtBottom || this.accepting) return;
+    if (!this.requiresAcceptance || !this.page || !this.isScrollAtBottom || this.accepting) return;
     if (this.mode === 'registration') {
       await this.modalController.dismiss({ accepted: true }, 'accepted');
       return;
@@ -90,21 +127,18 @@ export class TermsConditionsPage implements OnInit, OnDestroy {
     if (!this.requiresAcceptance) return;
     await this.modalController.dismiss({ accepted: false }, 'declined');
   }
-  async handleBackButton() {
+
+  async handleBackButton(): Promise<void> {
     if (this.requiresAcceptance) {
       await this.modalController.dismiss({ accepted: false }, 'declined');
       return;
     }
-   
-    // Altrimenti, esegui il comportamento predefinito del back button
+
     const modal = await this.modalController.getTop();
     if (modal) {
-      // Se c'è un modale aperto, chiudi il modale
-      modal.dismiss();
+      await modal.dismiss();
     } else {
-      // Altrimenti, esegui il comportamento predefinito del back button
       this.navController.back();
     }
-    
-   }
+  }
 }

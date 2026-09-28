@@ -127,6 +127,20 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'terms',
+    loadChildren: () =>
+      import('./views/terms-conditions/terms-conditions.module').then(
+        (m) => m.TermsConditionsPageModule
+      ),
+  },
+  {
+    path: 'privacy',
+    loadChildren: () =>
+      import('./views/privacy/privacy.module').then(
+        (m) => m.PrivacyPageModule
+      ),
+  },
+  {
     path: 'prodotti-online',
     loadChildren: () =>
       import('./views/prodotti-online/prodotti-online.module').then(

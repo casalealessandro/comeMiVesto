@@ -1,4 +1,9 @@
-.terms-state {
+.privacy-content {
+  --padding-top: 12px;
+  --padding-bottom: 24px;
+}
+
+.privacy-state {
   min-height: 240px;
   padding: 24px;
   display: flex;
@@ -9,11 +14,11 @@
   text-align: center;
 }
 
-.terms-state--error ion-icon {
+.privacy-state--error ion-icon {
   font-size: 32px;
 }
 
-.terms-text {
+.privacy-text {
   white-space: pre-wrap;
   line-height: 1.6;
   overflow-wrap: anywhere;
