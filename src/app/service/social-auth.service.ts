@@ -5,6 +5,7 @@ import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in';
 import { GoogleAuthProvider, OAuthProvider, signInWithCredential, UserCredential } from 'firebase/auth';
 import { environment } from 'src/environments/environment';
 import { FirebaseService } from './firebase.service';
+import { CrashReportingService } from './crash-reporting.service';
 
 export interface PendingSocialProfile {
   givenName: string;
@@ -32,7 +33,10 @@ export class SocialAuthService {
   private googleInitialized = false;
   private pendingProfile: PendingSocialProfile | null = null;
 
-  constructor(private firebase: FirebaseService) {}
+  constructor(
+    private firebase: FirebaseService,
+    private crashReporting: CrashReportingService,
+  ) {}
 
   async signInWithGoogle(): Promise<UserCredential> {
     const platform = Capacitor.getPlatform();
@@ -41,16 +45,20 @@ export class SocialAuthService {
     }
 
     const clientId = this.getGoogleClientId();
+    this.crashReporting.log('GOOGLE_LOGIN_NATIVE_CALL');
     const result: NativeGoogleSignInResult = platform === 'android'
       ? await LegacyGoogleSignIn.signIn({ clientId })
       : await this.signInWithCapawesomeGoogle(clientId);
+    this.crashReporting.log('GOOGLE_LOGIN_NATIVE_SUCCESS');
 
     if (!result.idToken) {
       throw new Error('GOOGLE_ID_TOKEN_MISSING');
     }
 
     const credential = GoogleAuthProvider.credential(result.idToken);
+    this.crashReporting.log('GOOGLE_LOGIN_FIREBASE_AUTH_START');
     const userCredential = await signInWithCredential(this.firebase.auth, credential);
+    this.crashReporting.log('GOOGLE_LOGIN_FIREBASE_AUTH_SUCCESS');
     this.pendingProfile = {
       givenName: result.givenName?.trim() || '',
       familyName: result.familyName?.trim() || '',

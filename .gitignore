@@ -67,6 +67,7 @@ testem.log
 *.jks
 *.keystore
 key.properties
+android/app/google-services.json
 
 # iOS signing and Firebase build files
 *.p8

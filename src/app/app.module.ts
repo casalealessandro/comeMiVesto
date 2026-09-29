@@ -1,4 +1,4 @@
-import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 
@@ -15,6 +15,7 @@ import { FotoOutfitPage } from './views/foto-outfit/foto-outfit.page';
 import { CurrencyFormatPipe } from './utility/currency-format.pipe';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { FirebaseAuthInterceptor } from './interceptors/firebase-auth.interceptor';
+import { GlobalErrorHandler } from './global-error-handler';
 
 
 
@@ -35,6 +36,7 @@ import { FirebaseAuthInterceptor } from './interceptors/firebase-auth.intercepto
     provideHttpClient(withInterceptorsFromDi()),
     { provide: HTTP_INTERCEPTORS, useClass: FirebaseAuthInterceptor, multi: true },
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
   ],
   bootstrap: [AppComponent],
  

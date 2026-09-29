@@ -40,6 +40,7 @@ describe('LoginPage intro routing', () => {
       {} as any,
       router as any,
       route as any,
+      { log: jasmine.createSpy('log'), recordError: jasmine.createSpy('recordError') } as any,
     );
   }
 

@@ -10,6 +10,7 @@ import { environment } from 'src/environments/environment';
 import { DeepLinkService } from './deep-link.service';
 import { FirebaseService } from './firebase.service';
 import { PushNotificationService } from './push-notification.service';
+import { CrashReportingService } from './crash-reporting.service';
 
 describe('PushNotificationService', () => {
   const pushTokenStorageKey = 'come-mivesto.push-notifications.fcm-token';
@@ -18,12 +19,14 @@ describe('PushNotificationService', () => {
   let authState: BehaviorSubject<unknown>;
   let deepLinks: jasmine.SpyObj<DeepLinkService>;
   let listeners: Record<string, (event: any) => void>;
+  let crashReporting: jasmine.SpyObj<CrashReportingService>;
 
   beforeEach(() => {
     localStorage.removeItem(pushTokenStorageKey);
     authState = new BehaviorSubject<unknown>(null);
     deepLinks = jasmine.createSpyObj<DeepLinkService>('DeepLinkService', ['handle']);
     listeners = {};
+    crashReporting = jasmine.createSpyObj<CrashReportingService>('CrashReportingService', ['log', 'recordError']);
 
     spyOn(Capacitor, 'isNativePlatform').and.returnValue(true);
     spyOn(Capacitor, 'getPlatform').and.returnValue('android');
@@ -47,6 +50,7 @@ describe('PushNotificationService', () => {
         provideHttpClientTesting(),
         { provide: FirebaseService, useValue: { authState } },
         { provide: DeepLinkService, useValue: deepLinks },
+        { provide: CrashReportingService, useValue: crashReporting },
       ],
     });
     service = TestBed.inject(PushNotificationService);
@@ -103,6 +107,8 @@ describe('PushNotificationService', () => {
     const request = http.expectOne(`${environment.BASE_API_URL}/gen/notifications/device`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ token: 'native-token', platform: 'android' });
+    expect(JSON.stringify(crashReporting.log.calls.allArgs())).not.toContain('native-token');
+    expect(JSON.stringify(crashReporting.recordError.calls.allArgs())).not.toContain('native-token');
     expect(localStorage.getItem(pushTokenStorageKey)).toBe('native-token');
     expect(FCM.getToken).not.toHaveBeenCalled();
     request.flush({ message: 'Success', data: null });

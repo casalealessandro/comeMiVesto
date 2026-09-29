@@ -4,7 +4,8 @@ The application registers authenticated Android and iOS installations with the e
 
 ## Android
 
-- Add the Firebase project's `google-services.json` to `android/app/` in the secure build environment.
+- Store the Base64-encoded Firebase Android configuration in the GitHub repository secret `ANDROID_GOOGLE_SERVICES_JSON_BASE64`. The Android CI jobs securely reconstruct and validate `android/app/google-services.json` before Capacitor sync, without printing or committing its contents.
+- Local or non-GitHub secure build environments must likewise provide the Firebase project's `google-services.json` in `android/app/`; the file must never be committed.
 - Use a physical installation distributed through Google Play Internal Testing to validate real Firebase delivery.
 - Foreground remote notifications are mirrored through Capacitor Local Notifications so title, body and deep-link data remain visible and actionable while the app is active.
 
