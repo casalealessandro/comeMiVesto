@@ -11,28 +11,43 @@ public class CrashReportingPlugin extends Plugin {
 
     @PluginMethod
     public void log(PluginCall call) {
-        FirebaseCrashlytics.getInstance().log(call.getString("event", "DIAGNOSTIC_EVENT"));
-        call.resolve();
+        try {
+            FirebaseCrashlytics.getInstance().log(call.getString("event", "DIAGNOSTIC_EVENT"));
+        } catch (Throwable ignored) {
+            // The diagnostics bridge is deliberately best-effort.
+        } finally {
+            call.resolve();
+        }
     }
 
     @PluginMethod
     public void setContext(PluginCall call) {
-        String key = call.getString("key");
-        String value = call.getString("value");
-        if (key != null && value != null) {
-            FirebaseCrashlytics.getInstance().setCustomKey(key, value);
+        try {
+            String key = call.getString("key");
+            String value = call.getString("value");
+            if (key != null && value != null) {
+                FirebaseCrashlytics.getInstance().setCustomKey(key, value);
+            }
+        } catch (Throwable ignored) {
+            // The diagnostics bridge is deliberately best-effort.
+        } finally {
+            call.resolve();
         }
-        call.resolve();
     }
 
     @PluginMethod
     public void recordError(PluginCall call) {
-        String errorType = call.getString("errorType", "JavaScriptError");
-        String context = call.getString("context", "UNHANDLED_JS_ERROR");
-        FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.log(context);
-        crashlytics.recordException(new JavaScriptDiagnosticException(errorType));
-        call.resolve();
+        try {
+            String errorType = call.getString("errorType", "JavaScriptError");
+            String context = call.getString("context", "UNHANDLED_JS_ERROR");
+            FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
+            crashlytics.log(context);
+            crashlytics.recordException(new JavaScriptDiagnosticException(errorType));
+        } catch (Throwable ignored) {
+            // The diagnostics bridge is deliberately best-effort.
+        } finally {
+            call.resolve();
+        }
     }
 
     private static final class JavaScriptDiagnosticException extends Exception {
