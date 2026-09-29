@@ -4,6 +4,7 @@ import { Platform } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { DeepLinkService } from './service/deep-link.service';
 import { PushNotificationService } from './service/push-notification.service';
+import { CrashReportingService } from './service/crash-reporting.service';
 
 @Component({
   standalone: false,
@@ -17,9 +18,11 @@ export class AppComponent {
   constructor(
     private platform: Platform,
     private deepLinkService: DeepLinkService,
-    private pushNotificationService: PushNotificationService
+    private pushNotificationService: PushNotificationService,
+    private crashReporting: CrashReportingService
   ) {
     this.platform.ready().then(() => {
+      void this.crashReporting.initializeBuildContext();
       void this.setupDeepLinks();
       void this.pushNotificationService.initialize();
       this.setStatusBar();
