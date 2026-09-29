@@ -102,6 +102,7 @@ jobs:
           esac
 
           echo "Building Angular configuration: $BUILD_CONFIGURATION"
+          GIT_COMMIT_SHA="$(git rev-parse HEAD)" node tools/generate-build-info.mjs
           npm run build -- --configuration="$BUILD_CONFIGURATION"
 
       - name: Upload web build

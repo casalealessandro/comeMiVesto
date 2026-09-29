@@ -6,6 +6,7 @@ import { browserLocalPersistence, browserSessionPersistence, sendPasswordResetEm
 import { UserService } from 'src/app/service/user.service';
 import { FirebaseService } from 'src/app/service/firebase.service';
 import { SocialAuthService } from 'src/app/service/social-auth.service';
+import { CrashReportingService } from 'src/app/service/crash-reporting.service';
 
 export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
   if (!returnUrl || !returnUrl.startsWith('/tabs') || returnUrl.startsWith('//') || returnUrl.includes('://') || returnUrl.split(/[?#]/, 1)[0].split('/').includes('..')) return '/tabs/myoutfit';
@@ -35,10 +36,12 @@ export class LoginPage implements OnInit {
     private socialAuthService: SocialAuthService,
     private alert:AlertController,
     private router :Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private crashReporting: CrashReportingService,
   ) {}
 
   ngOnInit(): void {
+    this.crashReporting.log('LOGIN_PAGE_OPEN');
     try {
       const hasSeenIntro = localStorage.getItem('hasSeenIntro');
       if (hasSeenIntro !== 'true') {
@@ -86,9 +89,12 @@ export class LoginPage implements OnInit {
     if (this.socialSubmitting) return;
 
     this.socialSubmitting = true;
+    this.crashReporting.log('GOOGLE_LOGIN_START');
     try {
       await this.socialAuthService.signInWithGoogle();
+      this.crashReporting.log('GOOGLE_LOGIN_SESSION_RESOLUTION_START');
       const state = await this.userService.resolveSocialAuthentication();
+      this.crashReporting.log('GOOGLE_LOGIN_SESSION_RESOLUTION_SUCCESS');
 
       if (state === 'registration-required') {
         await this.router.navigate(['/register'], {
@@ -104,6 +110,8 @@ export class LoginPage implements OnInit {
         { replaceUrl: true },
       );
     } catch (error: any) {
+      this.crashReporting.log('GOOGLE_LOGIN_ERROR');
+      this.crashReporting.recordError(error, 'GOOGLE_LOGIN_ERROR');
       console.error('Google login failed', error);
       const message = error?.message === 'GOOGLE_CLIENT_ID_NOT_CONFIGURED'
         ? 'Login Google non ancora configurato per questa build.'

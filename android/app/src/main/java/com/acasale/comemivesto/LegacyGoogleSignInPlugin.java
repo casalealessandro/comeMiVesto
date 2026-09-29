@@ -16,6 +16,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 @CapacitorPlugin(name = "LegacyGoogleSignIn")
 public class LegacyGoogleSignInPlugin extends Plugin {
@@ -24,6 +25,7 @@ public class LegacyGoogleSignInPlugin extends Plugin {
 
     @PluginMethod
     public void signIn(PluginCall call) {
+        log("GOOGLE_NATIVE_SIGN_IN_START");
         String clientId = call.getString("clientId");
         if (clientId == null || clientId.trim().isEmpty()) {
             call.reject("Google Web Client ID is missing", "GOOGLE_CLIENT_ID_NOT_CONFIGURED");
@@ -31,11 +33,14 @@ public class LegacyGoogleSignInPlugin extends Plugin {
         }
 
         client = createClient(clientId);
+        log("GOOGLE_NATIVE_CLIENT_CREATED");
         startActivityForResult(call, client.getSignInIntent(), "signInResult");
+        log("GOOGLE_NATIVE_INTENT_STARTED");
     }
 
     @ActivityCallback
     private void signInResult(PluginCall call, ActivityResult result) {
+        log("GOOGLE_NATIVE_CALLBACK");
         if (call == null) {
             return;
         }
@@ -45,11 +50,14 @@ public class LegacyGoogleSignInPlugin extends Plugin {
 
         try {
             GoogleSignInAccount account = task.getResult(ApiException.class);
+            log("GOOGLE_NATIVE_ACCOUNT_OK");
             String idToken = account.getIdToken();
             if (idToken == null || idToken.isEmpty()) {
+                log("GOOGLE_NATIVE_ID_TOKEN_MISSING");
                 call.reject("Google ID token missing", "GOOGLE_ID_TOKEN_MISSING");
                 return;
             }
+            log("GOOGLE_NATIVE_ID_TOKEN_OK");
 
             JSObject response = new JSObject();
             response.put("idToken", idToken);
@@ -59,12 +67,17 @@ public class LegacyGoogleSignInPlugin extends Plugin {
             response.put("familyName", account.getFamilyName());
             response.put("imageUrl", account.getPhotoUrl() != null ? account.getPhotoUrl().toString() : null);
             call.resolve(response);
+            log("GOOGLE_NATIVE_SIGN_IN_RESOLVED");
         } catch (ApiException error) {
+            log("GOOGLE_NATIVE_API_EXCEPTION status=" + error.getStatusCode());
+            FirebaseCrashlytics.getInstance().recordException(error);
             call.reject(
                 "Legacy Google Sign-In failed with status " + error.getStatusCode(),
                 "GOOGLE_SIGN_IN_FAILED_" + error.getStatusCode()
             );
         } catch (Exception error) {
+            log("GOOGLE_NATIVE_EXCEPTION");
+            FirebaseCrashlytics.getInstance().recordException(error);
             call.reject("Legacy Google Sign-In failed: " + error.getMessage(), "GOOGLE_SIGN_IN_FAILED");
         }
     }
@@ -94,5 +107,9 @@ public class LegacyGoogleSignInPlugin extends Plugin {
             .build();
 
         return GoogleSignIn.getClient(getActivity(), options);
+    }
+
+    private void log(String event) {
+        FirebaseCrashlytics.getInstance().log(event);
     }
 }

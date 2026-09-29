@@ -17,6 +17,7 @@ import { environment } from 'src/environments/environment';
 import { ApiResponse } from './app-service';
 import { DeepLinkService } from './deep-link.service';
 import { FirebaseService } from './firebase.service';
+import { CrashReportingService } from './crash-reporting.service';
 
 export interface NotificationPreferences {
   enabled: boolean;
@@ -51,9 +52,11 @@ export class PushNotificationService {
     private readonly firebase: FirebaseService,
     private readonly http: HttpClient,
     private readonly deepLinkService: DeepLinkService,
+    private readonly crashReporting: CrashReportingService,
   ) {}
 
   async initialize(): Promise<void> {
+    this.crashReporting.log('PUSH_INIT_START');
     if (this.initialized || !Capacitor.isNativePlatform()) {
       return;
     }
@@ -67,6 +70,7 @@ export class PushNotificationService {
 
     try {
       await PushNotifications.addListener('registration', (token: Token) => {
+        this.crashReporting.log('PUSH_REGISTRATION_CALLBACK');
         void this.synchronizeRegistrationToken(token, platform);
       });
       await PushNotifications.addListener('registrationError', () => {
@@ -140,6 +144,7 @@ export class PushNotificationService {
         : flags?.iosEnabled === true;
 
       if (flags?.enabled !== true || !platformEnabled) {
+        this.crashReporting.log('PUSH_FEATURE_DISABLED');
         return;
       }
 
@@ -156,15 +161,19 @@ export class PushNotificationService {
 
     this.registrationInProgress = true;
     try {
+      this.crashReporting.log('PUSH_PERMISSION_CHECK');
       let permission = await PushNotifications.checkPermissions();
       if (permission.receive === 'prompt' || permission.receive === 'prompt-with-rationale') {
+        this.crashReporting.log('PUSH_PERMISSION_REQUEST');
         permission = await PushNotifications.requestPermissions();
       }
       if (permission.receive !== 'granted') {
         return;
       }
+      this.crashReporting.log('PUSH_REGISTER_START');
       await PushNotifications.register();
-    } catch {
+    } catch (error) {
+      this.crashReporting.recordError(error, 'PUSH_REGISTER_ERROR');
       console.warn('Push registration could not be started.');
     } finally {
       this.registrationInProgress = false;
@@ -172,6 +181,7 @@ export class PushNotificationService {
   }
 
   private async synchronizeRegistrationToken(registrationToken: Token, platform: MobilePlatform): Promise<void> {
+    this.crashReporting.log('PUSH_DEVICE_SYNC_START');
     try {
       // Capacitor emits an FCM token on Android, but an APNs token on iOS.
       const token = platform === 'android'
@@ -187,7 +197,10 @@ export class PushNotificationService {
         token,
         platform,
       }));
-    } catch {
+      this.crashReporting.log('PUSH_DEVICE_SYNC_SUCCESS');
+    } catch (error) {
+      this.crashReporting.log('PUSH_DEVICE_SYNC_ERROR');
+      this.crashReporting.recordError(error, 'PUSH_DEVICE_SYNC_ERROR');
       console.warn('Push device synchronization failed.');
     }
   }
