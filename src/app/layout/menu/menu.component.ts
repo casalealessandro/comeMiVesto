@@ -1,6 +1,6 @@
 import { Component, inject, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, MenuController, ModalController, NavController } from '@ionic/angular';
+import { MenuController, ModalController, NavController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { UserPreference, UserProfile } from 'src/app/service/interface/user-interface';
 import { UserService } from 'src/app/service/user.service';
@@ -18,7 +18,7 @@ export class MenuComponent {
   userProfile = this.userProfileService.gUserProfile();
   modalController = inject(ModalController)
   
-  constructor(private router: Router, private userProfileService: UserService, private alert: AlertController,private menuCtrl: MenuController,private navCtrl: NavController) { }
+  constructor(private router: Router, private userProfileService: UserService, private menuCtrl: MenuController,private navCtrl: NavController) { }
   
   menuListTop = [
     {
@@ -66,30 +66,8 @@ export class MenuComponent {
   }
 
   async deleteAccount() {
-
-    const alert = await this.alert.create({
-      header: 'Attenzione!',
-      message: `Confermi la cancellazione dell'account?`,
-      buttons: [
-        {
-          text: 'Annulla',
-          role: 'cancel',
-          handler: () => {
-
-          }
-        },
-        {
-          text: 'Conferma',
-          handler: async () => {
-            await this.userProfileService.deleteAccount()
-
-
-          }
-        }
-      ]
-    })
-    await alert.present();
-
+    await this.closeMenu();
+    await this.router.navigate(['/delete-account']);
   }
 
   async functionalCheckBox() {

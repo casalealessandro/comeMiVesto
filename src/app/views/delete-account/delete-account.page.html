@@ -1,0 +1,94 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="handleBackButton()" size="small">
+        <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Elimina account</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="delete-account-content">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Elimina il tuo account Come Mi Vesto</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ng-container *ngIf="!deleted; else deletionCompleted">
+        <p>
+          Da questa pagina puoi richiedere l'eliminazione definitiva del tuo account
+          Come Mi Vesto e dei dati associati.
+        </p>
+
+        <h2>Cosa viene eliminato</h2>
+        <ion-list lines="none">
+          <ion-item>
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            <ion-label>Account e profilo</ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            <ion-label>Preferenze e guardaroba</ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            <ion-label>Outfit, preferiti e relazioni social</ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            <ion-label>Dati e preferenze delle notifiche</ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            <ion-label>Altri dati associati all'account gestiti da Come Mi Vesto</ion-label>
+          </ion-item>
+        </ion-list>
+
+        <p>
+          Non è previsto un periodo di conservazione nell'app per i dati dell'account
+          dopo il completamento della cancellazione.
+        </p>
+
+        <ion-note color="danger">
+          <strong>L'eliminazione è definitiva e non può essere annullata.</strong>
+        </ion-note>
+
+        <div class="delete-account-actions" *ngIf="!authenticated">
+          <p>
+            Per proteggere il tuo account devi accedere prima di poter richiedere
+            l'eliminazione.
+          </p>
+          <ion-button expand="block" (click)="login()">
+            Accedi per continuare
+          </ion-button>
+        </div>
+
+        <div class="delete-account-actions" *ngIf="authenticated">
+          <ion-button
+            expand="block"
+            color="danger"
+            [disabled]="deleting"
+            (click)="confirmDeletion()">
+            <ion-spinner *ngIf="deleting" name="crescent" slot="start"></ion-spinner>
+            {{ deleting ? 'Eliminazione in corso...' : 'Elimina definitivamente il mio account' }}
+          </ion-button>
+        </div>
+
+        <p class="delete-account-privacy">
+          Per maggiori informazioni sul trattamento dei dati consulta la
+          <a routerLink="/privacy">Privacy Policy</a>.
+        </p>
+      </ng-container>
+
+      <ng-template #deletionCompleted>
+        <div class="delete-account-state">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <h2>Account eliminato</h2>
+          <p>Il tuo account Come Mi Vesto e i dati associati sono stati eliminati.</p>
+        </div>
+      </ng-template>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
