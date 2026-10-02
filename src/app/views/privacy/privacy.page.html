@@ -23,7 +23,7 @@
 
   <ion-card *ngIf="!loading && !error && page">
     <ion-card-content>
-      <div class="privacy-text">{{ page.content }}</div>
+      <div class="privacy-text" [innerHTML]="page.content"></div>
     </ion-card-content>
   </ion-card>
 </ion-content>
