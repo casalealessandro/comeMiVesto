@@ -198,7 +198,14 @@ export class PushNotificationService {
         platform,
       }));
       this.crashReporting.log('PUSH_DEVICE_SYNC_SUCCESS');
-    } catch (error) {
+    } catch (error: any) {
+      console.error('PUSH_DEVICE_SYNC_ERROR', {
+        status: error?.status,
+        statusText: error?.statusText,
+        url: error?.url,
+        message: error?.message,
+        error: error?.error,
+      });
       this.crashReporting.log('PUSH_DEVICE_SYNC_ERROR');
       this.crashReporting.recordError(error, 'PUSH_DEVICE_SYNC_ERROR');
       console.warn('Push device synchronization failed.');
