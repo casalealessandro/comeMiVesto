@@ -1,6 +1,6 @@
 # Firebase Test Lab for Android
 
-The `Android Firebase Test Lab` workflow builds a debug APK from the development Angular configuration and submits it to a synchronous Firebase Test Lab Robo test. The `gcloud` command remains attached to the test until the matrix finishes, so crashes, ANRs, failed matrices, and inconclusive infrastructure results return a non-zero status and fail the GitHub Actions job.
+The `Android Firebase Test Lab` workflow builds the web application with the production Angular configuration, packages it in a debug APK isolated from the Google Play release pipeline, and submits it to a synchronous Firebase Test Lab Robo test. The `gcloud` command remains attached to the test until the matrix finishes, so crashes, ANRs, failed matrices, and inconclusive infrastructure results return a non-zero status and fail the GitHub Actions job.
 
 The workflow selects a non-deprecated model whose catalog `form` is `VIRTUAL` and whose `formFactor` is `PHONE` from the live Firebase Test Lab device catalog for every requested API level. It prints the selected model ID, device name, phone form factor, and API level before submission. The complete matrix output is visible in the job log and retained with the tested APK as a workflow artifact. It never requests tablets, wearables, physical devices, or Android Device Streaming.
 
@@ -8,7 +8,7 @@ The workflow selects a non-deprecated model whose catalog `form` is `VIRTUAL` an
 
 | Trigger | Scope | Android versions | API levels | Maximum device-minutes |
 | --- | --- | --- | --- | --- |
-| Push or same-repository pull request targeting `develop` | Smoke | Android 14 and Android 16 | 34 and 36 | 10 (2 devices x 5 minutes) |
+| Push or same-repository pull request targeting `main` | Smoke | Android 14 and Android 16 | 34 and 36 | 10 (2 devices x 5 minutes) |
 | Push of a `release-v*` tag | Full | Android 13, 14, 15, and 16 | 33, 34, 35, and 36 | 20 (4 devices x 5 minutes) |
 | Manual `workflow_dispatch` | `smoke` or `full` input | Same as the selected scope | Same as the selected scope | 10 or 20 |
 
