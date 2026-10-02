@@ -26,7 +26,7 @@
       <ion-card-subtitle>Versione {{ page.version }}.0</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content>
-      <div class="terms-text">{{ page.content }}</div>
+      <div class="terms-text" [innerHTML]="page.content"></div>
     </ion-card-content>
   </ion-card>
 </ion-content>
