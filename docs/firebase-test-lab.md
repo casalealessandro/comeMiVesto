@@ -18,7 +18,7 @@ Before Angular compilation, the workflow runs the repository's existing `tools/g
 
 ## GitHub repository configuration
 
-Configure these non-secret repository variables in **Settings > Secrets and variables > Actions > Variables**:
+Configure these values as repository secrets in **Settings > Secrets and variables > Actions > Secrets**:
 
 - `FIREBASE_PROJECT_ID`: the Google Cloud project ID that owns the Firebase Test Lab project.
 - `GCP_WORKLOAD_IDENTITY_PROVIDER`: the complete provider resource name, for example `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/providers/PROVIDER_ID`.
@@ -35,6 +35,6 @@ An administrator must complete the following setup once:
 3. Create a Workload Identity Pool and an OIDC provider whose issuer is `https://token.actions.githubusercontent.com` and whose audience is the provider's default audience. Map at least `google.subject=assertion.sub` and `attribute.repository=assertion.repository`.
 4. Restrict the provider with the attribute condition `assertion.repository == 'casalealessandro/comeMiVesto'`.
 5. Grant `Workload Identity User` (`roles/iam.workloadIdentityUser`) on the service account to the principal set for repository `casalealessandro/comeMiVesto`, using the pool's `attribute.repository` mapping.
-6. Store the provider resource name, service-account email, and project ID in the three repository variables above.
+6. Store the provider resource name, service-account email, and project ID in the three repository secrets above.
 
 GitHub grants the job only `contents: read` and `id-token: write`. `google-github-actions/auth` exchanges the short-lived GitHub OIDC token through Workload Identity Federation and impersonates the configured service account; no long-lived Google credential is stored in GitHub.
