@@ -18,23 +18,12 @@ Before Angular compilation, the workflow runs the repository's existing `tools/g
 
 ## GitHub repository configuration
 
-Configure these values as repository secrets in **Settings > Secrets and variables > Actions > Secrets**:
+Configure these repository secrets in **Settings > Secrets and variables > Actions > Secrets**:
 
-- `FIREBASE_PROJECT_ID`: the Google Cloud project ID that owns the Firebase Test Lab project.
-- `GCP_WORKLOAD_IDENTITY_PROVIDER`: the complete provider resource name, for example `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/providers/PROVIDER_ID`.
-- `GCP_DEPLOY_SERVICE_ACCOUNT`: the email address of the Google service account that the workflow is allowed to impersonate.
+- `FIREBASE_PROJECT_ID`: the Google Cloud project ID that owns Firebase Test Lab.
+- `FIREBASE_SERVICE_ACCOUNT_COMEMIVESTO_5E5F9`: the existing Google service-account JSON credential already used by the project.
+- `ANDROID_GOOGLE_SERVICES_JSON_BASE64`: the existing Android Firebase client configuration used to restore `android/app/google-services.json` during the build.
 
-The existing `ANDROID_GOOGLE_SERVICES_JSON_BASE64` repository secret remains required to create the app's client-side `google-services.json` during the build. It is not a Google Cloud service-account credential and is deleted after the job. This Test Lab workflow does not accept a service-account JSON key or Firebase token.
+The Test Lab workflow reuses the existing service-account credential and does not require Workload Identity Federation, a workload identity provider, or repository-level GCP service-account variables.
 
-## Google Cloud Workload Identity Federation
-
-An administrator must complete the following setup once:
-
-1. Enable the **Cloud Testing API**, **Cloud Tool Results API**, **IAM Service Account Credentials API**, and **Security Token Service API** in `FIREBASE_PROJECT_ID`.
-2. Create or select a Google service account for this workflow. Grant it `Firebase Test Lab Admin` (`roles/cloudtestservice.testAdmin`), `Cloud Tool Results Editor` (`roles/toolresults.editor`), and `Service Usage Consumer` (`roles/serviceusage.serviceUsageConsumer`) on the Test Lab project.
-3. Create a Workload Identity Pool and an OIDC provider whose issuer is `https://token.actions.githubusercontent.com` and whose audience is the provider's default audience. Map at least `google.subject=assertion.sub` and `attribute.repository=assertion.repository`.
-4. Restrict the provider with the attribute condition `assertion.repository == 'casalealessandro/comeMiVesto'`.
-5. Grant `Workload Identity User` (`roles/iam.workloadIdentityUser`) on the service account to the principal set for repository `casalealessandro/comeMiVesto`, using the pool's `attribute.repository` mapping.
-6. Store the provider resource name, service-account email, and project ID in the three repository secrets above.
-
-GitHub grants the job only `contents: read` and `id-token: write`. `google-github-actions/auth` exchanges the short-lived GitHub OIDC token through Workload Identity Federation and impersonates the configured service account; no long-lived Google credential is stored in GitHub.
+The Google service account used by `FIREBASE_SERVICE_ACCOUNT_COMEMIVESTO_5E5F9` must have the permissions required to submit Firebase Test Lab matrices and write Cloud Tool Results in project `FIREBASE_PROJECT_ID`.
