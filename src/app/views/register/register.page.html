@@ -30,6 +30,10 @@
             (submitFormEvent)="register($event)"
           >
           </app-dynamic-form>
+          <p class="privacy-notice">
+            Registrandoti dichiari di aver preso visione della
+            <a routerLink="/privacy">Privacy Policy</a>.
+          </p>
         </ng-container>
 
         <ng-template #socialRegistrationForm>
@@ -71,6 +75,11 @@
               </ion-icon>
             </ion-button>
 
+            <p class="privacy-notice">
+              Completando la registrazione dichiari di aver preso visione della
+              <a routerLink="/privacy">Privacy Policy</a>.
+            </p>
+
             <ion-button
               expand="block"
               [disabled]="socialSubmitting"
@@ -84,8 +93,10 @@
 
         <div class="footer-copy">
           <ion-label class="footer-label">&copy; 2024 Alessandro Casale</ion-label>
-          <ion-label class="footer-label"><u>Terms of Service </u>. <u>Privacy Policy</u> .<u>Content Policy
-            </u></ion-label>
+          <ion-label class="footer-label">
+            <a routerLink="/terms-conditions">Terms of Service</a> .
+            <a routerLink="/privacy">Privacy Policy</a> . <u>Content Policy</u>
+          </ion-label>
         </div>
 
 
