@@ -4,15 +4,27 @@ on:
   push:
     branches:
       - develop
+    tags:
+      - 'release-v*'
 
   pull_request:
     branches:
       - develop
 
   workflow_dispatch:
+    inputs:
+      test_scope:
+        description: Android versions to test
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - full
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: android-firebase-test-lab-${{ github.event.pull_request.number || github.ref }}
@@ -26,12 +38,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      FIREBASE_PROJECT_ID: comemivesto-5e5f9
+      FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_DEPLOY_SERVICE_ACCOUNT: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
       APK_PATH: android/app/build/outputs/apk/debug/app-debug.apk
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Select test scope
+        id: test_scope
+        shell: bash
+        env:
+          REQUESTED_SCOPE: ${{ inputs.test_scope }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == refs/tags/release-v* ]] || [[ "${REQUESTED_SCOPE:-smoke}" == "full" ]]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "api_levels=33,34,35,36" >> "$GITHUB_OUTPUT"
+            echo "Using the full Android 13-16 matrix"
+          else
+            echo "scope=smoke" >> "$GITHUB_OUTPUT"
+            echo "api_levels=34,36" >> "$GITHUB_OUTPUT"
+            echo "Using the Android 14 and Android 16 smoke matrix"
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -70,32 +101,92 @@ jobs:
       - name: Verify generated APK
         run: test -s "$APK_PATH"
 
-      - name: Authenticate to Google Cloud
+      - name: Validate Google Cloud configuration
+        run: |
+          set -euo pipefail
+          test -n "$FIREBASE_PROJECT_ID" || { echo "Missing repository variable FIREBASE_PROJECT_ID" >&2; exit 1; }
+          test -n "$GCP_WORKLOAD_IDENTITY_PROVIDER" || { echo "Missing repository variable GCP_WORKLOAD_IDENTITY_PROVIDER" >&2; exit 1; }
+          test -n "$GCP_DEPLOY_SERVICE_ACCOUNT" || { echo "Missing repository variable GCP_DEPLOY_SERVICE_ACCOUNT" >&2; exit 1; }
+
+      - name: Authenticate to Google Cloud with Workload Identity Federation
         uses: google-github-actions/auth@v3
         with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_COMEMIVESTO_5E5F9 }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
 
       - name: Setup Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v3
+
+      - name: Select available virtual devices
+        env:
+          API_LEVELS: ${{ steps.test_scope.outputs.api_levels }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          catalog="$RUNNER_TEMP/firebase-test-lab-models.json"
+          devices="$RUNNER_TEMP/firebase-test-lab-devices.tsv"
+
+          gcloud firebase test android models list \
+            --project="$FIREBASE_PROJECT_ID" \
+            --format=json > "$catalog"
+
+          python3 - "$catalog" "$devices" "$API_LEVELS" <<'PY'
+          import json
+          import sys
+
+          catalog_path, devices_path, requested_levels = sys.argv[1:]
+          with open(catalog_path, encoding="utf-8") as catalog_file:
+              models = json.load(catalog_file)
+
+          selected = []
+          for api_level in requested_levels.split(","):
+              candidates = sorted(
+                  model["id"]
+                  for model in models
+                  if "virtual" in model.get("tags", [])
+                  and "deprecated" not in model.get("tags", [])
+                  and api_level in model.get("supportedVersionIds", [])
+              )
+              if not candidates:
+                  raise SystemExit(
+                      f"No non-deprecated Firebase Test Lab virtual device supports API {api_level}."
+                  )
+              selected.append((candidates[0], api_level))
+
+          with open(devices_path, "w", encoding="utf-8") as devices_file:
+              for model_id, api_level in selected:
+                  devices_file.write(f"{model_id}\t{api_level}\n")
+                  print(f"Selected virtual device: model={model_id}, API={api_level}")
+          PY
 
       - name: Run Firebase Test Lab Robo tests
         shell: bash
         run: |
           set -euo pipefail
+          device_arguments=()
+          while IFS=$'\t' read -r model_id api_level; do
+            device_arguments+=(
+              "--device=model=${model_id},version=${api_level},locale=it,orientation=portrait"
+            )
+          done < "$RUNNER_TEMP/firebase-test-lab-devices.tsv"
+
+          echo "Submitting ${{ steps.test_scope.outputs.scope }} Robo matrix to Firebase Test Lab"
           gcloud firebase test android run \
             --project="$FIREBASE_PROJECT_ID" \
             --type=robo \
             --app="$APK_PATH" \
-            --device=model=MediumPhone.arm,version=30,locale=it,orientation=portrait \
-            --device=model=MediumPhone.arm,version=35,locale=it,orientation=portrait \
-            --timeout=5m
+            "${device_arguments[@]}" \
+            --timeout=5m \
+            2>&1 | tee "$RUNNER_TEMP/firebase-test-lab-matrix.log"
 
-      - name: Upload tested APK
+      - name: Upload tested APK and Test Lab log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: firebase-test-lab-apk
-          path: ${{ env.APK_PATH }}
+          name: firebase-test-lab-${{ steps.test_scope.outputs.scope }}
+          path: |
+            ${{ env.APK_PATH }}
+            ${{ runner.temp }}/firebase-test-lab-matrix.log
           if-no-files-found: warn
           retention-days: 7
 
