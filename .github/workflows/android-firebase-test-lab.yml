@@ -74,7 +74,10 @@ jobs:
         run: npm ci
 
       - name: Build development web application
-        run: npm run build -- --configuration=dev
+        run: |
+          set -euo pipefail
+          GIT_COMMIT_SHA="$(git rev-parse HEAD)" node tools/generate-build-info.mjs
+          npm run build -- --configuration=dev
 
       - name: Restore Android Firebase configuration
         env:
@@ -141,22 +144,33 @@ jobs:
           selected = []
           for api_level in requested_levels.split(","):
               candidates = sorted(
-                  model["id"]
+                  (
+                      model["id"],
+                      model.get("name", "name unavailable"),
+                      model["formFactor"],
+                  )
                   for model in models
-                  if "virtual" in model.get("tags", [])
+                  if model.get("form") == "VIRTUAL"
+                  and model.get("formFactor") == "PHONE"
                   and "deprecated" not in model.get("tags", [])
                   and api_level in model.get("supportedVersionIds", [])
               )
               if not candidates:
                   raise SystemExit(
-                      f"No non-deprecated Firebase Test Lab virtual device supports API {api_level}."
+                      "No non-deprecated Firebase Test Lab virtual smartphone "
+                      f"supports API {api_level}."
                   )
-              selected.append((candidates[0], api_level))
+              model_id, device_name, form_factor = candidates[0]
+              selected.append((model_id, api_level))
+              print(
+                  "Selected virtual smartphone: "
+                  f"model={model_id}, name={device_name}, "
+                  f"form_factor={form_factor}, API={api_level}"
+              )
 
           with open(devices_path, "w", encoding="utf-8") as devices_file:
               for model_id, api_level in selected:
                   devices_file.write(f"{model_id}\t{api_level}\n")
-                  print(f"Selected virtual device: model={model_id}, API={api_level}")
           PY
 
       - name: Run Firebase Test Lab Robo tests

@@ -2,7 +2,7 @@
 
 The `Android Firebase Test Lab` workflow builds a debug APK from the development Angular configuration and submits it to a synchronous Firebase Test Lab Robo test. The `gcloud` command remains attached to the test until the matrix finishes, so crashes, ANRs, failed matrices, and inconclusive infrastructure results return a non-zero status and fail the GitHub Actions job.
 
-The workflow selects a non-deprecated virtual model from the live Firebase Test Lab device catalog for every requested API level. It prints every selected model and API level before submission, and the complete matrix output is visible in the job log and retained with the tested APK as a workflow artifact. It never requests physical devices or Android Device Streaming.
+The workflow selects a non-deprecated model whose catalog `form` is `VIRTUAL` and whose `formFactor` is `PHONE` from the live Firebase Test Lab device catalog for every requested API level. It prints the selected model ID, device name, phone form factor, and API level before submission. The complete matrix output is visible in the job log and retained with the tested APK as a workflow artifact. It never requests tablets, wearables, physical devices, or Android Device Streaming.
 
 ## Test scopes and cost ceiling
 
@@ -12,7 +12,9 @@ The workflow selects a non-deprecated virtual model from the live Firebase Test 
 | Push of a `release-v*` tag | Full | Android 13, 14, 15, and 16 | 33, 34, 35, and 36 | 20 (4 devices x 5 minutes) |
 | Manual `workflow_dispatch` | `smoke` or `full` input | Same as the selected scope | Same as the selected scope | 10 or 20 |
 
-Pull requests from forks are skipped because GitHub does not expose the Android Firebase configuration secret to them. A requested API without a currently available, non-deprecated virtual device fails before submission rather than silently substituting a physical device or another Android version.
+Pull requests from forks are skipped because GitHub does not expose the Android Firebase configuration secret to them. A requested API without a currently available, non-deprecated virtual smartphone fails before submission rather than silently substituting a tablet, wearable, physical device, or another Android version.
+
+Before Angular compilation, the workflow runs the repository's existing `tools/generate-build-info.mjs` script with `GIT_COMMIT_SHA` set to the checked-out `HEAD`. Native diagnostics and Crashlytics therefore receive the SHA of the APK submitted to Test Lab rather than the local fallback value.
 
 ## GitHub repository configuration
 
