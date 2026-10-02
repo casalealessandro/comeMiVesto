@@ -1,8 +1,10 @@
 import { TestBed } from '@angular/core/testing';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController } from '@ionic/angular';
 import { of } from 'rxjs';
 import { DynamicFormComponent } from 'src/app/components/dynamic-form/dynamic-form.component';
 import { UserService } from 'src/app/service/user.service';
+import { SocialAuthService } from 'src/app/service/social-auth.service';
 import { RegisterPage } from './register.page';
 
 describe('RegisterPage Terms consent', () => {
@@ -11,6 +13,7 @@ describe('RegisterPage Terms consent', () => {
   let modalController: any;
   let modalResult: { data?: { accepted: boolean } };
   let dynamicForm: jasmine.SpyObj<DynamicFormComponent>;
+  let router: jasmine.SpyObj<Router>;
   const termsEvent = {
     checked: true, fieldName: 'backend-field-name',
     field: { name: 'backend-field-name', type: 'checkBox', label: 'Terms', required: true,
@@ -23,19 +26,29 @@ describe('RegisterPage Terms consent', () => {
     modalController = { create: jasmine.createSpy().and.callFake(async () => ({
       present: jasmine.createSpy().and.resolveTo(), onDidDismiss: jasmine.createSpy().and.callFake(async () => modalResult)
     })) };
-    users = jasmine.createSpyObj<UserService>('UserService', ['registerUser', 'loadBootstrap']);
+    users = jasmine.createSpyObj<UserService>('UserService', [
+      'registerUser', 'completeRegistration', 'completeAuthenticatedSession', 'gUserProfile', 'gTermsStatus'
+    ]);
     users.registerUser.and.returnValue(of({}));
+    users.completeRegistration.and.returnValue(of({} as any));
+    router = jasmine.createSpyObj<Router>('Router', ['navigateByUrl']);
+    router.navigateByUrl.and.resolveTo(true);
     dynamicForm = jasmine.createSpyObj<DynamicFormComponent>('DynamicFormComponent', ['setFieldValue']);
     TestBed.configureTestingModule({ providers: [
       { provide: ModalController, useValue: modalController },
-      { provide: AlertController, useValue: { create: jasmine.createSpy().and.resolveTo({ present: () => Promise.resolve() }) } }
+      { provide: AlertController, useValue: { create: jasmine.createSpy().and.resolveTo({ present: () => Promise.resolve() }) } },
+      { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: { get: () => null } } } },
+      { provide: Router, useValue: router },
+      { provide: SocialAuthService, useValue: { getPendingProfile: () => null, clearPendingProfile: jasmine.createSpy() } }
     ] });
     component = TestBed.runInInjectionContext(() => new RegisterPage(
       users,
       { back: () => undefined } as any,
       TestBed.inject(AlertController),
       { auth: {} } as any,
-      { navigateByUrl: jasmine.createSpy().and.resolveTo(true) } as any
+      TestBed.inject(SocialAuthService),
+      TestBed.inject(ActivatedRoute),
+      router
     ));
     spyOn<any>(component, 'completeRegistrationSession').and.resolveTo();
     component.registrationForm = dynamicForm;
@@ -85,7 +98,18 @@ describe('RegisterPage Terms consent', () => {
     component.register(registration);
     const payload = users.registerUser.calls.mostRecent().args[1] as any;
     expect(payload.termsAccepted).toBeTrue();
-    for (const field of ['uid', 'createAt', 'termsVersion', 'termsAcceptedAt']) expect(payload[field]).toBeUndefined();
+    for (const field of ['uid', 'createAt', 'termsVersion', 'termsAcceptedAt', 'privacyAccepted']) expect(payload[field]).toBeUndefined();
+  });
+
+  it('completes social registration without sending privacy consent', async () => {
+    component.socialGender = 'U';
+    component.termsAccepted = true;
+
+    await component.completeSocialRegistration();
+
+    const payload = users.completeRegistration.calls.mostRecent().args[0] as any;
+    expect(payload.termsAccepted).toBeTrue();
+    expect(payload.privacyAccepted).toBeUndefined();
   });
 
   it('starts the Firebase session flow after a successful registration', async () => {
