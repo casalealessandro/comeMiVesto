@@ -1,4 +1,8 @@
 <ion-app>
+  <div *ngIf="isAppStarting" class="app-startup-screen" aria-label="Caricamento applicazione">
+    <img src="assets/splash.png" alt="" class="app-startup-screen__image">
+    <ion-spinner name="crescent" class="app-startup-screen__spinner"></ion-spinner>
+  </div>
+
   <ion-router-outlet></ion-router-outlet>
-  
 </ion-app>
