@@ -397,40 +397,33 @@ export class UserService {
 
   async deleteAccount(): Promise<boolean> {
     const user = await this.firebase.waitForAuthState();
-    if (user) {
-      try {
-        //await deleteUser(user); 
-        let res = await this.disabledUsersFirebase(user.uid)
-        if (res) {
-          // Effettua il logout o naviga su una pagina appropriata
-          await this.logOut();
-          return true;
-        }
+    if (!user) return false;
 
-
-      } catch (error) {
-
-        console.error('Errore durante la cancellazione dell\'account:', error);
-        return false;
-      }
-    }
-    return false;
-  }
-
-  async disabledUsersFirebase(uid: string): Promise<boolean> {
-    const api = `${this.apiFire}/user/disable/${uid}`
-
+    const isGoogleUser = user.providerData
+      ?.some((provider) => provider.providerId === 'google.com') === true;
 
     try {
-      let call = this.httpClient.post(api, {})
-      const result = await lastValueFrom(call);
-      console.log(result);
+      await lastValueFrom(
+        this.httpClient.delete<ApiResponse<unknown>>(`${this.apiFire}/user/me`)
+      );
+
+      if (isGoogleUser) {
+        try {
+          await this.socialAuthService.signOutGoogle();
+        } catch (error) {
+          console.warn('Google Sign-In logout non riuscito dopo la cancellazione account:', error);
+        }
+      } else {
+        this.socialAuthService.clearPendingProfile();
+      }
+
+      await signOut(this.firebase.auth);
+      this.clearApplicationSessionState();
       return true;
     } catch (error) {
-      console.error('Errore nella disabilitazione dell\'utente:', error);
+      console.error('Errore durante la cancellazione dell\'account:', error);
       return false;
     }
-
   }
 
   private clearApplicationSessionState(): void {
