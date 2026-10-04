@@ -254,38 +254,54 @@ export class MyWardrobesPage implements OnInit {
   private async lookupProductByGtin(gtin: string) {
     const loading = await this.loadingController.create({ message: 'Ricerca prodotto...' });
     await loading.present();
+
+    let product: ProductIdentificationResult | null = null;
+    let fallbackToManual = false;
     try {
-      const product = await this.appService.getOutfitProductByGtin(gtin);
-      await this.addClothModal(this.productIdentificationPrefill(product));
+      product = await this.appService.getOutfitProductByGtin(gtin);
     } catch (error) {
       if (error instanceof ApiRequestError && (error.status === 400 || error.status === 404)) {
-        await this.offerManualProduct('Prodotto non trovato', 'Non abbiamo trovato questo codice. Puoi inserire il prodotto manualmente.');
-        return;
+        fallbackToManual = true;
+      } else {
+        await this.presentProductAlert('Ricerca non riuscita', 'Non è stato possibile cercare il prodotto. Riprova.');
       }
-      await this.presentProductAlert('Ricerca non riuscita', 'Non è stato possibile cercare il prodotto. Riprova.');
     } finally {
       await loading.dismiss();
+    }
+
+    if (product) {
+      await this.addClothModal(this.productIdentificationPrefill(product));
+    } else if (fallbackToManual) {
+      await this.offerManualProduct('Prodotto non trovato', 'Non abbiamo trovato questo codice. Puoi inserire il prodotto manualmente.');
     }
   }
 
   private async resolveProductUrl(url: string) {
     const loading = await this.loadingController.create({ message: 'Recupero dati prodotto...' });
     await loading.present();
+
+    let metadata: ProductUrlMetadata | null = null;
+    let fallbackToManual = false;
     try {
-      const metadata = await this.appService.resolveOutfitProductUrl(url);
-      await this.addClothModal(this.productUrlPrefill(metadata));
+      metadata = await this.appService.resolveOutfitProductUrl(url);
     } catch (error) {
       if (error instanceof ApiRequestError && [400, 404, 502].includes(error.status)) {
-        await this.offerManualProduct(
-          'Dati non disponibili',
-          'Non siamo riusciti a compilare automaticamente il prodotto. Puoi continuare manualmente mantenendo il link.',
-          { link: url }
-        );
-        return;
+        fallbackToManual = true;
+      } else {
+        await this.presentProductAlert('Recupero non riuscito', 'Non è stato possibile leggere i dati del prodotto. Riprova.');
       }
-      await this.presentProductAlert('Recupero non riuscito', 'Non è stato possibile leggere i dati del prodotto. Riprova.');
     } finally {
       await loading.dismiss();
+    }
+
+    if (metadata) {
+      await this.addClothModal(this.productUrlPrefill(metadata));
+    } else if (fallbackToManual) {
+      await this.offerManualProduct(
+        'Dati non disponibili',
+        'Non siamo riusciti a compilare automaticamente il prodotto. Puoi continuare manualmente mantenendo il link.',
+        { link: url }
+      );
     }
   }
 
