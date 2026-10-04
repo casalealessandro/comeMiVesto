@@ -441,7 +441,7 @@ export class MyWardrobesPage implements OnInit {
       outfitCategory: categoryID,
       outfitSubCategory: subCategoryID,
       color: productData.color,
-      prezzo: prezzo === null || prezzo === '' ? null : Number(prezzo),
+      prezzo: prezzo === null || prezzo === '' ? undefined : Number(prezzo),
       link: link,
       ...(productData.catalogProductId ? { catalogProductId: productData.catalogProductId } : {}),
     }
