@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <color android:color="#3f3f3f" />
+    </item>
+    <item
+        android:width="390dp"
+        android:height="390dp"
+        android:gravity="center">
+        <bitmap
+            android:src="@drawable/cmv_splash_logo"
+            android:gravity="fill" />
+    </item>
+</layer-list>

@@ -18,14 +18,14 @@
 
   <!-- Launch Theme with Splash Screen -->
   <style name="AppTheme.NoActionBarLaunch" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-    <item name="android:windowBackground">@drawable/splash</item>
+    <item name="android:windowBackground">@drawable/cmv_splash</item>
     <item name="windowActionBar">false</item>
     <item name="windowNoTitle">true</item>
   </style>
 
   <!-- Launch Theme specifically for splash screen -->
   <style name="LaunchTheme" parent="Theme.AppCompat.Light.NoActionBar">
-    <item name="android:windowBackground">@drawable/splash</item>
+    <item name="android:windowBackground">@drawable/cmv_splash</item>
   </style>
 
 </resources>
