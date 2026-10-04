@@ -29,13 +29,27 @@
                   <ion-ripple-effect></ion-ripple-effect>
                   <i class="fi fi-rr-shop"></i>Aggiungi da store</ion-button>
               </div>
+
+              <div class="intro-button">
+                <ion-button class="intro-btn" (click)="scanProductCode()">
+                  <ion-ripple-effect></ion-ripple-effect>
+                  <ion-icon name="scan-outline"></ion-icon>Scansiona codice
+                </ion-button>
+              </div>
+
+              <div class="intro-button">
+                <ion-button class="intro-btn" (click)="addProductFromLink()">
+                  <ion-ripple-effect></ion-ripple-effect>
+                  <ion-icon name="link-outline"></ion-icon>Aggiungi da link
+                </ion-button>
+              </div>
+
               <div class="intro-button">
                    <!-- Crea il tuo vestito -->
                 <ion-button class="intro-btn" (click)="addClothModal()">
                   <ion-ripple-effect></ion-ripple-effect>
                   <i class="fi fi-rr-plus"></i>Carica nuovo prodotto
                 </ion-button>
-
               </div>
              
             </div>
