@@ -1,7 +1,18 @@
 <!-- Griglia dei prodotti -->
 <div class="product-grid main-content" [class.horizontal-scroll]="horizontalScroll">
-  <ion-card class="product-cards" *ngFor="let product of products" (click)="openProduct($event,product)">
+  <ion-card
+    class="product-cards"
+    *ngFor="let product of products"
+    [class.product-card-feedback]="isProductInFeedback(product)"
+    [class.product-card-busy]="isProductBusy(product)"
+    [attr.aria-busy]="isProductBusy(product)"
+    (click)="openProduct($event,product)">
     <div class="product-card">
+      <div class="product-loading-overlay" *ngIf="isProductBusy(product)">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Aggiungo...</span>
+      </div>
+
       <div class="product-card-header">
         
           <ion-text class="brend-title">{{product.brend}}</ion-text>
@@ -36,13 +47,13 @@
                 <ion-card-subtitle class="product-price" *ngIf="getProductPrice(product) !== undefined">{{ getProductPrice(product) | currencyFormat }}</ion-card-subtitle>
 
                 <div class="product-card-action">
-                 <ion-button size="small" *ngIf="hasStoreLink(product)" slot="icon-only" fill="clear" (click)="buyToStore($event,product)">
+                 <ion-button size="small" *ngIf="hasStoreLink(product)" slot="icon-only" fill="clear" [disabled]="isProductBusy(product)" (click)="buyToStore($event,product)">
                   <i class="fi fi-rr-shopping-cart"></i>
                  </ion-button>
-                 <ion-button size="small" *ngIf="showSaveBtn" slot="icon-only" fill="clear" (click)="saveToWardrobe($event,product)">
-                  <i class="fi fi-rr-heart"></i>
+                 <ion-button size="small" *ngIf="showSaveBtn" slot="icon-only" fill="clear" [disabled]="isProductBusy(product)" (click)="saveToWardrobe($event,product)">
+                  <ion-spinner *ngIf="isProductBusy(product)" name="crescent" class="product-action-spinner"></ion-spinner>
+                  <i *ngIf="!isProductBusy(product)" class="fi fi-rr-heart"></i>
                  </ion-button>
-     
               </div>
              
             </div>
