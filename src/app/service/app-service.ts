@@ -45,6 +45,45 @@ export interface AppCatalogProduct {
   affiliateProgramId: string;
 }
 
+export interface ProductIdentificationResult {
+  source: 'CATALOG' | 'UPCITEMDB';
+  gtin: string;
+  catalogProductId: string | null;
+  name: string;
+  brand: string;
+  brend: string;
+  description: string;
+  outfitCategory: string;
+  outfitSubCategory: string;
+  color: string;
+  images: string[];
+  imageUrl: string;
+  price: number | null;
+  prezzo: number | null;
+  currency: string;
+  link: string;
+  category: string;
+}
+
+export interface ProductUrlMetadata {
+  source: 'JSON_LD' | 'OPEN_GRAPH';
+  submittedUrl: string;
+  resolvedUrl: string;
+  name: string;
+  brand: string;
+  description: string;
+  images: string[];
+  imageUrl: string;
+  price: number | null;
+  currency: string;
+  availability: string;
+  category: string;
+  sku: string;
+  mpn: string;
+  gtin: string | null;
+  catalogProduct: ProductIdentificationResult | null;
+}
+
 export interface CatalogPagination {
   nextCursor: string | null;
   hasMore: boolean;
@@ -218,6 +257,20 @@ export class AppService {
   recordOutfitVisit(id: string): Promise<outfit> { return lastValueFrom(this.http.post<ApiResponse<outfit>>(`${this.apiFire}outfits/${encodeURIComponent(id)}/visit`, {}).pipe(map(r => r.data), catchError(this.handleError))); }
   getOutfitProduct(id: string): Promise<AppCatalogProduct> {
     return lastValueFrom(this.http.get<ApiResponse<AppCatalogProduct>>(`${this.apiFire}outfit-products/${encodeURIComponent(id)}`).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    ));
+  }
+
+  getOutfitProductByGtin(gtin: string): Promise<ProductIdentificationResult> {
+    return lastValueFrom(this.http.get<ApiResponse<ProductIdentificationResult>>(`${this.apiFire}outfit-products/by-gtin/${encodeURIComponent(gtin)}`).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    ));
+  }
+
+  resolveOutfitProductUrl(url: string): Promise<ProductUrlMetadata> {
+    return lastValueFrom(this.http.post<ApiResponse<ProductUrlMetadata>>(`${this.apiFire}outfit-products/resolve-url`, { url }).pipe(
       map(response => response.data),
       catchError(this.handleError)
     ));

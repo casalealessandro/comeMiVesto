@@ -1,11 +1,13 @@
 import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
 import { FirebaseService } from 'src/app/service/firebase.service';
-import { AlertController, ModalController } from '@ionic/angular';
+import { AlertController, LoadingController, ModalController } from '@ionic/angular';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
-import { AppService } from 'src/app/service/app-service';
+import { ApiRequestError, AppService, ProductIdentificationResult, ProductUrlMetadata } from 'src/app/service/app-service';
 import { categoryCloth, outfitCategories, Tag, wardrobesItem } from 'src/app/service/interface/outfit-all-interface';
 import { ProdottiOnlinePage } from '../prodotti-online/prodotti-online.page';
 import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
+import { BarcodeFormat, BarcodeScanner, GoogleBarcodeScannerModuleInstallState } from '@capacitor-mlkit/barcode-scanning';
 import { firstValueFrom, Observable } from 'rxjs';
 import { UserProfile } from 'firebase/auth';
 import { UserService } from 'src/app/service/user.service';
@@ -35,6 +37,7 @@ export class MyWardrobesPage implements OnInit {
   isLoading: boolean = true;
   private isAddClothModalOpen = false;
   private isSearchClothModalOpen = false;
+  private isProductLookupInProgress = false;
   private wardrobeDeletionsInProgress = new Set<string>();
   
   constructor(
@@ -43,7 +46,8 @@ export class MyWardrobesPage implements OnInit {
     private modalController: ModalController,
     private userProfileService: UserService,
     private router: Router,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private loadingController: LoadingController
   ) { }
 
   ngOnInit() {
@@ -152,66 +156,403 @@ export class MyWardrobesPage implements OnInit {
     }
   }
 
-  async addClothModal() {
+  async scanProductCode() {
+    if (this.isProductLookupInProgress) return;
+
+    if (!Capacitor.isNativePlatform()) {
+      await this.presentProductAlert('Scanner non disponibile', 'La scansione del codice è disponibile dall’app mobile.');
+      return;
+    }
+
+    this.isProductLookupInProgress = true;
+    try {
+      const { supported } = await BarcodeScanner.isSupported();
+      if (!supported) {
+        await this.presentProductAlert('Scanner non disponibile', 'Questo dispositivo non supporta la scansione dei codici.');
+        return;
+      }
+
+      if (Capacitor.getPlatform() === 'ios') {
+        const permission = await BarcodeScanner.checkPermissions();
+        if (permission.camera !== 'granted') {
+          const requested = await BarcodeScanner.requestPermissions();
+          if (requested.camera !== 'granted') {
+            await this.presentProductAlert('Fotocamera non disponibile', 'Abilita l’accesso alla fotocamera per scansionare il prodotto.');
+            return;
+          }
+        }
+      }
+
+      if (Capacitor.getPlatform() === 'android' && !(await this.ensureAndroidScannerModule())) {
+        await this.presentProductAlert('Scanner non disponibile', 'Non è stato possibile preparare lo scanner. Riprova tra poco.');
+        return;
+      }
+
+      const result = await BarcodeScanner.scan({
+        formats: [BarcodeFormat.Ean8, BarcodeFormat.Ean13, BarcodeFormat.UpcA, BarcodeFormat.UpcE, BarcodeFormat.QrCode],
+        autoZoom: true
+      });
+      const barcode = result.barcodes?.[0];
+      if (!barcode) return;
+
+      const value = (barcode.urlBookmark?.url || barcode.rawValue || barcode.displayValue || '').trim();
+      if (!value) {
+        await this.presentProductAlert('Codice non leggibile', 'Non è stato possibile leggere il contenuto del codice.');
+        return;
+      }
+
+      if (/^https?:\/\//i.test(value)) {
+        await this.resolveProductUrl(value);
+        return;
+      }
+
+      await this.lookupProductByGtin(value);
+    } catch {
+      await this.presentProductAlert('Scansione non riuscita', 'Non è stato possibile completare la scansione. Riprova.');
+    } finally {
+      this.isProductLookupInProgress = false;
+    }
+  }
+
+  async addProductFromLink() {
+    if (this.isProductLookupInProgress) return;
+
+    const alert = await this.alertController.create({
+      header: 'Aggiungi da link',
+      message: 'Incolla il link della pagina prodotto.',
+      inputs: [
+        {
+          name: 'url',
+          type: 'url',
+          placeholder: 'https://...'
+        }
+      ],
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        { text: 'Continua', role: 'confirm' }
+      ]
+    });
+
+    await alert.present();
+    const { role, data } = await alert.onDidDismiss();
+    if (role !== 'confirm') return;
+
+    const url = String(data?.values?.url || '').trim();
+    if (!/^https?:\/\//i.test(url)) {
+      await this.presentProductAlert('Link non valido', 'Inserisci un link che inizi con http:// o https://.');
+      return;
+    }
+
+    this.isProductLookupInProgress = true;
+    try {
+      await this.resolveProductUrl(url);
+    } finally {
+      this.isProductLookupInProgress = false;
+    }
+  }
+
+  private async lookupProductByGtin(gtin: string) {
+    const loading = await this.loadingController.create({ message: 'Ricerca prodotto...' });
+    await loading.present();
+
+    let product: ProductIdentificationResult | null = null;
+    let fallbackToManual = false;
+    try {
+      product = await this.appService.getOutfitProductByGtin(gtin);
+    } catch (error) {
+      if (error instanceof ApiRequestError && (error.status === 400 || error.status === 404)) {
+        fallbackToManual = true;
+      } else {
+        await this.presentProductAlert('Ricerca non riuscita', 'Non è stato possibile cercare il prodotto. Riprova.');
+      }
+    } finally {
+      await loading.dismiss();
+    }
+
+    if (product) {
+      await this.addClothModal(this.productIdentificationPrefill(product));
+    } else if (fallbackToManual) {
+      await this.offerManualProduct('Prodotto non trovato', 'Non abbiamo trovato questo codice. Puoi inserire il prodotto manualmente.');
+    }
+  }
+
+  private async resolveProductUrl(url: string) {
+    const loading = await this.loadingController.create({ message: 'Recupero dati prodotto...' });
+    await loading.present();
+
+    let metadata: ProductUrlMetadata | null = null;
+    let fallbackToManual = false;
+    try {
+      metadata = await this.appService.resolveOutfitProductUrl(url);
+    } catch (error) {
+      if (error instanceof ApiRequestError && [400, 404, 502].includes(error.status)) {
+        fallbackToManual = true;
+      } else {
+        await this.presentProductAlert('Recupero non riuscito', 'Non è stato possibile leggere i dati del prodotto. Riprova.');
+      }
+    } finally {
+      await loading.dismiss();
+    }
+
+    if (metadata) {
+      await this.addClothModal(this.productUrlPrefill(metadata));
+    } else if (fallbackToManual) {
+      await this.offerManualProduct(
+        'Dati non disponibili',
+        'Non siamo riusciti a compilare automaticamente il prodotto. Puoi continuare manualmente mantenendo il link.',
+        { link: url }
+      );
+    }
+  }
+
+  private productIdentificationPrefill(product: ProductIdentificationResult) {
+    return {
+      catalogProductId: product.catalogProductId || undefined,
+      name: product.name,
+      brend: product.brend || product.brand,
+      outfitCategory: product.outfitCategory,
+      outfitSubCategory: product.outfitSubCategory,
+      color: product.color,
+      prezzo: product.prezzo ?? product.price,
+      price: product.price ?? product.prezzo,
+      images: product.images,
+      imageUrl: product.imageUrl,
+      link: product.link
+    };
+  }
+
+  private productUrlPrefill(metadata: ProductUrlMetadata) {
+    const catalogProduct = metadata.catalogProduct;
+    if (catalogProduct) {
+      return {
+        ...this.productIdentificationPrefill(catalogProduct),
+        link: metadata.submittedUrl
+      };
+    }
+
+    return {
+      name: metadata.name,
+      brend: metadata.brand,
+      prezzo: metadata.price,
+      price: metadata.price,
+      images: metadata.images,
+      imageUrl: metadata.imageUrl,
+      link: metadata.submittedUrl
+    };
+  }
+
+  private async ensureAndroidScannerModule(): Promise<boolean> {
+    const { available } = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+    if (available) return true;
+
+    const loading = await this.loadingController.create({ message: 'Preparazione scanner...' });
+    await loading.present();
+
+    try {
+      return await new Promise<boolean>(async resolve => {
+        let completed = false;
+        let listener: any;
+        let timeout: ReturnType<typeof setTimeout> | undefined;
+
+        const finish = async (success: boolean) => {
+          if (completed) return;
+          completed = true;
+          if (timeout) clearTimeout(timeout);
+          if (listener) await listener.remove();
+          resolve(success);
+        };
+
+        listener = await BarcodeScanner.addListener('googleBarcodeScannerModuleInstallProgress', event => {
+          if (event.state === GoogleBarcodeScannerModuleInstallState.COMPLETED) void finish(true);
+          if (event.state === GoogleBarcodeScannerModuleInstallState.CANCELED
+            || event.state === GoogleBarcodeScannerModuleInstallState.FAILED) void finish(false);
+        });
+
+        timeout = setTimeout(() => void finish(false), 30000);
+        try {
+          await BarcodeScanner.installGoogleBarcodeScannerModule();
+        } catch {
+          await finish(false);
+        }
+      });
+    } finally {
+      await loading.dismiss();
+    }
+  }
+
+  private async offerManualProduct(header: string, message: string, editData: any = {}) {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        { text: 'Inserisci manualmente', role: 'confirm' }
+      ]
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role === 'confirm') await this.addClothModal(editData);
+  }
+
+  private async presentProductAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: ['Ok']
+    });
+    await alert.present();
+  }
+
+  async addClothModal(editData: any = {}) {
     if (this.isAddClothModalOpen) return;
     this.isAddClothModalOpen = true;
     try {
+      const preparedEditData = await this.prepareTagFormEditData(editData);
       const modal = await this.modalController.create({
-      component: ModalFormComponent,
-      componentProps: {
-        service: 'tagForm',
-        title: 'Inserisci un nuovo prodotto'
+        component: ModalFormComponent,
+        componentProps: {
+          service: 'tagForm',
+          title: 'Nuovo prodotto',
+          editData: preparedEditData,
+          productQuickActions: true
+        }
+      });
+      await modal.present();
 
-      }
-    });
-    await modal.present();
+      const { data, role } = await modal.onDidDismiss();
 
-    const { data } = await modal.onDidDismiss();
-    if (!data) {
-      return
-    }
-
-    const categoryID = data.outfitCategory;
-    const subCategoryID = data.outfitSubCategory;
-    const link = !data.link ? '#' : data.link;
- 
-    let prezzo = !data.prezzo ? null : data.price
-    let images = !data.images ? "" : data.images
-    images = data.imageUrl ? data.imageUrl : images
-   
-
-    const id = this.generateGUID();
-    let saveData = {
-      brend: data.brend,
-      images: Array.isArray(images) ? images : images ? [images] : [],
-      name: data.name,
-      outfitCategory: categoryID,
-      outfitSubCategory: subCategoryID,
-      color: data.color,
-      prezzo: prezzo ? parseInt(prezzo,20) : prezzo,
-      link: link,
-    }
-
-    let resSave = await this.appService.createWardrobe(saveData)
-    if (resSave) {
-
-      this.groupItemsByCategory();
-
-      //Mando i dati on uscita
-      const modal = await this.modalController.getTop();
-      if (modal) {
-        this.modalController.dismiss(saveData)
-      } else {
-        this.selectedItem.emit(saveData);
+      if (role === 'product-quick-action') {
+        this.isAddClothModalOpen = false;
+        if (data?.action === 'store') {
+          return await this.searchClothModal();
+        }
+        if (data?.action === 'scan') {
+          return await this.scanProductCode();
+        }
+        return;
       }
 
+      if (!data) {
+        return;
+      }
 
+      const productData = { ...preparedEditData, ...data };
+      const categoryID = productData.outfitCategory;
+      const subCategoryID = productData.outfitSubCategory;
+      const link = !productData.link ? '#' : productData.link;
 
-    }
-      return data
+      const prezzo = productData.prezzo ?? productData.price ?? null;
+      let images = !productData.images ? "" : productData.images;
+      images = productData.imageUrl ? productData.imageUrl : images;
+
+      let saveData = {
+        brend: productData.brend,
+        images: Array.isArray(images) ? images : images ? [images] : [],
+        name: productData.name,
+        outfitCategory: categoryID,
+        outfitSubCategory: subCategoryID,
+        color: productData.color,
+        prezzo: prezzo === null || prezzo === '' ? undefined : Number(prezzo),
+        link: link,
+        ...(productData.catalogProductId ? { catalogProductId: productData.catalogProductId } : {}),
+      };
+
+      let resSave = await this.appService.createWardrobe(saveData);
+      if (resSave) {
+        await this.groupItemsByCategory();
+
+        //Mando i dati on uscita
+        const parentModal = await this.modalController.getTop();
+        if (parentModal) {
+          await this.modalController.dismiss(saveData);
+        } else {
+          this.selectedItem.emit(saveData);
+        }
+      }
+
+      return data;
     } finally {
       this.isAddClothModalOpen = false;
     }
+  }
+
+  private async prepareTagFormEditData(editData: any): Promise<any> {
+    const prepared = { ...(editData || {}) };
+
+    if (Array.isArray(prepared.images)) {
+      prepared.images = prepared.imageUrl || prepared.images[0] || '';
+    }
+
+    for (const field of ['brend', 'color', 'outfitCategory', 'outfitSubCategory']) {
+      if (prepared[field] === null || prepared[field] === undefined || prepared[field] === '') {
+        delete prepared[field];
+      }
+    }
+
+    if (prepared.brend) {
+      try {
+        const brands = await firstValueFrom(this.appService.getOutfitBrands());
+        const brand = brands.find(option =>
+          this.normalizeSelectValue(option.id) === this.normalizeSelectValue(prepared.brend)
+          || this.normalizeSelectValue(option.value) === this.normalizeSelectValue(prepared.brend)
+        );
+        if (brand) {
+          prepared.brend = brand.id;
+        } else {
+          prepared.detectedBrand = prepared.brend;
+          delete prepared.brend;
+        }
+      } catch {
+        delete prepared.brend;
+      }
+    }
+
+    if (prepared.color) {
+      try {
+        const colors = await firstValueFrom(this.appService.getOutfitColors());
+        const color = colors.find(option =>
+          this.normalizeSelectValue(option.id) === this.normalizeSelectValue(prepared.color)
+          || this.normalizeSelectValue(option.value) === this.normalizeSelectValue(prepared.color)
+        );
+        if (color) {
+          prepared.color = color.id;
+        } else {
+          delete prepared.color;
+        }
+      } catch {
+        delete prepared.color;
+      }
+    }
+
+    if (prepared.outfitCategory) {
+      const category = this.categoryCloth.find(item => String(item.id) === String(prepared.outfitCategory));
+      if (!category) {
+        delete prepared.outfitCategory;
+        delete prepared.outfitSubCategory;
+      }
+    }
+
+    if (prepared.outfitSubCategory && prepared.outfitCategory) {
+      try {
+        const subCategories = await this.appService.getData('outfitCategories', `/${prepared.outfitCategory}`);
+        const subCategory = Array.isArray(subCategories)
+          ? subCategories.find(item => String(item.id) === String(prepared.outfitSubCategory))
+          : undefined;
+        if (!subCategory) {
+          delete prepared.outfitSubCategory;
+        }
+      } catch {
+        delete prepared.outfitSubCategory;
+      }
+    }
+
+    return prepared;
+  }
+
+  private normalizeSelectValue(value: unknown): string {
+    return typeof value === 'string'
+      ? value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('it')
+      : String(value ?? '').trim().toLocaleLowerCase('it');
   }
 
   async searchClothModal() {
