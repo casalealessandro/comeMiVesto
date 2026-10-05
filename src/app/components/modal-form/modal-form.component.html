@@ -3,22 +3,50 @@
     <ion-title>{{title}}</ion-title>
     <ion-buttons slot="end">
       <ion-button class="menu-button" slot="icon-only" (click)="dismiss()">
-
         <i class="fi fi-rr-cross"></i>
       </ion-button>
- 
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-
 <ion-content>
+  <section *ngIf="productQuickActions && service === 'tagForm'" class="product-quick-actions">
+    <div class="product-quick-actions__intro">
+      <div class="product-quick-actions__title">Aggiungi più velocemente</div>
+      <div class="product-quick-actions__subtitle">Parti da una fonte e completa solo quello che manca.</div>
+    </div>
+
+    <div class="product-quick-actions__grid">
+      <ion-button fill="outline" class="product-quick-actions__button" (click)="quickProductAction('store')">
+        <ion-icon slot="start" name="bag-handle-outline"></ion-icon>
+        Store
+      </ion-button>
+
+      <ion-button fill="outline" class="product-quick-actions__button" (click)="quickProductAction('scan')">
+        <ion-icon slot="start" name="scan-outline"></ion-icon>
+        Scansiona
+      </ion-button>
+
+      <ion-button fill="outline" class="product-quick-actions__button" (click)="quickProductAction('link')">
+        <ion-icon slot="start" name="link-outline"></ion-icon>
+        Link
+      </ion-button>
+    </div>
+
+    <ion-note *ngIf="importHint" class="product-quick-actions__hint">
+      {{ importHint }}
+    </ion-note>
+
+    <div class="product-quick-actions__divider">
+      <span>oppure compila manualmente</span>
+    </div>
+  </section>
+
   <app-dynamic-form
-  [service]="service"
-  [editData]="editData"
-  (submitFormEvent)="applyData($event)"
-
-  >
- </app-dynamic-form>
-
+    *ngIf="formVisible"
+    [service]="service"
+    [editData]="editData"
+    (submitFormEvent)="applyData($event)"
+    (functionalInputFormEvent)="functionalInputFormEvent($event)">
+  </app-dynamic-form>
 </ion-content>
