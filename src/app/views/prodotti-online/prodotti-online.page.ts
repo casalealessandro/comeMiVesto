@@ -51,7 +51,7 @@ export class ProdottiOnlinePage implements OnInit {
   outfitSubCategory = "";
   selectedCategoryName = "Tutti i prodotti";
   selectedFilterStyleIndex?:number;
-  private savingCatalogProductIds = new Set<string>();
+  readonly savingCatalogProductIds = new Set<string>();
   ngOnInit() {
     this.firebase.authState.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(async user => {
       if (user) {
