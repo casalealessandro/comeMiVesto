@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { AlertController, LoadingController, ModalController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { DynamicFormComponent } from '../dynamic-form/dynamic-form.component';
@@ -10,7 +10,7 @@ import { ApiRequestError, AppService, ProductUrlMetadata } from 'src/app/service
   templateUrl: './modal-form.component.html',
   styleUrls: ['./modal-form.component.scss'],
 })
-export class ModalFormComponent {
+export class ModalFormComponent implements OnInit {
   @Input() service: any = null;
   @Input() title: string = '';
   @Input() editData: any = {};
@@ -21,6 +21,12 @@ export class ModalFormComponent {
   formVisible = true;
   importHint = '';
   private importedProductData: any = {};
+
+  ngOnInit() {
+    if (this.service === 'tagForm' && this.editData?.detectedBrand) {
+      this.importHint = `Brand rilevato: ${this.editData.detectedBrand}. Selezionalo dall’elenco se disponibile.`;
+    }
+  }
 
   constructor(
     private modalController: ModalController,
@@ -95,6 +101,7 @@ export class ModalFormComponent {
     const loading = await this.loadingController.create({ message: 'Recupero dati prodotto...' });
     await loading.present();
 
+    let errorMessage = '';
     try {
       const metadata = await this.appService.resolveOutfitProductUrl(url);
       const imported = await this.productUrlPrefill(metadata);
@@ -118,12 +125,15 @@ export class ModalFormComponent {
       this.formVisible = true;
       this.changeDetectorRef.detectChanges();
     } catch (error) {
-      const message = error instanceof ApiRequestError && [400, 404, 502].includes(error.status)
+      errorMessage = error instanceof ApiRequestError && [400, 404, 502].includes(error.status)
         ? 'Non siamo riusciti a recuperare automaticamente i dati. Puoi continuare a compilare la form manualmente.'
         : 'Non è stato possibile leggere i dati del prodotto. Riprova.';
-      await this.presentAlert('Importazione non riuscita', message);
     } finally {
       await loading.dismiss();
+    }
+
+    if (errorMessage) {
+      await this.presentAlert('Importazione non riuscita', errorMessage);
     }
   }
 
