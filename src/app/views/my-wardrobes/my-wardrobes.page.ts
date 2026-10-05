@@ -407,65 +407,148 @@ export class MyWardrobesPage implements OnInit {
     if (this.isAddClothModalOpen) return;
     this.isAddClothModalOpen = true;
     try {
+      const preparedEditData = await this.prepareTagFormEditData(editData);
       const modal = await this.modalController.create({
-      component: ModalFormComponent,
-      componentProps: {
-        service: 'tagForm',
-        title: 'Inserisci un nuovo prodotto',
-        editData
+        component: ModalFormComponent,
+        componentProps: {
+          service: 'tagForm',
+          title: 'Nuovo prodotto',
+          editData: preparedEditData,
+          productQuickActions: true
+        }
+      });
+      await modal.present();
 
-      }
-    });
-    await modal.present();
+      const { data, role } = await modal.onDidDismiss();
 
-    const { data } = await modal.onDidDismiss();
-    if (!data) {
-      return
-    }
-
-    const productData = { ...editData, ...data };
-    const categoryID = productData.outfitCategory;
-    const subCategoryID = productData.outfitSubCategory;
-    const link = !productData.link ? '#' : productData.link;
-
-    const prezzo = productData.prezzo ?? productData.price ?? null;
-    let images = !productData.images ? "" : productData.images
-    images = productData.imageUrl ? productData.imageUrl : images
-
-
-    const id = this.generateGUID();
-    let saveData = {
-      brend: productData.brend,
-      images: Array.isArray(images) ? images : images ? [images] : [],
-      name: productData.name,
-      outfitCategory: categoryID,
-      outfitSubCategory: subCategoryID,
-      color: productData.color,
-      prezzo: prezzo === null || prezzo === '' ? undefined : Number(prezzo),
-      link: link,
-      ...(productData.catalogProductId ? { catalogProductId: productData.catalogProductId } : {}),
-    }
-
-    let resSave = await this.appService.createWardrobe(saveData)
-    if (resSave) {
-
-      this.groupItemsByCategory();
-
-      //Mando i dati on uscita
-      const modal = await this.modalController.getTop();
-      if (modal) {
-        this.modalController.dismiss(saveData)
-      } else {
-        this.selectedItem.emit(saveData);
+      if (role === 'product-quick-action') {
+        this.isAddClothModalOpen = false;
+        if (data?.action === 'store') {
+          return await this.searchClothModal();
+        }
+        if (data?.action === 'scan') {
+          return await this.scanProductCode();
+        }
+        return;
       }
 
+      if (!data) {
+        return;
+      }
 
+      const productData = { ...preparedEditData, ...data };
+      const categoryID = productData.outfitCategory;
+      const subCategoryID = productData.outfitSubCategory;
+      const link = !productData.link ? '#' : productData.link;
 
-    }
-      return data
+      const prezzo = productData.prezzo ?? productData.price ?? null;
+      let images = !productData.images ? "" : productData.images;
+      images = productData.imageUrl ? productData.imageUrl : images;
+
+      let saveData = {
+        brend: productData.brend,
+        images: Array.isArray(images) ? images : images ? [images] : [],
+        name: productData.name,
+        outfitCategory: categoryID,
+        outfitSubCategory: subCategoryID,
+        color: productData.color,
+        prezzo: prezzo === null || prezzo === '' ? undefined : Number(prezzo),
+        link: link,
+        ...(productData.catalogProductId ? { catalogProductId: productData.catalogProductId } : {}),
+      };
+
+      let resSave = await this.appService.createWardrobe(saveData);
+      if (resSave) {
+        await this.groupItemsByCategory();
+
+        //Mando i dati on uscita
+        const parentModal = await this.modalController.getTop();
+        if (parentModal) {
+          await this.modalController.dismiss(saveData);
+        } else {
+          this.selectedItem.emit(saveData);
+        }
+      }
+
+      return data;
     } finally {
       this.isAddClothModalOpen = false;
     }
+  }
+
+  private async prepareTagFormEditData(editData: any): Promise<any> {
+    const prepared = { ...(editData || {}) };
+
+    if (Array.isArray(prepared.images)) {
+      prepared.images = prepared.imageUrl || prepared.images[0] || '';
+    }
+
+    for (const field of ['brend', 'color', 'outfitCategory', 'outfitSubCategory']) {
+      if (prepared[field] === null || prepared[field] === undefined || prepared[field] === '') {
+        delete prepared[field];
+      }
+    }
+
+    if (prepared.brend) {
+      try {
+        const brands = await firstValueFrom(this.appService.getOutfitBrands());
+        const brand = brands.find(option =>
+          this.normalizeSelectValue(option.id) === this.normalizeSelectValue(prepared.brend)
+          || this.normalizeSelectValue(option.value) === this.normalizeSelectValue(prepared.brend)
+        );
+        if (brand) {
+          prepared.brend = brand.id;
+        } else {
+          prepared.detectedBrand = prepared.brend;
+          delete prepared.brend;
+        }
+      } catch {
+        delete prepared.brend;
+      }
+    }
+
+    if (prepared.color) {
+      try {
+        const colors = await firstValueFrom(this.appService.getOutfitColors());
+        const color = colors.find(option =>
+          this.normalizeSelectValue(option.id) === this.normalizeSelectValue(prepared.color)
+          || this.normalizeSelectValue(option.value) === this.normalizeSelectValue(prepared.color)
+        );
+        if (color) {
+          prepared.color = color.id;
+        } else {
+          delete prepared.color;
+        }
+      } catch {
+        delete prepared.color;
+      }
+    }
+
+    if (prepared.outfitCategory) {
+      const category = this.categoryCloth.find(item => String(item.id) === String(prepared.outfitCategory));
+      if (!category) {
+        delete prepared.outfitCategory;
+        delete prepared.outfitSubCategory;
+      }
+    }
+
+    if (prepared.outfitSubCategory) {
+      const subCategory = this.categoryCloth.find(item =>
+        String(item.id) === String(prepared.outfitSubCategory)
+        && String(item.parentCategory) === String(prepared.outfitCategory)
+      );
+      if (!subCategory) {
+        delete prepared.outfitSubCategory;
+      }
+    }
+
+    return prepared;
+  }
+
+  private normalizeSelectValue(value: unknown): string {
+    return typeof value === 'string'
+      ? value.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').trim().toLocaleLowerCase('it')
+      : String(value ?? '').trim().toLocaleLowerCase('it');
   }
 
   async searchClothModal() {
