@@ -532,12 +532,16 @@ export class MyWardrobesPage implements OnInit {
       }
     }
 
-    if (prepared.outfitSubCategory) {
-      const subCategory = this.categoryCloth.find(item =>
-        String(item.id) === String(prepared.outfitSubCategory)
-        && String(item.parentCategory) === String(prepared.outfitCategory)
-      );
-      if (!subCategory) {
+    if (prepared.outfitSubCategory && prepared.outfitCategory) {
+      try {
+        const subCategories = await this.appService.getData('outfitCategories', `/${prepared.outfitCategory}`);
+        const subCategory = Array.isArray(subCategories)
+          ? subCategories.find(item => String(item.id) === String(prepared.outfitSubCategory))
+          : undefined;
+        if (!subCategory) {
+          delete prepared.outfitSubCategory;
+        }
+      } catch {
         delete prepared.outfitSubCategory;
       }
     }
@@ -547,7 +551,7 @@ export class MyWardrobesPage implements OnInit {
 
   private normalizeSelectValue(value: unknown): string {
     return typeof value === 'string'
-      ? value.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').trim().toLocaleLowerCase('it')
+      ? value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('it')
       : String(value ?? '').trim().toLocaleLowerCase('it');
   }
 
