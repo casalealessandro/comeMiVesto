@@ -141,6 +141,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'delete-account',
+    loadChildren: () =>
+      import('./views/delete-account/delete-account.module').then(
+        (m) => m.DeleteAccountPageModule
+      ),
+  },
+  {
     path: 'prodotti-online',
     loadChildren: () =>
       import('./views/prodotti-online/prodotti-online.module').then(
