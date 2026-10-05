@@ -133,9 +133,9 @@ export class ProductsGridComponent implements  OnChanges {
   isProductBusy(product: Tag | AppCatalogProduct | wardrobesItem): boolean {
     const key = this.productKey(product);
     if (!key) return false;
-    return this.busyProductIds instanceof Set
-      ? this.busyProductIds.has(key)
-      : this.busyProductIds.includes(key);
+    return Array.isArray(this.busyProductIds)
+      ? this.busyProductIds.includes(key)
+      : this.busyProductIds.has(key);
   }
 
   isProductInFeedback(product: Tag | AppCatalogProduct | wardrobesItem): boolean {
