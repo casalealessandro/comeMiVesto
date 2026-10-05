@@ -17,10 +17,13 @@ export class ProductsGridComponent implements  OnChanges {
   @Input() showSaveBtn: boolean = true;
   @Input() openProductDetail: boolean = false;
   @Input() horizontalScroll: boolean = false;
+  @Input() busyProductIds: ReadonlySet<string> | string[] = [];
   @Output() productsEvent = new EventEmitter<any>();
   constructor(private categoryService:CategoryService, private router: Router) { }
   
   categoryNames = new Map<any, string>();
+  private feedbackProductId = '';
+  private feedbackTimer?: ReturnType<typeof setTimeout>;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['products'] && this.products) {
@@ -59,6 +62,14 @@ export class ProductsGridComponent implements  OnChanges {
   }
 
   openProduct(evt: MouseEvent, product: Tag | AppCatalogProduct | wardrobesItem) {
+    if (this.isProductBusy(product)) {
+      evt.stopImmediatePropagation();
+      evt.preventDefault();
+      return;
+    }
+
+    this.showTapFeedback(product);
+
     if (!this.openProductDetail) {
       this.saveToWardrobe(evt, product);
       return;
@@ -99,11 +110,47 @@ export class ProductsGridComponent implements  OnChanges {
   saveToWardrobe(evt:MouseEvent,product:any){
     evt.stopImmediatePropagation();
     evt.preventDefault();
+
+    if (this.isProductBusy(product)) return;
+
+    this.showTapFeedback(product);
     const dataTosend = {
       name:'saveToWardrobe',
       data: product
     }
     this.productsEvent.emit(dataTosend)
+  }
+
+  productKey(product: Tag | AppCatalogProduct | wardrobesItem): string {
+    const catalogProductId = 'catalogProductId' in product && product.catalogProductId
+      ? String(product.catalogProductId)
+      : '';
+    if (catalogProductId) return catalogProductId;
+
+    return 'id' in product && product.id ? String(product.id) : '';
+  }
+
+  isProductBusy(product: Tag | AppCatalogProduct | wardrobesItem): boolean {
+    const key = this.productKey(product);
+    if (!key) return false;
+    return this.busyProductIds instanceof Set
+      ? this.busyProductIds.has(key)
+      : this.busyProductIds.includes(key);
+  }
+
+  isProductInFeedback(product: Tag | AppCatalogProduct | wardrobesItem): boolean {
+    return Boolean(this.feedbackProductId && this.feedbackProductId === this.productKey(product));
+  }
+
+  private showTapFeedback(product: Tag | AppCatalogProduct | wardrobesItem) {
+    const key = this.productKey(product);
+    if (!key) return;
+
+    this.feedbackProductId = key;
+    if (this.feedbackTimer) clearTimeout(this.feedbackTimer);
+    this.feedbackTimer = setTimeout(() => {
+      if (this.feedbackProductId === key) this.feedbackProductId = '';
+    }, 220);
   }
 
   removeProduct(evt:MouseEvent,evtProduct:any){
