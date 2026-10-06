@@ -25,7 +25,10 @@ import { GlobalErrorHandler } from './global-error-handler';
     CommonModule,
     BrowserModule,
     
-    IonicModule.forRoot(),
+    IonicModule.forRoot({
+      swipeBackEnabled: true,
+      hardwareBackButton: true,
+    }),
     AppRoutingModule,
     ScrollingModule,
     ReactiveFormsModule,
