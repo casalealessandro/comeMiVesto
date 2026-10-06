@@ -141,6 +141,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'download',
+    loadComponent: () =>
+      import('./views/download/download.page').then(
+        (m) => m.DownloadPage
+      ),
+  },
+  {
     path: 'delete-account',
     loadChildren: () =>
       import('./views/delete-account/delete-account.module').then(
