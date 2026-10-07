@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
+import { getAnalytics, logEvent } from 'firebase/analytics';
+import { FirebaseService } from '../../service/firebase.service';
 
 @Component({
   selector: 'app-download',
@@ -26,6 +28,7 @@ import { Capacitor } from '@capacitor/core';
             class="download-button download-button-primary"
             [href]="appStoreUrl"
             rel="noopener noreferrer"
+            (click)="trackManualStoreClick('app_store')"
           >
             Scarica su App Store
           </a>
@@ -34,6 +37,7 @@ import { Capacitor } from '@capacitor/core';
             class="download-button download-button-secondary"
             [href]="playStoreUrl"
             rel="noopener noreferrer"
+            (click)="trackManualStoreClick('google_play')"
           >
             Disponibile su Google Play
           </a>
@@ -137,7 +141,10 @@ export class DownloadPage implements OnInit {
   readonly playStoreUrl =
     'https://play.google.com/store/apps/details?id=com.acasale.comemivesto';
 
-  constructor(private readonly router: Router) {}
+  constructor(
+    private readonly router: Router,
+    private readonly firebaseService: FirebaseService,
+  ) {}
 
   ngOnInit(): void {
     if (Capacitor.isNativePlatform()) {
@@ -150,12 +157,53 @@ export class DownloadPage implements OnInit {
       navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 
     if (/iPad|iPhone|iPod/i.test(userAgent) || isIPadOS) {
-      window.location.replace(this.appStoreUrl);
+      this.trackAndRedirect('app_store', 'ios', this.appStoreUrl);
       return;
     }
 
     if (/Android/i.test(userAgent)) {
-      window.location.replace(this.playStoreUrl);
+      this.trackAndRedirect('google_play', 'android', this.playStoreUrl);
+    }
+  }
+
+  trackManualStoreClick(store: 'app_store' | 'google_play'): void {
+    const platform = store === 'app_store' ? 'ios' : 'android';
+    this.trackDownloadEvent('download_store_click', store, platform, 'manual');
+  }
+
+  private trackAndRedirect(
+    store: 'app_store' | 'google_play',
+    platform: 'ios' | 'android',
+    destination: string,
+  ): void {
+    this.trackDownloadEvent('download_store_redirect', store, platform, 'automatic');
+
+    window.setTimeout(() => {
+      window.location.replace(destination);
+    }, 250);
+  }
+
+  private trackDownloadEvent(
+    eventName: 'download_store_redirect' | 'download_store_click',
+    store: 'app_store' | 'google_play',
+    platform: 'ios' | 'android',
+    redirectMode: 'automatic' | 'manual',
+  ): void {
+    try {
+      const query = new URLSearchParams(window.location.search);
+      const analytics = getAnalytics(this.firebaseService.app);
+
+      logEvent(analytics, eventName, {
+        store,
+        platform,
+        redirect_mode: redirectMode,
+        utm_source: query.get('utm_source') || 'direct',
+        utm_medium: query.get('utm_medium') || 'none',
+        utm_campaign: query.get('utm_campaign') || 'none',
+        utm_content: query.get('utm_content') || 'none',
+      });
+    } catch (error) {
+      console.warn('[download] analytics event not sent', error);
     }
   }
 }
