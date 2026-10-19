@@ -218,6 +218,14 @@
 
     </div>
   </div>
+  <ion-infinite-scroll
+    *ngIf="selectedSegment === 'outfit' && !isLoading && !isOutfitFilterActive && hasMoreOutfits"
+    threshold="150px" (ionInfinite)="loadMoreOutfits($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Caricamento altri outfit...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
   <!-- <ion-refresher slot="fixed" (ionRefresh)="refreshOutfits($event)">
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher> -->
