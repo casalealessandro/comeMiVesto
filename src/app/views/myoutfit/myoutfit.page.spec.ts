@@ -10,6 +10,7 @@ describe('MyOutFitPage filters and search', () => {
     (component as any).favoriteActionsInProgress = new Set<string>();
     component.favorites = new Set<string>();
     component.outfits = [];
+    (component as any).outfitPageSize = 10; // Object.create non esegue gli initializer della classe.
     component.filteredOutfits = [];
     component.outfitUserProfile = [];
     component.selectedSegment = 'outfit';
