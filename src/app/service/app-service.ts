@@ -14,6 +14,14 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface OutfitsPageResponse extends ApiResponse<outfit[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+}
+
 export interface OutfitColor {
   id: string;
   value: string;
@@ -194,6 +202,19 @@ export class AppService {
        retry(3),
        tap(() => console.info('Richiesta all’API effettuata con successo')),
        map((response: any) => response.data),
+       catchError(this.handleError)
+     );
+   }
+
+   /** Recupera una pagina di outfit approvati usando la paginazione REST esistente. */
+   getOutfitsPage(gender: string, page: number, limit = 10): Observable<OutfitsPageResponse> {
+     const params = new HttpParams()
+       .set('gender', gender)
+       .set('page', String(page))
+       .set('limit', String(limit));
+
+     return this.http.get<OutfitsPageResponse>(`${this.apiFire}outfitsList`, { params }).pipe(
+       retry(3),
        catchError(this.handleError)
      );
    }
