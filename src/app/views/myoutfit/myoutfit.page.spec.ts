@@ -1,5 +1,6 @@
 import { MyOutFitPage } from './myoutfit.page';
 import { config, of, Subject } from 'rxjs';
+import { InfiniteScrollCustomEvent } from '@ionic/angular';
 
 describe('MyOutFitPage filters and search', () => {
   function page(): MyOutFitPage {
@@ -8,6 +9,17 @@ describe('MyOutFitPage filters and search', () => {
     component.searchText = '';
     (component as any).favoriteActionsInProgress = new Set<string>();
     component.favorites = new Set<string>();
+    component.outfits = [];
+    component.filteredOutfits = [];
+    component.outfitUserProfile = [];
+    component.selectedSegment = 'outfit';
+    component.isLoading = false;
+    component.isLoadingMoreOutfits = false;
+    component.currentOutfitPage = 1;
+    component.hasMoreOutfits = true;
+    component.isOutfitFilterActive = false;
+    (component as any).outfitRequestVersion = 0;
+    (component as any).outfitFeedGender = 'U';
     return component;
   }
 
@@ -140,6 +152,7 @@ describe('MyOutFitPage filters and search', () => {
   it('switches suggestions back to outfits when applying manual filters', async () => {
     const component = page();
     component.selectedSegment = 'suggeriti';
+    component.filtersData.season = 'E';
     Object.assign(component, {
       appService: { getFilteredOutfits: jasmine.createSpy('getFilteredOutfits').and.returnValue(of([])) }
     });
@@ -150,6 +163,93 @@ describe('MyOutFitPage filters and search', () => {
     expect(component.selectedSegment).toBe('outfit');
   });
 
+
+  it('requests only the first 10 outfits on initial load and exposes whether more are available', async () => {
+    const component = page();
+    const outfits = Array.from({ length: 10 }, (_, index) => ({ id: String(index) })) as any[];
+    const appService = {
+      getOutfitsPage: jasmine.createSpy('getOutfitsPage').and.returnValue(of({
+        data: outfits, pagination: { page: 1, limit: 10, total: 24 }
+      }))
+    };
+    Object.assign(component, {
+      appService,
+      categoryService: { fetchCategories: jasmine.createSpy('fetchCategories') },
+      cUserID: ''
+    });
+    spyOn<any>(component, 'getReadyUserProfile').and.resolveTo({ uid: 'me', gender: 'U' });
+    spyOn<any>(component, 'clearConsumedProductFilter').and.stub();
+    spyOn<any>(component, 'applyProductFilterFromRoute').and.resolveTo();
+    spyOn(component, 'loadOutfits').and.callFake(async () => {
+      component.filteredOutfits = component.outfits;
+    });
+
+    await component.refreshOutfitsFromServer();
+
+    expect(appService.getOutfitsPage).toHaveBeenCalledOnceWith('U', 1, 10);
+    expect(component.filteredOutfits.length).toBe(10);
+    expect(component.currentOutfitPage).toBe(1);
+    expect(component.hasMoreOutfits).toBeTrue();
+  });
+
+  it('appends the next page without duplicates and stops when total is reached', async () => {
+    const component = page();
+    component.outfits = [{ id: 'one' } as any];
+    component.filteredOutfits = [{ id: 'one' } as any];
+    const appService = {
+      getOutfitsPage: jasmine.createSpy('getOutfitsPage').and.returnValue(of({
+        data: [{ id: 'one' }, { id: 'two' }],
+        pagination: { page: 2, limit: 10, total: 2 }
+      }))
+    };
+    Object.assign(component, { appService });
+    spyOn<any>(component, 'loadOutfitAuthorProfiles').and.stub();
+    const scroll = { complete: jasmine.createSpy('complete').and.resolveTo(), disabled: false };
+    const event = { target: scroll } as unknown as InfiniteScrollCustomEvent;
+
+    await component.loadMoreOutfits(event);
+    await component.loadMoreOutfits(event);
+
+    expect(appService.getOutfitsPage).toHaveBeenCalledOnceWith('U', 2, 10);
+    expect(component.filteredOutfits.map(item => item.id)).toEqual(['one', 'two']);
+    expect(component.currentOutfitPage).toBe(2);
+    expect(component.hasMoreOutfits).toBeFalse();
+    expect(scroll.disabled).toBeTrue();
+    expect(scroll.complete).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not append obsolete requests when changing to suggestions', async () => {
+    const component = page();
+    const pending = new Subject<any>();
+    const appService = {
+      getOutfitsPage: jasmine.createSpy('getOutfitsPage').and.returnValue(pending)
+    };
+    Object.assign(component, { appService });
+    spyOn(component, 'filterUserOutFit').and.resolveTo();
+    spyOn<any>(component, 'loadOutfitAuthorProfiles').and.stub();
+    const scroll = { complete: jasmine.createSpy('complete').and.resolveTo(), disabled: false };
+    const loading = component.loadMoreOutfits({ target: scroll } as unknown as InfiniteScrollCustomEvent);
+
+    component.onSegmentChange({ detail: { value: 'suggeriti' } } as CustomEvent);
+    pending.next({ data: [{ id: 'late' }], pagination: { page: 2, limit: 10, total: 25 } });
+    pending.complete();
+    await loading;
+
+    expect(component.filteredOutfits).toEqual([]);
+    expect(component.currentOutfitPage).toBe(1);
+    expect(scroll.complete).toHaveBeenCalled();
+  });
+
+  it('restores the paginated feed when filters are cleared', async () => {
+    const component = page();
+    component.isOutfitFilterActive = true;
+    spyOn(component, 'refreshOutfitsFromServer').and.resolveTo();
+
+    await component.applyOutfitFilters();
+
+    expect(component.refreshOutfitsFromServer).toHaveBeenCalledTimes(1);
+    expect(component.isOutfitFilterActive).toBeTrue(); // refresh mock skips state reset
+  });
 
   it('opens a public profile when the outfit author is another user', () => {
     const component = page();
