@@ -1,6 +1,6 @@
-import { Component, effect, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.component';
-import { AlertController, ModalController, NavController, RefresherEventDetail } from '@ionic/angular';
+import { AlertController, InfiniteScrollCustomEvent, ModalController, NavController, RefresherEventDetail } from '@ionic/angular';
 
 
 import { AppCatalogProduct, AppService, CatalogProductsResponse } from 'src/app/service/app-service';
@@ -30,6 +30,13 @@ export class MyOutFitPage implements OnDestroy {
   outfits = this.appService.resultsSignal();
   trendingOutfits: outfit[] = []
   filteredOutfits: outfit[] = []; // Array per gli outfit filtrati
+  readonly outfitPageSize = 10;
+  currentOutfitPage = 1;
+  hasMoreOutfits = false;
+  isLoadingMoreOutfits = false;
+  isOutfitFilterActive = false;
+  private outfitFeedGender = '';
+  private outfitRequestVersion = 0;
   isLoading: boolean = true;
   cUserID: string = '';
   cUserInfo: any  = this.userProfileService.gUserProfile();
@@ -96,31 +103,81 @@ export class MyOutFitPage implements OnDestroy {
 
   async refreshOutfitsFromServer(): Promise<void> {
     this.clearConsumedProductFilter();
+    const requestVersion = ++this.outfitRequestVersion;
     this.isLoading = true;
     this.filteredOutfits = [];
+    this.currentOutfitPage = 1;
+    this.hasMoreOutfits = false;
+    this.isOutfitFilterActive = false;
+    this.outfitFeedGender = '';
 
     try {
       const cUserInfo = await this.getReadyUserProfile();
+      if (requestVersion !== this.outfitRequestVersion) return;
 
       if (!cUserInfo?.uid || !cUserInfo?.gender) {
         console.warn('Profilo utente non pronto: impossibile caricare gli outfit.');
         return;
       }
-      this.categoryService.fetchCategories(null, cUserInfo.gender)
-      this.cUserID = cUserInfo.uid
-      const queryString = `gender=${encodeURIComponent(cUserInfo.gender)}`
-      const outfits = await firstValueFrom(this.appService.getAll<outfit>('outfitsList', queryString));
-      this.outfits = outfits ?? [];
+      this.categoryService.fetchCategories(null, cUserInfo.gender);
+      this.cUserID = cUserInfo.uid;
+      this.outfitFeedGender = cUserInfo.gender;
+
+      const response = await firstValueFrom(
+        this.appService.getOutfitsPage(cUserInfo.gender, 1, this.outfitPageSize)
+      );
+      if (requestVersion !== this.outfitRequestVersion) return;
+
+      this.outfits = response.data ?? [];
+      this.hasMoreOutfits = this.outfits.length < response.pagination.total;
       await this.loadOutfits();
       await this.applyProductFilterFromRoute();
     } catch (err) {
       console.error('Errore durante il caricamento degli outfit:', err);
-      this.filteredOutfits = [];
+      if (requestVersion === this.outfitRequestVersion) {
+        this.filteredOutfits = [];
+        this.hasMoreOutfits = false;
+      }
     } finally {
-      this.isLoading = false;
-      requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+      if (requestVersion === this.outfitRequestVersion) {
+        this.isLoading = false;
+        requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+      }
+    }
+  }
+
+  async loadMoreOutfits(event: InfiniteScrollCustomEvent): Promise<void> {
+    if (this.isLoading || this.isLoadingMoreOutfits || !this.hasMoreOutfits ||
+        this.selectedSegment !== 'outfit' || this.isOutfitFilterActive || !this.outfitFeedGender) {
+      await event.target.complete();
+      return;
     }
 
+    const requestVersion = this.outfitRequestVersion;
+    const nextPage = this.currentOutfitPage + 1;
+    this.isLoadingMoreOutfits = true;
+    try {
+      const response = await firstValueFrom(
+        this.appService.getOutfitsPage(this.outfitFeedGender, nextPage, this.outfitPageSize)
+      );
+      if (requestVersion !== this.outfitRequestVersion ||
+          this.selectedSegment !== 'outfit' || this.isOutfitFilterActive) return;
+
+      const loadedIds = new Set(this.outfits.map(item => String(item.id)));
+      const additions = (response.data ?? []).filter(item => !loadedIds.has(String(item.id)));
+      this.outfits = [...this.outfits, ...additions];
+      this.filteredOutfits = [...this.filteredOutfits, ...additions];
+      this.currentOutfitPage = nextPage;
+      this.hasMoreOutfits = response.data.length > 0 && this.outfits.length < response.pagination.total;
+      this.loadOutfitAuthorProfiles(additions);
+    } catch (error) {
+      console.error('Errore durante il caricamento di altri outfit:', error);
+      if (requestVersion === this.outfitRequestVersion) this.hasMoreOutfits = false;
+    } finally {
+      this.isLoadingMoreOutfits = false;
+      await event.target.complete();
+      if (!this.hasMoreOutfits) event.target.disabled = true;
+    }
   }
 
   private async applyProductFilterFromRoute(): Promise<void> {
@@ -276,22 +333,33 @@ export class MyOutFitPage implements OnDestroy {
 
   async applyOutfitFilters(): Promise<void> {
     this.selectedSegment = 'outfit';
-    const profile = await this.getReadyUserProfile();
-    if (!profile?.gender) {
-      this.filteredOutfits = [];
+    const payload = this.buildOutfitFilterPayload();
+    if (!payload.search && !payload.season && !payload.style && !payload.categories?.length) {
+      await this.refreshOutfitsFromServer();
       return;
     }
+
+    const requestVersion = ++this.outfitRequestVersion;
+    this.isOutfitFilterActive = true;
+    this.hasMoreOutfits = false; // La ricerca usa l'endpoint di filtro, non la lista paginata.
     this.isLoading = true;
     try {
+      const profile = await this.getReadyUserProfile();
+      if (requestVersion !== this.outfitRequestVersion) return;
+      if (!profile?.gender) {
+        this.filteredOutfits = [];
+        return;
+      }
       const queryString = `gender=${encodeURIComponent(profile.gender)}`;
-      this.filteredOutfits = await firstValueFrom(
-        this.appService.getFilteredOutfits(queryString, this.buildOutfitFilterPayload())
+      const filtered = await firstValueFrom(
+        this.appService.getFilteredOutfits(queryString, payload)
       ) ?? [];
+      if (requestVersion === this.outfitRequestVersion) this.filteredOutfits = filtered;
     } catch (error) {
       console.error('Impossibile applicare i filtri outfit:', error);
-      this.filteredOutfits = [];
+      if (requestVersion === this.outfitRequestVersion) this.filteredOutfits = [];
     } finally {
-      this.isLoading = false;
+      if (requestVersion === this.outfitRequestVersion) this.isLoading = false;
     }
   }
 
@@ -464,13 +532,20 @@ export class MyOutFitPage implements OnDestroy {
     this.filteredOutfits = JSON.parse(JSON.stringify(this.outfits));
     this.outfitUserProfile = [];
     await this.heartIcon();
-    this.outfits.forEach(rr => {
-      this.outfitUserProfile$ = this.appService.getUserProfilebyId(rr.userId);
+    this.loadOutfitAuthorProfiles(this.outfits);
+    this.getTrendingOutfits();
+  }
+
+  private loadOutfitAuthorProfiles(items: outfit[]): void {
+    this.outfitUserProfile ??= [];
+    const userIds = [...new Set(items.map(item => item.userId))];
+    userIds.forEach(userId => {
+      if (this.outfitUserProfile[userId]) return;
+      this.outfitUserProfile$ = this.appService.getUserProfilebyId(userId);
       this.outfitUserProfile$.pipe(take(1)).subscribe((profile: PublicUserProfile) => {
-        this.outfitUserProfile[rr.userId] = profile;
+        this.outfitUserProfile[userId] = profile;
       });
     });
-    this.getTrendingOutfits();
   }
 
 
@@ -835,17 +910,6 @@ export class MyOutFitPage implements OnDestroy {
     void this.router.navigate(destination);
   }
 
-  @HostListener('window:scroll', ['$event'])
-  onScroll(event: Event): void {
-    const scrollTop = (event.target as Document).documentElement.scrollTop;
-    const scrollHeight = (event.target as Document).documentElement.scrollHeight;
-    const clientHeight = (event.target as Document).documentElement.clientHeight;
-
-    if (scrollTop + clientHeight >= scrollHeight - 10 && !this.isLoading) {
-      this.loadOutfits();
-    }
-  }
-
   applyFilters(filters?: null | undefined) {
     this.loadOutfits();
   }
@@ -863,10 +927,17 @@ export class MyOutFitPage implements OnDestroy {
 
     switch (selectedSegment) {
       case 'outfit':
-        this.loadOutfits();
+        if (this.isOutfitFilterActive) {
+          this.filtersData = { categories: [], season: '', style: '' };
+          this.searchText = '';
+          void this.refreshOutfitsFromServer();
+        } else {
+          void this.loadOutfits();
+        }
         break;
       case 'suggeriti':
-        this.filterUserOutFit();
+        ++this.outfitRequestVersion;
+        void this.filterUserOutFit();
         break;
       default:
         break;
