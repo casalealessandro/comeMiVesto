@@ -14,6 +14,18 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface OutfitOccasion {
+  id: string;
+  value: string;
+  order: number;
+  active: boolean;
+  image?: {
+    imageBase64: string;
+    imageMimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+    imageFileName: string;
+  } | null;
+}
+
 export interface OutfitsPageResponse extends ApiResponse<outfit[]> {
   pagination: {
     page: number;
@@ -206,12 +218,21 @@ export class AppService {
      );
    }
 
+   /** Tassonomia condivisa con il backoffice (risposta array, non ApiResponse). */
+   getOutfitOccasions(): Observable<OutfitOccasion[]> {
+     return this.http.get<OutfitOccasion[]>(`${this.apiFire}outfitOccasions`).pipe(
+       retry(3),
+       catchError(this.handleError)
+     );
+   }
+
    /** Recupera una pagina di outfit approvati usando la paginazione REST esistente. */
-   getOutfitsPage(gender: string, page: number, limit = 10): Observable<OutfitsPageResponse> {
-     const params = new HttpParams()
+   getOutfitsPage(gender: string, page: number, limit = 10, occasion?: string): Observable<OutfitsPageResponse> {
+     let params = new HttpParams()
        .set('gender', gender)
        .set('page', String(page))
        .set('limit', String(limit));
+     if (occasion) params = params.set('occasion', occasion);
 
      return this.http.get<OutfitsPageResponse>(`${this.apiFire}outfitsList`, { params }).pipe(
        retry(3),
