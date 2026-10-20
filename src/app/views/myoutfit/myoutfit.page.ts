@@ -3,7 +3,7 @@ import { ModalFormComponent } from 'src/app/components/modal-form/modal-form.com
 import { AlertController, InfiniteScrollCustomEvent, ModalController, NavController, RefresherEventDetail } from '@ionic/angular';
 
 
-import { AppCatalogProduct, AppService, CatalogProductsResponse } from 'src/app/service/app-service';
+import { AppCatalogProduct, AppService, CatalogProductsResponse, OutfitOccasion } from 'src/app/service/app-service';
 import { buttons, filterItmClothing, outfit, OutfitFilterPayload, ReportReason, ReportType, seasons, style, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { ModalListComponent } from 'src/app/components/modal-list/modal-list.component';
 import { UserService } from 'src/app/service/user.service';
@@ -52,6 +52,8 @@ export class MyOutFitPage implements OnDestroy {
   private shareActionsInProgress = new Set<string>();
   filtersData: OutfitFilterPayload = { categories: [], season: '', style: '' };
   searchText = '';
+  availableOccasions: OutfitOccasion[] = [];
+  selectedOccasion: string | null = null;
   suggestedProducts: AppCatalogProduct[] = [];
   isSuggestedProductsLoading = false;
   recommendedOutfits: outfit[] = [];
@@ -98,7 +100,38 @@ export class MyOutFitPage implements OnDestroy {
   }
 
   async ionViewWillEnter() {
-    await this.refreshOutfitsFromServer();
+    this.selectedOccasion = null;
+    await Promise.all([this.loadOccasions(), this.refreshOutfitsFromServer()]);
+  }
+
+  private async loadOccasions(): Promise<void> {
+    try {
+      const occasions = await firstValueFrom(this.appService.getOutfitOccasions());
+      this.availableOccasions = occasions
+        .filter(item => item.active && !!item.value?.trim() &&
+          !!item.image?.imageBase64 && ['image/jpeg', 'image/png', 'image/webp'].includes(item.image.imageMimeType))
+        .sort((a, b) => a.order - b.order);
+    } catch (error) {
+      console.error('Occasioni non disponibili:', error);
+      this.availableOccasions = [];
+    }
+  }
+
+  occasionImageUrl(occasion: OutfitOccasion): string {
+    const image = occasion.image;
+    return image ? `data:${image.imageMimeType};base64,${image.imageBase64}` : '';
+  }
+
+  async selectOccasion(occasionId: string | null): Promise<void> {
+    if (this.selectedOccasion === occasionId) return;
+    this.selectedOccasion = occasionId;
+    const hasManualFilters = !!(this.searchText.trim() || this.filtersData.season ||
+      this.filtersData.style || this.normalizeCategories(this.filtersData.categories).length);
+    if (hasManualFilters) {
+      await this.applyOutfitFilters();
+    } else {
+      await this.refreshOutfitsFromServer();
+    }
   }
 
   async refreshOutfitsFromServer(): Promise<void> {
@@ -124,7 +157,7 @@ export class MyOutFitPage implements OnDestroy {
       this.outfitFeedGender = cUserInfo.gender;
 
       const response = await firstValueFrom(
-        this.appService.getOutfitsPage(cUserInfo.gender, 1, this.outfitPageSize)
+        this.appService.getOutfitsPage(cUserInfo.gender, 1, this.outfitPageSize, this.selectedOccasion ?? undefined)
       );
       if (requestVersion !== this.outfitRequestVersion) return;
 
@@ -158,7 +191,7 @@ export class MyOutFitPage implements OnDestroy {
     this.isLoadingMoreOutfits = true;
     try {
       const response = await firstValueFrom(
-        this.appService.getOutfitsPage(this.outfitFeedGender, nextPage, this.outfitPageSize)
+        this.appService.getOutfitsPage(this.outfitFeedGender, nextPage, this.outfitPageSize, this.selectedOccasion ?? undefined)
       );
       if (requestVersion !== this.outfitRequestVersion ||
           this.selectedSegment !== 'outfit' || this.isOutfitFilterActive) return;
@@ -307,6 +340,7 @@ export class MyOutFitPage implements OnDestroy {
       categories: this.normalizeCategories(this.filtersData.categories),
       season: this.filtersData.season ?? '',
       style: this.filtersData.style ?? '',
+      ...(this.selectedOccasion ? { occasion: this.selectedOccasion } : {}),
       ...(this.searchText.trim() ? { search: this.searchText.trim() } : {})
     };
   }
