@@ -7,6 +7,8 @@ describe('MyOutFitPage filters and search', () => {
     const component = Object.create(MyOutFitPage.prototype) as MyOutFitPage;
     component.filtersData = { categories: [], season: '', style: '' };
     component.searchText = '';
+    component.selectedOccasion = null;
+    component.availableOccasions = [];
     (component as any).favoriteActionsInProgress = new Set<string>();
     component.favorites = new Set<string>();
     component.outfits = [];
@@ -187,7 +189,7 @@ describe('MyOutFitPage filters and search', () => {
 
     await component.refreshOutfitsFromServer();
 
-    expect(appService.getOutfitsPage).toHaveBeenCalledOnceWith('U', 1, 10);
+    expect(appService.getOutfitsPage).toHaveBeenCalledOnceWith('U', 1, 10, undefined);
     expect(component.filteredOutfits.length).toBe(10);
     expect(component.currentOutfitPage).toBe(1);
     expect(component.hasMoreOutfits).toBeTrue();
@@ -211,7 +213,7 @@ describe('MyOutFitPage filters and search', () => {
     await component.loadMoreOutfits(event);
     await component.loadMoreOutfits(event);
 
-    expect(appService.getOutfitsPage).toHaveBeenCalledOnceWith('U', 2, 10);
+    expect(appService.getOutfitsPage).toHaveBeenCalledOnceWith('U', 2, 10, undefined);
     expect(component.filteredOutfits.map(item => item.id)).toEqual(['one', 'two']);
     expect(component.currentOutfitPage).toBe(2);
     expect(component.hasMoreOutfits).toBeFalse();
@@ -250,6 +252,72 @@ describe('MyOutFitPage filters and search', () => {
 
     expect(component.refreshOutfitsFromServer).toHaveBeenCalledTimes(1);
     expect(component.isOutfitFilterActive).toBeTrue(); // refresh mock skips state reset
+  });
+
+  it('renders shared occasion icons and excludes inactive or missing images', async () => {
+    const component = page();
+    const validImage = { imageBase64: 'YWJjZA==', imageMimeType: 'image/jpeg', imageFileName: 'office.jpg' };
+    Object.assign(component, { appService: {
+      getOutfitOccasions: jasmine.createSpy().and.returnValue(of([
+        { id: 'EVENING', value: 'Sera', active: true, order: 3, image: validImage },
+        { id: 'OFFICE', value: 'Ufficio', active: true, order: 2, image: validImage },
+        { id: 'SPORT', value: 'Sport', active: false, order: 4, image: validImage },
+        { id: 'TRAVEL', value: 'Viaggio', active: true, order: 5 }
+      ]))
+    } });
+
+    await (component as any).loadOccasions();
+
+    expect(component.availableOccasions.map(item => item.id)).toEqual(['OFFICE', 'EVENING']);
+    expect(component.occasionImageUrl(component.availableOccasions[0]))
+      .toBe('data:image/jpeg;base64,YWJjZA==');
+  });
+
+  it('selects an occasion and keeps the existing paginated feed', async () => {
+    const component = page();
+    Object.assign(component, {
+      appService: { getOutfitsPage: jasmine.createSpy().and.returnValue(of({
+        data: [], pagination: { page: 1, limit: 10, total: 0 }
+      })) },
+      categoryService: { fetchCategories: jasmine.createSpy() }
+    });
+    spyOn<any>(component, 'getReadyUserProfile').and.resolveTo({ uid: 'me', gender: 'U' });
+    spyOn<any>(component, 'clearConsumedProductFilter').and.stub();
+    spyOn<any>(component, 'applyProductFilterFromRoute').and.resolveTo();
+    spyOn(component, 'loadOutfits').and.stub();
+
+    await component.selectOccasion('OFFICE');
+
+    expect(component.selectedOccasion).toBe('OFFICE');
+    expect((component as any).appService.getOutfitsPage).toHaveBeenCalledOnceWith('U', 1, 10, 'OFFICE');
+  });
+
+  it('keeps occasion and other filters together in the existing filtering endpoint', async () => {
+    const component = page();
+    component.selectedOccasion = 'APERITIVO';
+    component.filtersData.season = 'E';
+    const filtered = jasmine.createSpy('getFilteredOutfits').and.returnValue(of([]));
+    Object.assign(component, { appService: { getFilteredOutfits: filtered } });
+    spyOn<any>(component, 'getReadyUserProfile').and.resolveTo({ gender: 'D' });
+
+    await component.applyOutfitFilters();
+
+    expect(filtered).toHaveBeenCalledWith('gender=D', {
+      categories: [], season: 'E', style: '', occasion: 'APERITIVO'
+    });
+  });
+
+  it('clears the occasion back to all without resetting other filters', async () => {
+    const component = page();
+    component.selectedOccasion = 'OFFICE';
+    component.filtersData.style = 'C';
+    spyOn(component, 'applyOutfitFilters').and.resolveTo();
+
+    await component.selectOccasion(null);
+
+    expect(component.selectedOccasion).toBeNull();
+    expect(component.filtersData.style).toBe('C');
+    expect(component.applyOutfitFilters).toHaveBeenCalledTimes(1);
   });
 
   it('opens a public profile when the outfit author is another user', () => {
