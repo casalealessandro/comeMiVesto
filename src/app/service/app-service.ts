@@ -349,6 +349,7 @@ export class AppService {
       }).filter(category => Object.keys(category).length > 0),
       season: conditions.season ?? '',
       style: conditions.style ?? '',
+      ...(conditions.occasion ? { occasion: conditions.occasion } : {}),
       ...(conditions.search?.trim() ? { search: conditions.search.trim() } : {}),
       ...(conditions.catalogProductId ? { catalogProductId: conditions.catalogProductId } : {})
     };
