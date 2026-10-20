@@ -596,50 +596,37 @@
   }
 }
 
-/* Home: occasioni outfit unisex, coerenti con il tema esistente. */
+/* Occasioni e pulsante Filtri sulla stessa riga, senza intestazione. */
 .occasion-browser {
-  margin-top: 22px;
-  margin-bottom: 18px;
-}
-.occasion-browser-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-
-  h2 {
-    margin: 0;
-    font-family: var(--ion-font-family, 'Instrument Sans', sans-serif);
-    font-size: 18px;
-    line-height: 23px;
-    font-weight: 700;
-    color: var(--primary-color, #3f3f3f);
-  }
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  margin-bottom: 12px;
 }
 .occasion-filter-action {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  flex: 0 0 auto;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 45px;
   min-width: 44px;
-  min-height: 44px;
-  padding: 0 4px;
+  padding: 0;
   border: 0;
   color: var(--primary-color, #3f3f3f);
   background: transparent;
-  font: inherit;
-  font-size: 14px;
   cursor: pointer;
-  .fi { font-size: 20px; }
+  .fi { font-size: 21px; }
 }
 .occasion-strip {
   display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
   flex-wrap: nowrap;
-  gap: 12px;
+  gap: 5px;
   overflow-x: auto;
-  padding: 1px 2px 9px;
+  padding: 1px 0 6px;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -647,11 +634,11 @@
 }
 .occasion-item {
   display: flex;
-  flex: 0 0 84px;
-  width: 84px;
+  flex: 0 0 60px;
+  width: 60px;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -663,9 +650,9 @@
   scroll-snap-align: start;
   img,
   .occasion-all-icon {
-    width: 84px;
-    height: 84px;
-    border-radius: 10px;
+    width: 45px;
+    height: 45px;
+    border-radius: 9px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -676,7 +663,7 @@
   }
   .occasion-all-icon {
     color: var(--primary-color, #3f3f3f);
-    .fi { font-size: 30px; }
+    .fi { font-size: 20px; }
   }
   &.occasion-item--selected img,
   &.occasion-item--selected .occasion-all-icon {
@@ -684,11 +671,11 @@
   }
   .occasion-item-label {
     max-width: 100%;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 500;
-    line-height: 16px;
+    line-height: 14px;
     text-align: center;
-    overflow-wrap: anywhere;
+    white-space: nowrap;
   }
 }
 .occasion-empty {
