@@ -595,3 +595,115 @@
     }
   }
 }
+
+/* Home: occasioni outfit unisex, coerenti con il tema esistente. */
+.occasion-browser {
+  margin-top: 22px;
+  margin-bottom: 18px;
+}
+.occasion-browser-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  h2 {
+    margin: 0;
+    font-family: var(--ion-font-family, 'Instrument Sans', sans-serif);
+    font-size: 18px;
+    line-height: 23px;
+    font-weight: 700;
+    color: var(--primary-color, #3f3f3f);
+  }
+}
+.occasion-filter-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  color: var(--primary-color, #3f3f3f);
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  .fi { font-size: 20px; }
+}
+.occasion-strip {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 1px 2px 9px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+.occasion-item {
+  display: flex;
+  flex: 0 0 84px;
+  width: 84px;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary-color, #3f3f3f);
+  font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  scroll-snap-align: start;
+  img,
+  .occasion-all-icon {
+    width: 84px;
+    height: 84px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    object-fit: cover;
+    background: #f6f5f3;
+    border: 2px solid transparent;
+    box-sizing: border-box;
+  }
+  .occasion-all-icon {
+    color: var(--primary-color, #3f3f3f);
+    .fi { font-size: 30px; }
+  }
+  &.occasion-item--selected img,
+  &.occasion-item--selected .occasion-all-icon {
+    border-color: var(--primary-color, #3f3f3f);
+  }
+  .occasion-item-label {
+    max-width: 100%;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+}
+.occasion-empty {
+  text-align: center;
+  padding: 24px 10px;
+  color: var(--outfit-secondary-color, #676767);
+  font-size: 13px;
+  button {
+    margin-top: 8px;
+    border: 0;
+    border-bottom: 1px solid var(--primary-color, #3f3f3f);
+    background: transparent;
+    color: var(--primary-color, #3f3f3f);
+    font: inherit;
+    font-weight: 600;
+    min-height: 44px;
+  }
+}
