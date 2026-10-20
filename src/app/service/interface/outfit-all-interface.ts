@@ -103,6 +103,7 @@ export interface OutfitFilterPayload {
   categories?: Array<Pick<filterItmClothing['categories'][number], 'outfitCategory' | 'outfitSubCategory' | 'color'>>;
   season?: string;
   style?: string;
+  occasion?: string;
   search?: string;
   catalogProductId?: string;
 }
