@@ -14,6 +14,26 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface OutfitOccasion {
+  id: string;
+  value: string;
+  order: number;
+  active: boolean;
+  image?: {
+    imageBase64: string;
+    imageMimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+    imageFileName: string;
+  } | null;
+}
+
+export interface OutfitsPageResponse extends ApiResponse<outfit[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+}
+
 export interface OutfitColor {
   id: string;
   value: string;
@@ -198,6 +218,28 @@ export class AppService {
      );
    }
 
+   /** Tassonomia condivisa con il backoffice (risposta array, non ApiResponse). */
+   getOutfitOccasions(): Observable<OutfitOccasion[]> {
+     return this.http.get<OutfitOccasion[]>(`${this.apiFire}outfitOccasions`).pipe(
+       retry(3),
+       catchError(this.handleError)
+     );
+   }
+
+   /** Recupera una pagina di outfit approvati usando la paginazione REST esistente. */
+   getOutfitsPage(gender: string, page: number, limit = 10, occasion?: string): Observable<OutfitsPageResponse> {
+     let params = new HttpParams()
+       .set('gender', gender)
+       .set('page', String(page))
+       .set('limit', String(limit));
+     if (occasion) params = params.set('occasion', occasion);
+
+     return this.http.get<OutfitsPageResponse>(`${this.apiFire}outfitsList`, { params }).pipe(
+       retry(3),
+       catchError(this.handleError)
+     );
+   }
+
    /**
    * Metodo generico per inviare dati al server tramite POST.
    * @param url - L'endpoint API.
@@ -307,6 +349,7 @@ export class AppService {
       }).filter(category => Object.keys(category).length > 0),
       season: conditions.season ?? '',
       style: conditions.style ?? '',
+      ...(conditions.occasion ? { occasion: conditions.occasion } : {}),
       ...(conditions.search?.trim() ? { search: conditions.search.trim() } : {}),
       ...(conditions.catalogProductId ? { catalogProductId: conditions.catalogProductId } : {})
     };
