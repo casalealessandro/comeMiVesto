@@ -3,29 +3,6 @@
   <div class="main-content">
     <div class="heading">
 
-      <div class="filter-wrapper">
-
-        <div class="searchbox">
-          <div class="form-search">
-            <i class="fi fi-rr-search"></i>
-            <ion-input type="text" fill="outline" placeholder="Cerchi qualcosa di particolare?"
-              class="search-input ion-no-border" [value]="searchText" (ionInput)="onSearchInput($event)">
-
-
-            </ion-input>
-          </div>
-
-          <ion-button size="small" class="search-button" fill="clear" (click)="openFilterModal()">
-
-            <i class="fi fi-rr-settings-sliders"></i>
-          </ion-button>
-
-
-
-
-        </div>
-      </div>
-
       <!-- <div class="banner" *ngIf="trendingOutfits.length>0" >
 
         <div class="menu">
@@ -56,6 +33,29 @@
             </div>
           </ion-segment-button>
         </ion-segment>
+
+        <section class="occasion-browser" *ngIf="selectedSegment === 'outfit'">
+          <div class="occasion-browser-header">
+            <h2>{{ availableOccasions.length ? 'Per quale occasione?' : 'Esplora outfit' }}</h2>
+            <button type="button" class="occasion-filter-action" (click)="openFilterModal()" aria-label="Apri filtri outfit">
+              <i class="fi fi-rr-settings-sliders" aria-hidden="true"></i>
+              <span>Filtri</span>
+            </button>
+          </div>
+          <div class="occasion-strip" *ngIf="availableOccasions.length" role="group" aria-label="Filtra gli outfit per occasione">
+            <button type="button" class="occasion-item" [class.occasion-item--selected]="selectedOccasion === null"
+              [attr.aria-pressed]="selectedOccasion === null" (click)="selectOccasion(null)">
+              <span class="occasion-all-icon"><i class="fi fi-rr-apps" aria-hidden="true"></i></span>
+              <span class="occasion-item-label">Tutti</span>
+            </button>
+            <button type="button" class="occasion-item" *ngFor="let occasion of availableOccasions"
+              [class.occasion-item--selected]="selectedOccasion === occasion.id"
+              [attr.aria-pressed]="selectedOccasion === occasion.id" (click)="selectOccasion(occasion.id)">
+              <img [src]="occasionImageUrl(occasion)" [alt]="'Outfit per ' + occasion.value" loading="lazy">
+              <span class="occasion-item-label">{{ occasion.value }}</span>
+            </button>
+          </div>
+        </section>
 
         <section class="suggested-discovery" *ngIf="selectedSegment === 'suggeriti'">
           <div class="recommended-outfits" *ngIf="recommendedOutfits.length > 0">
@@ -135,6 +135,11 @@
             </div>
           </div>
         </section>
+
+        <div class="occasion-empty" *ngIf="selectedSegment === 'outfit' && filteredOutfits.length === 0">
+          <p>{{ selectedOccasion ? 'Nessun outfit disponibile per questa occasione.' : 'Nessun outfit trovato.' }}</p>
+          <button type="button" *ngIf="selectedOccasion" (click)="selectOccasion(null)">Mostra tutti gli outfit</button>
+        </div>
 
         <ion-row class="style" *ngIf="selectedSegment !== 'suggeriti'">
           <ion-col class="style-col" size="12" *ngFor="let outfit of filteredOutfits">
