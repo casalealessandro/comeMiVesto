@@ -35,13 +35,6 @@
         </ion-segment>
 
         <section class="occasion-browser" *ngIf="selectedSegment === 'outfit'">
-          <div class="occasion-browser-header">
-            <h2>{{ availableOccasions.length ? 'Per quale occasione?' : 'Esplora outfit' }}</h2>
-            <button type="button" class="occasion-filter-action" (click)="openFilterModal()" aria-label="Apri filtri outfit">
-              <i class="fi fi-rr-settings-sliders" aria-hidden="true"></i>
-              <span>Filtri</span>
-            </button>
-          </div>
           <div class="occasion-strip" *ngIf="availableOccasions.length" role="group" aria-label="Filtra gli outfit per occasione">
             <button type="button" class="occasion-item" [class.occasion-item--selected]="selectedOccasion === null"
               [attr.aria-pressed]="selectedOccasion === null" (click)="selectOccasion(null)">
@@ -55,6 +48,10 @@
               <span class="occasion-item-label">{{ occasion.value }}</span>
             </button>
           </div>
+          <button type="button" class="occasion-filter-action" (click)="openFilterModal()"
+            aria-label="Apri filtri outfit" title="Filtri">
+            <i class="fi fi-rr-settings-sliders" aria-hidden="true"></i>
+          </button>
         </section>
 
         <section class="suggested-discovery" *ngIf="selectedSegment === 'suggeriti'">
