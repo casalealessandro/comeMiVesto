@@ -1,0 +1,203 @@
+name: Android Firebase Test Lab
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'release-v*'
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+    inputs:
+      test_scope:
+        description: Android versions to test
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - full
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-firebase-test-lab-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  robo-test:
+    name: Android Robo Test
+    # Secrets are not exposed to workflows opened from forks.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      APK_PATH: android/app/build/outputs/apk/debug/app-debug.apk
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select test scope
+        id: test_scope
+        shell: bash
+        env:
+          REQUESTED_SCOPE: ${{ inputs.test_scope }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == refs/tags/release-v* ]] || [[ "${REQUESTED_SCOPE:-smoke}" == "full" ]]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "api_levels=33,34,35,36" >> "$GITHUB_OUTPUT"
+            echo "Using the full Android 13-16 matrix"
+          else
+            echo "scope=smoke" >> "$GITHUB_OUTPUT"
+            echo "api_levels=34,36" >> "$GITHUB_OUTPUT"
+            echo "Using the Android 14 and Android 16 smoke matrix"
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production web application
+        run: |
+          set -euo pipefail
+          GIT_COMMIT_SHA="$(git rev-parse HEAD)" node tools/generate-build-info.mjs
+          npm run build -- --configuration=production
+
+      - name: Restore Android Firebase configuration
+        env:
+          ANDROID_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}
+        run: bash .github/scripts/restore-android-google-services.sh
+
+      - name: Synchronize Capacitor Android project
+        run: npx cap sync android
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Build Android APK
+        working-directory: android
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Verify generated APK
+        run: test -s "$APK_PATH"
+
+      - name: Validate Google Cloud configuration
+        run: |
+          set -euo pipefail
+          test -n "$FIREBASE_PROJECT_ID" || { echo "Missing repository secret FIREBASE_PROJECT_ID" >&2; exit 1; }
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_COMEMIVESTO_5E5F9 }}
+
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Select available virtual devices
+        env:
+          API_LEVELS: ${{ steps.test_scope.outputs.api_levels }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          catalog="$RUNNER_TEMP/firebase-test-lab-models.json"
+          devices="$RUNNER_TEMP/firebase-test-lab-devices.tsv"
+
+          gcloud firebase test android models list \
+            --project="$FIREBASE_PROJECT_ID" \
+            --format=json > "$catalog"
+
+          python3 - "$catalog" "$devices" "$API_LEVELS" <<'PY'
+          import json
+          import sys
+
+          catalog_path, devices_path, requested_levels = sys.argv[1:]
+          with open(catalog_path, encoding="utf-8") as catalog_file:
+              models = json.load(catalog_file)
+
+          selected = []
+          for api_level in requested_levels.split(","):
+              candidates = sorted(
+                  (
+                      model["id"],
+                      model.get("name", "name unavailable"),
+                      model["formFactor"],
+                  )
+                  for model in models
+                  if model.get("form") == "VIRTUAL"
+                  and model.get("formFactor") == "PHONE"
+                  and "deprecated" not in model.get("tags", [])
+                  and api_level in model.get("supportedVersionIds", [])
+              )
+              if not candidates:
+                  raise SystemExit(
+                      "No non-deprecated Firebase Test Lab virtual smartphone "
+                      f"supports API {api_level}."
+                  )
+              model_id, device_name, form_factor = candidates[0]
+              selected.append((model_id, api_level))
+              print(
+                  "Selected virtual smartphone: "
+                  f"model={model_id}, name={device_name}, "
+                  f"form_factor={form_factor}, API={api_level}"
+              )
+
+          with open(devices_path, "w", encoding="utf-8") as devices_file:
+              for model_id, api_level in selected:
+                  devices_file.write(f"{model_id}\t{api_level}\n")
+          PY
+
+      - name: Run Firebase Test Lab Robo tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          device_arguments=()
+          while IFS=$'\t' read -r model_id api_level; do
+            device_arguments+=(
+              "--device=model=${model_id},version=${api_level},locale=it,orientation=portrait"
+            )
+          done < "$RUNNER_TEMP/firebase-test-lab-devices.tsv"
+
+          echo "Submitting ${{ steps.test_scope.outputs.scope }} Robo matrix to Firebase Test Lab"
+          gcloud firebase test android run \
+            --project="$FIREBASE_PROJECT_ID" \
+            --type=robo \
+            --app="$APK_PATH" \
+            "${device_arguments[@]}" \
+            --timeout=5m \
+            2>&1 | tee "$RUNNER_TEMP/firebase-test-lab-matrix.log"
+
+      - name: Upload tested APK and Test Lab log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firebase-test-lab-${{ steps.test_scope.outputs.scope }}
+          path: |
+            ${{ env.APK_PATH }}
+            ${{ runner.temp }}/firebase-test-lab-matrix.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Remove temporary Android Firebase configuration
+        if: always()
+        run: rm -f android/app/google-services.json
