@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { FormControl, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { Capacitor } from '@capacitor/core';
@@ -14,6 +15,17 @@ export function getSafeReturnUrl(returnUrl: string | null | undefined): string {
   return /^\/tabs(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?$/.test(returnUrl) ? returnUrl : '/tabs/myoutfit';
 }
 
+/** DynamicForm emits the raw FormGroup value, not { formData: ... }. */
+export function getPasswordRecoveryEmail(
+  formValue: { emailRecup?: unknown; email?: unknown } | null | undefined,
+): string | null {
+  const value = formValue?.emailRecup ?? formValue?.email;
+  if (typeof value !== 'string') return null;
+
+  const email = value.trim();
+  return email && Validators.email(new FormControl(email)) === null ? email : null;
+}
+
 @Component({
   standalone: false,
   selector: 'app-login',
@@ -27,6 +39,7 @@ export class LoginPage implements OnInit {
   stayConnected:boolean=true;
   emailRecup:string=''
   recupPasswordError:string = 'Inserisci un email valida'
+  passwordRecoverySubmitting = false;
   socialSubmitting = false;
   readonly showGoogleLogin = Capacitor.getPlatform() !== 'web';
   readonly showAppleLogin = Capacitor.getPlatform() === 'ios';
@@ -187,19 +200,39 @@ export class LoginPage implements OnInit {
     this.showLogin = !this.showLogin;
   }
 
-  async recuperaPassword(evtForm:any) {
-    const email = evtForm.formData.emailRecup
+  async recuperaPassword(formValue: { emailRecup?: unknown; email?: unknown } | null | undefined): Promise<void> {
+    if (this.passwordRecoverySubmitting) return;
+
+    const email = getPasswordRecoveryEmail(formValue);
+    if (!email) {
+      const invalidEmailAlert = await this.alert.create({
+        header: 'Attenzione!',
+        message: 'Inserisci un indirizzo email valido.',
+        buttons: ['Ok'],
+      });
+      await invalidEmailAlert.present();
+      return;
+    }
+
+    this.passwordRecoverySubmitting = true;
     try {
-      await sendPasswordResetEmail(this.firebase.auth,email);
-      this.showLogin = !this.showLogin;
+      await sendPasswordResetEmail(this.firebase.auth, email);
+      const successAlert = await this.alert.create({
+        header: 'Controlla la tua email',
+        message: 'Se questo indirizzo è associato a un account con password, riceverai un link per reimpostarla. Controlla anche la cartella Spam.',
+        buttons: ['Ok'],
+      });
+      await successAlert.present();
+      this.showLogin = true;
     } catch (error) {
-      this.alert.create(
-        {
-          header:'Attenzione!',
-          message:'Impossibile inviare email di recupero password.',
-          buttons: ['Ok'],
-        }
-      ).then(alert => alert.present());
+      const failureAlert = await this.alert.create({
+        header: 'Attenzione!',
+        message: 'Impossibile inviare l’email di recupero password. Riprova tra qualche minuto.',
+        buttons: ['Ok'],
+      });
+      await failureAlert.present();
+    } finally {
+      this.passwordRecoverySubmitting = false;
     }
   }
 }
