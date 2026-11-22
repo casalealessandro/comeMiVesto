@@ -31,6 +31,7 @@ export class FotoOutfitPage implements OnInit {
   tagStyle: any = [];
 
   showTag: boolean = false
+  selectedTag: Tag | null = null;
   imageLoading: boolean = true
   tagToggleButton: any = {};
   blobImg: any;
@@ -229,7 +230,10 @@ export class FotoOutfitPage implements OnInit {
   async addTag(event: any) {
     
     if (!this.enableSetTagsImage) {
-      
+      if (this.selectedTag) {
+        this.selectedTag = null;
+        return;
+      }
       this.eventImageShowFull.emit()
       return
     }
@@ -299,6 +303,7 @@ export class FotoOutfitPage implements OnInit {
 
   toggleTags() {
     this.showTag = !this.showTag;
+    this.selectedTag = null;
   }
 
   setDisplayButtonTag(rect: DOMRect) {

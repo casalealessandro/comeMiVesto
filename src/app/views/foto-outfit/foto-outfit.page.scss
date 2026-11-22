@@ -301,3 +301,119 @@
   --padding-top: 0px;
   --padding-bottom: 0;
 }
+// Modalità consultazione: indicatori discreti e una sola scheda descrittiva.
+.tag-marker {
+  position: absolute;
+  z-index: 1001;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+
+  span {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid #222;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+    color: #222;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  &.is-active span {
+    background: #222;
+    color: #fff;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #222;
+    outline-offset: 2px;
+  }
+}
+
+.tag-detail-card {
+  position: absolute;
+  right: 12px;
+  bottom: 48px;
+  left: 12px;
+  z-index: 1003;
+  box-sizing: border-box;
+  max-height: calc(100% - 64px);
+  overflow-y: auto;
+  padding: 14px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  color: #222;
+  text-align: left;
+}
+
+.tag-detail-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #333;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.tag-detail-brand {
+  margin: 0 44px 4px 0;
+  color: #696969;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.tag-detail-title {
+  margin: 0 36px 6px 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+.tag-detail-price {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.tag-detail-open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #222;
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
