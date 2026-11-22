@@ -118,7 +118,8 @@
         </div>
         <div class="login-center-container">
 
-          <app-dynamic-form [service]="'recuperaPassword'" [btnFormText]="'Recupara'"
+          <app-dynamic-form [service]="'recuperaPassword'" [btnFormText]="'Recupera'"
+            [isSubmitting]="passwordRecoverySubmitting"
             (submitFormEvent)="recuperaPassword($event)">
           </app-dynamic-form>
 
