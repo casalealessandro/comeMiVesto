@@ -1,4 +1,4 @@
-import { getSafeReturnUrl, LoginPage } from './login.page';
+import { getPasswordRecoveryEmail, getSafeReturnUrl, LoginPage } from './login.page';
 
 describe('LoginPage returnUrl validation', () => {
   it('preserves an internal protected destination', () => {
@@ -14,6 +14,26 @@ describe('LoginPage returnUrl validation', () => {
       expect(getSafeReturnUrl(unsafe)).toBe('/tabs/myoutfit');
     });
   }
+});
+
+describe('LoginPage password recovery form payload', () => {
+  it('reads emailRecup directly from DynamicForm form.value', () => {
+    expect(getPasswordRecoveryEmail({ emailRecup: 'utente@example.com' })).toBe('utente@example.com');
+  });
+
+  it('accepts a form configured with the email field name', () => {
+    expect(getPasswordRecoveryEmail({ email: 'utente@example.com' })).toBe('utente@example.com');
+  });
+
+  it('trims whitespace around the email', () => {
+    expect(getPasswordRecoveryEmail({ emailRecup: '  utente@example.com  ' })).toBe('utente@example.com');
+  });
+
+  it('rejects missing or malformed emails rather than throwing', () => {
+    for (const value of [undefined, null, {}, { emailRecup: '' }, { emailRecup: 'not-an-email' }, { emailRecup: 42 }]) {
+      expect(getPasswordRecoveryEmail(value)).toBeNull();
+    }
+  });
 });
 
 describe('LoginPage intro routing', () => {
