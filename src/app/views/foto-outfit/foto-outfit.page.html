@@ -6,7 +6,7 @@
   <!-- Loader che viene mostrato durante il caricamento dell'immagine -->
   <ion-spinner *ngIf="imageLoading" name="crescent"></ion-spinner>
 
-  <img *ngIf="image" #imageElement [src]="image" class="outfit-pin-image" [ngClass]="{'darken': showTag}"
+  <img *ngIf="image" #imageElement [src]="image" class="outfit-pin-image" [ngClass]="{'darken': showTag && enableSetTagsImage}"
     (click)="addTag($event)" />
   <!-- Suggerimento per il tagging -->
   <div class="tag-helper" *ngIf="showTooltip()">
@@ -15,6 +15,7 @@
   </div>
   
   <ng-container *ngIf="showTag">
+    <ng-container *ngIf="enableSetTagsImage; else viewTags">
     <div *ngFor="let tag of tags" class="tag" [ngStyle]="tagStyle[tag.id]" (click)="openItmClothing(tag)">
       <ion-card class="price-card">
         <ion-card-content class="price-card-content">
@@ -30,6 +31,43 @@
       </ion-card>
 
     </div>
+    </ng-container>
+    <ng-template #viewTags>
+      <button
+        *ngFor="let tag of tags; let i = index"
+        type="button"
+        class="tag-marker"
+        [class.is-active]="selectedTag === tag"
+        [ngStyle]="tagStyle[tag.id]"
+        [attr.aria-label]="'Mostra informazioni su ' + tag.name"
+        [attr.aria-pressed]="selectedTag === tag"
+        (click)="selectedTag = selectedTag === tag ? null : tag">
+        <span>{{ i + 1 }}</span>
+      </button>
+
+      <div class="tag-detail-card" *ngIf="selectedTag as activeTag">
+        <button
+          type="button"
+          class="tag-detail-close"
+          aria-label="Chiudi informazioni prodotto"
+          (click)="selectedTag = null">
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+        </button>
+        <div class="tag-detail-brand" *ngIf="activeTag.brend">{{ activeTag.brend }}</div>
+        <p class="tag-detail-title">{{ activeTag.name }}</p>
+        <p class="tag-detail-price" *ngIf="activeTag.prezzo != null || activeTag.price != null">
+          {{ (activeTag.prezzo ?? activeTag.price) | currencyFormat }}
+        </p>
+        <button
+          *ngIf="activeTag.catalogProductId || (activeTag.link && activeTag.link !== '#')"
+          type="button"
+          class="tag-detail-open"
+          (click)="openItmClothing(activeTag)">
+          Visualizza prodotto
+          <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </ng-template>
   </ng-container>
   <ion-button class="tag-toggle-button" *ngIf="tags.length>0" (click)="toggleTags()" id="toggle-button"
     [ngStyle]="tagToggleButton" fill="clear">
