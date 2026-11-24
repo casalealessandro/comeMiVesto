@@ -44,6 +44,10 @@ export class LayoutTabsPage implements OnInit {
     });
   }
   
+  get isGuest(): boolean {
+    return this.userService.gUserProfile()()?.isGuest === true;
+  }
+
   async ionViewDidEnter(): Promise<void> {
     await this.openPreferencesOnboardingIfNeeded();
   }
@@ -54,7 +58,7 @@ export class LayoutTabsPage implements OnInit {
     }
 
     const userLoaded = await this.userService.loadUser();
-    if (!userLoaded || this.userService.gPreferencesConfigured()()) {
+    if (!userLoaded || this.isGuest || this.userService.gPreferencesConfigured()()) {
       return;
     }
 
