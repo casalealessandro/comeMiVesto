@@ -17,6 +17,7 @@ interface PublicApiRoute {
 const PUBLIC_API_ROUTES: PublicApiRoute[] = [
   { method: 'GET', path: /^\/gen\/forms\/[^/]+$/ },
   { method: 'POST', path: /^\/user\/register$/ },
+  { method: 'POST', path: /^\/user\/guest$/ },
   { method: 'POST', path: /^\/user\/token$/ },
 ];
 
