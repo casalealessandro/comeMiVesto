@@ -99,6 +99,10 @@ export class MyOutFitPage implements OnDestroy {
 
   }
 
+  get isGuest(): boolean {
+    return this.userProfileService.gUserProfile()()?.isGuest === true;
+  }
+
   async ionViewWillEnter() {
     this.selectedOccasion = null;
     await Promise.all([this.loadOccasions(), this.refreshOutfitsFromServer()]);
@@ -277,7 +281,7 @@ export class MyOutFitPage implements OnDestroy {
     }));
 
     this.filteredOutfits = JSON.parse(JSON.stringify(filteredOutfits));
-    await this.heartIcon();
+    if (!this.isGuest) await this.heartIcon();
     filteredOutfits.forEach(async rr => {
 
 
@@ -565,9 +569,9 @@ export class MyOutFitPage implements OnDestroy {
     this.cUserPreference = this.userProfileService.gUserPreference()();
     this.filteredOutfits = JSON.parse(JSON.stringify(this.outfits));
     this.outfitUserProfile = [];
-    await this.heartIcon();
+    if (!this.isGuest) await this.heartIcon();
     this.loadOutfitAuthorProfiles(this.outfits);
-    this.getTrendingOutfits();
+    if (!this.isGuest) void this.getTrendingOutfits();
   }
 
   private loadOutfitAuthorProfiles(items: outfit[]): void {
@@ -930,7 +934,7 @@ export class MyOutFitPage implements OnDestroy {
     this.router.navigate(['tabs/detail-outfit', outfit.id]).then(async res => {
 
 
-      if (outfit.userId == this.cUserID) {
+      if (this.isGuest || outfit.userId == this.cUserID) {
         return
       }
       await this.appService.recordOutfitVisit(String(outfit.id));
