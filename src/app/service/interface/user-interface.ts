@@ -12,6 +12,8 @@ export interface UserProfile {
   gender: '' | 'U' | 'D';
   createAt: number;
   editedAt?: number;
+  isGuest?: boolean;
+  guestExpiresAt?: number;
 
 }
 
