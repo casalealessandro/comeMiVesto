@@ -6,6 +6,7 @@ import { IonModal, ModalController, NavController } from '@ionic/angular';
 import { AppService } from 'src/app/service/app-service';
 import { seasons, style, Tag } from 'src/app/service/interface/outfit-all-interface';
 import { SharedDataService } from 'src/app/service/shared-data.service';
+import { UserService } from 'src/app/service/user.service';
 import { register } from 'swiper/element/bundle';
 
 register();
@@ -36,8 +37,13 @@ export class DetailOutfitPage implements OnInit {
     private route: ActivatedRoute, 
     private appService: AppService, 
     private navController: NavController,private firebase: FirebaseService,
-    private sharedData:SharedDataService
+    private sharedData:SharedDataService,
+    private userService: UserService
   ) { }
+
+  get isGuest(): boolean {
+    return this.userService.gUserProfile()()?.isGuest === true;
+  }
 
   ngOnInit() {
     this.route.paramMap.subscribe(async params => {
@@ -138,6 +144,10 @@ export class DetailOutfitPage implements OnInit {
     }
   }
   async saveItem(dataProduct: any) {
+    if (this.isGuest) {
+      await this.router.navigateByUrl('/download');
+      return;
+    }
     const data = dataProduct.data
     const categoryID = data.outfitCategory;
     const subCategoryID = data.outfitSubCategory;
