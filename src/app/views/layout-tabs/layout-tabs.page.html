@@ -1,4 +1,4 @@
-<ion-menu side="end" contentId="main-content">
+<ion-menu *ngIf="!isGuest" side="end" contentId="main-content">
   <ion-content class="menu-main-container">
     <app-menu></app-menu>
   </ion-content>
@@ -20,7 +20,7 @@
           <span class="outfit-tab-text">Home</span>
         </ion-tab-button>
       </div>
-      <div class="button-block">
+      <div class="button-block" *ngIf="!isGuest">
         <ion-tab-button class="outfit-bar-button" tab="outfit-products">
           <ion-ripple-effect></ion-ripple-effect>
           <span class="fi fi-rr-search"></span>
@@ -28,7 +28,7 @@
         </ion-tab-button>
       </div>
 
-      <div class="button-block">
+      <div class="button-block" *ngIf="!isGuest">
         <div class="outfit-center-button">
           <ion-tab-button class="outfit-bar-button center-tab-button" tab="add-outfit">
             <ion-ripple-effect></ion-ripple-effect>
@@ -37,19 +37,22 @@
           <span class="center-tab-text">Crea outfit</span>
         </div>
       </div>
-      <div class="button-block">
+      <div class="button-block" *ngIf="!isGuest">
         <ion-tab-button class="outfit-bar-button" tab="my-wardrobes">
           <ion-ripple-effect></ion-ripple-effect>
           <span class="fi fi-rr-clothes-hanger"></span>
           <span class="outfit-tab-text">Armadio</span>
         </ion-tab-button>
       </div>
-      <div class="button-block">
+      <div class="button-block" *ngIf="!isGuest">
         <ion-tab-button class="outfit-bar-button" tab="my-profile">
           <ion-ripple-effect></ion-ripple-effect>
           <span class="fi fi-rr-user"></span>
           <span class="outfit-tab-text">Profilo</span>
         </ion-tab-button>
+      </div>
+      <div class="button-block" *ngIf="isGuest">
+        <ion-button size="small" routerLink="/download">Scarica l'app</ion-button>
       </div>
     </div>
   </ion-tab-bar>
