@@ -19,3 +19,4 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build -- --configuration=production
+      - run: npm test -- --watch=false --browsers=ChromeHeadless --no-progress --include=src/app/auth.guard.spec.ts --include=src/app/app-routing.module.spec.ts
