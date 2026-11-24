@@ -13,9 +13,11 @@ describe('protected routing', () => {
   let terms: any;
   let router: Router;
   let registration: any;
+  let profile: any;
 
   beforeEach(() => {
     registration = null;
+    profile = { uid: 'user' };
     auth = { waitForAuthState: jasmine.createSpy().and.resolveTo(null) };
     users = {
       loadBootstrap: jasmine.createSpy().and.resolveTo({
@@ -28,7 +30,8 @@ describe('protected routing', () => {
       gTermsStatus: jasmine.createSpy().and.returnValue(() => ({
         accepted: true, acceptedVersion: '1', currentVersion: '1'
       })),
-      gRegistrationStatus: jasmine.createSpy().and.callFake(() => () => registration)
+      gRegistrationStatus: jasmine.createSpy().and.callFake(() => () => registration),
+      gUserProfile: jasmine.createSpy().and.callFake(() => () => profile)
     };
     terms = { allowAppAccess: jasmine.createSpy().and.resolveTo('accepted') };
     TestBed.configureTestingModule({ imports: [RouterTestingModule], providers: [
@@ -50,6 +53,28 @@ describe('protected routing', () => {
     };
     return TestBed.runInInjectionContext(() => guestGuard(route as any, { url } as RouterStateSnapshot)) as Promise<boolean | UrlTree>;
   }
+
+  it('lets temporary guests browse the existing feed without accepting account Terms', async () => {
+    profile = { uid: 'guest', isGuest: true, guestExpiresAt: Date.now() + 60000 };
+    auth.waitForAuthState.and.resolveTo({ uid: 'guest', getIdToken: () => Promise.resolve('token') });
+    expect(await run('/tabs/myoutfit')).toBeTrue();
+    expect(await run('/tabs/detail-outfit/one')).toBeTrue();
+    expect(terms.allowAppAccess).not.toHaveBeenCalled();
+  });
+
+  it('keeps temporary guests out of profile and writing screens', async () => {
+    profile = { uid: 'guest', isGuest: true, guestExpiresAt: Date.now() + 60000 };
+    auth.waitForAuthState.and.resolveTo({ uid: 'guest', getIdToken: () => Promise.resolve('token') });
+    const result = await run('/tabs/add-outfit') as UrlTree;
+    expect(router.serializeUrl(result)).toBe('/tabs/myoutfit');
+  });
+
+  it('routes expired temporary guests to the end-of-preview screen', async () => {
+    profile = { uid: 'guest', isGuest: true, guestExpiresAt: Date.now() - 1000 };
+    auth.waitForAuthState.and.resolveTo({ uid: 'guest', getIdToken: () => Promise.resolve('token') });
+    const result = await run('/tabs/myoutfit') as UrlTree;
+    expect(router.serializeUrl(result)).toBe('/guestAuth?expired=1');
+  });
 
   it('redirects signed-out protected requests to login with returnUrl', async () => {
     const result = await run('/tabs/detail-outfit/abc') as UrlTree;
