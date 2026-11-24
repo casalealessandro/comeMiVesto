@@ -28,7 +28,7 @@ interface GuestRegistrationResponse {
         <p *ngIf="error">La prova non è disponibile in questo momento.</p>
         <ion-button *ngIf="error" (click)="start()">Riprova</ion-button>
         <ion-button *ngIf="expired || error" (click)="openDownload()">Scarica ComeMiVesto</ion-button>
-        <p *ngIf="expired || error"><a href="/privacy">Privacy</a></p>
+        <p class="guest-privacy"><a href="/privacy">Informativa privacy</a></p>
       </div>
     </ion-content>
   `,
