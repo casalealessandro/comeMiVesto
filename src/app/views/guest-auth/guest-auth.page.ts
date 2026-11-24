@@ -81,7 +81,7 @@ export class GuestAuthPage implements OnInit {
 
       if (!currentUser) {
         const response = await firstValueFrom(this.http.post<GuestRegistrationResponse>(
-          `${environment.BASE_API_URL}/user/guest`, { gender: 'D' },
+          `${environment.BASE_API_URL}/user/guest`, { gender: this.route.snapshot.queryParamMap.get('gender') === 'U' ? 'U' : 'D' },
         ));
         await setPersistence(this.firebase.auth, browserSessionPersistence);
         await signInWithCustomToken(this.firebase.auth, response.data.customToken);
