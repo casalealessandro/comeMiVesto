@@ -141,6 +141,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'guestAuth',
+    loadComponent: () =>
+      import('./views/guest-auth/guest-auth.page').then(m => m.GuestAuthPage),
+  },
+  {
     path: 'download',
     loadComponent: () =>
       import('./views/download/download.page').then(

@@ -38,7 +38,7 @@
 
     <ion-buttons slot="end" class="ion-custom-buttons">
       <ion-button
-        *ngIf="showMenuBtn"
+        *ngIf="showMenuBtn && !userProfile()?.isGuest"
         class="menu-button"
         slot="icon-only"
         (click)="toggleMenu()"

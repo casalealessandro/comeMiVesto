@@ -37,6 +37,16 @@ export const authGuard: CanActivateFn = async (route, state) => {
       }
     }
 
+    const profile = userService.gUserProfile()();
+    if (profile?.isGuest) {
+      const expiresAt = Number(profile.guestExpiresAt);
+      if (!Number.isFinite(expiresAt) || Date.now() >= expiresAt) {
+        return router.createUrlTree(['/guestAuth'], { queryParams: { expired: '1' } });
+      }
+      const allowed = /^\/tabs\/(?:myoutfit|detail-outfit\/[^/?]+)(?:[?#]|$)/.test(state.url);
+      return allowed ? true : router.createUrlTree(['/tabs/myoutfit']);
+    }
+
     const registration = userService.gRegistrationStatus()();
     if (registration?.social && !registration.profileComplete) {
       return router.createUrlTree(['/register'], {

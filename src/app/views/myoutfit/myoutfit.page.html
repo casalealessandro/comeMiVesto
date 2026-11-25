@@ -1,4 +1,7 @@
 <ion-content class="ion-padding">
+  <ion-button *ngIf="isGuest" routerLink="/download" expand="block" size="small" fill="outline">
+    Scarica ComeMiVesto
+  </ion-button>
 
   <div class="main-content">
     <div class="heading">
@@ -25,7 +28,7 @@
       <div class="style-main" *ngIf="!isLoading">
 
         <ion-segment class="filter-outfits" [value]="selectedSegment" (ionChange)="onSegmentChange($event)">
-          <ion-segment-button *ngFor="let button of segmentButtons" class="stat-btn" [value]="button.value">
+          <ion-segment-button *ngFor="let button of (isGuest ? segmentButtons.slice(0, 1) : segmentButtons)" class="stat-btn" [value]="button.value">
             <div class="stat">
               <i class="icon" [class]="button.icon"></i>
               <ion-label class="stats-label">{{ button.label }}</ion-label>
@@ -144,7 +147,7 @@
             <ion-card class="outfit-card">
               <div class="outfit-header">
                 <button type="button" class="outfit-header-wrapper-title" *ngIf="outfitUserProfile[outfit.userId]"
-                  (click)="openUserProfile(outfit.userId)">
+                  [disabled]="isGuest" (click)="openUserProfile(outfit.userId)">
                   <ion-avatar slot="start" class="outfit-card-avatar">
                     <img *ngIf="outfitUserProfile[outfit.userId]" [src]="outfitUserProfile[outfit.userId].photoURL" />
                   </ion-avatar>
@@ -158,7 +161,7 @@
                   </div>
                 </button>
                 <div class="outfit-header-wrapper-info">
-                  <ion-button size="small" fill="clear" (click)="outfitMenu(outfit)">
+                  <ion-button *ngIf="!isGuest" size="small" fill="clear" (click)="outfitMenu(outfit)">
                     <i class="fi fi-rr-menu-dots-vertical"></i>
                   </ion-button>
                   <ion-button size="small" fill="clear" slot="end" (click)="openShareModal(outfit)">
@@ -187,7 +190,7 @@
                     </div>
                     <div class="right-bottom-content">
 
-                      <ion-button size="small" slot="icon-only" fill="clear" class="outfit-card-action"
+                      <ion-button *ngIf="!isGuest" size="small" slot="icon-only" fill="clear" class="outfit-card-action"
                         (click)="addFavoriteOutfit(outfit)">
 
                         <i class="fi" [ngClass]="isFavorite(outfit.id) ? 'fi-sr-heart' : 'fi-rs-heart'">
