@@ -6,6 +6,7 @@ import { authGuard, guestGuard } from './auth.guard';
 import { TermsAcceptanceService } from './service/terms-acceptance.service';
 import { UserService } from './service/user.service';
 import { FirebaseService } from './service/firebase.service';
+import { Capacitor } from '@capacitor/core';
 
 describe('protected routing', () => {
   let auth: any;
@@ -49,7 +50,7 @@ describe('protected routing', () => {
     const path = url.startsWith('/register') ? 'register' : 'login';
     const route = {
       routeConfig: { path },
-      queryParamMap: { get: (name: string) => name === 'social' ? social : null }
+      queryParamMap: { get: (name: string) => name === 'social' ? social : name === 'quick' && url.includes('quick=1') ? '1' : null }
     };
     return TestBed.runInInjectionContext(() => guestGuard(route as any, { url } as RouterStateSnapshot)) as Promise<boolean | UrlTree>;
   }
@@ -149,6 +150,25 @@ describe('protected routing', () => {
     auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
 
     expect(await runGuest('/register?social=google', 'google')).toBeTrue();
+  });
+
+
+  it('requires quick profile completion on native app access, not while browsing the website', async () => {
+    registration = { social: false, quickRegistration: true, provider: null,
+      profileExists: true, profileComplete: false, missingRequiredFields: ['gender'] };
+    auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
+    const platform = spyOn(Capacitor, 'isNativePlatform').and.returnValue(true);
+    const nativeResult = await run('/tabs/myoutfit') as UrlTree;
+    expect(router.serializeUrl(nativeResult)).toBe('/register?quick=1');
+    platform.and.returnValue(false);
+    expect(await run('/tabs/myoutfit')).toBeTrue();
+  });
+
+  it('allows registered quick users to complete the missing profile fields', async () => {
+    registration = { social: false, quickRegistration: true, provider: null,
+      profileExists: true, profileComplete: false, missingRequiredFields: ['gender'] };
+    auth.waitForAuthState.and.resolveTo({ uid: 'user', getIdToken: () => Promise.resolve('token') });
+    expect(await runGuest('/register?quick=1')).toBeTrue();
   });
 
   it('allows signed-out users to open guest routes', async () => {
