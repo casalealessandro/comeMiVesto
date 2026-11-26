@@ -15,14 +15,14 @@
     <div class="login-card">
       <div class="login-header-container">
         <div class="title">
-          <ion-label>{{ socialRegistration ? 'Completa il tuo profilo' : 'Inserisci i tuoi dati' }}</ion-label>
+          <ion-label>{{ socialRegistration || quickRegistration ? 'Completa il tuo profilo' : 'Inserisci i tuoi dati' }}</ion-label>
           <ion-label class="sub-title">
-            {{ socialRegistration ? 'Mancano solo alcune informazioni per entrare in ComeMiVesto' : 'Registrati e inizia a scoprire il tuo stile ideale' }}
+            {{ socialRegistration || quickRegistration ? 'Mancano solo alcune informazioni per entrare in ComeMiVesto' : 'Registrati e inizia a scoprire il tuo stile ideale' }}
           </ion-label>
         </div>
       </div>
       <div class="login-center-container">
-        <ng-container *ngIf="!socialRegistration; else socialRegistrationForm">
+        <ng-container *ngIf="!socialRegistration && !quickRegistration; else socialRegistrationForm">
           <app-dynamic-form [service]="'registerForm'"
             [btnFormText]="'Registrati'"
             [isSubmitting]="submitting"
@@ -38,7 +38,7 @@
 
         <ng-template #socialRegistrationForm>
           <div class="social-registration-form">
-            <ion-item>
+            <ion-item *ngIf="!quickRegistration">
               <ion-input
                 label="Nome (facoltativo)"
                 labelPlacement="stacked"
@@ -47,7 +47,7 @@
               </ion-input>
             </ion-item>
 
-            <ion-item>
+            <ion-item *ngIf="!quickRegistration">
               <ion-input
                 label="Cognome (facoltativo)"
                 labelPlacement="stacked"
@@ -67,7 +67,12 @@
               </ion-select>
             </ion-item>
 
-            <ion-button fill="clear" class="terms-button" (click)="acceptSocialTerms()">
+            <ion-item *ngIf="quickRegistration">
+              <ion-textarea label="Biografia (facoltativa)" labelPlacement="stacked" [(ngModel)]="quickBio"
+                maxlength="500" placeholder="Racconta qualcosa di te"></ion-textarea>
+            </ion-item>
+
+            <ion-button *ngIf="!quickRegistration || !termsAccepted" fill="clear" class="terms-button" (click)="acceptSocialTerms()">
               {{ termsAccepted ? 'Termini accettati' : 'Leggi e accetta i Termini di Servizio' }}
               <ion-icon
                 [name]="termsAccepted ? 'checkmark-circle-outline' : 'document-text-outline'"

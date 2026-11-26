@@ -190,7 +190,8 @@
                     </div>
                     <div class="right-bottom-content">
 
-                      <ion-button *ngIf="!isGuest" size="small" slot="icon-only" fill="clear" class="outfit-card-action"
+                      <ion-button size="small" slot="icon-only" fill="clear" class="outfit-card-action"
+                        aria-label="Salva outfit nei preferiti"
                         (click)="addFavoriteOutfit(outfit)">
 
                         <i class="fi" [ngClass]="isFavorite(outfit.id) ? 'fi-sr-heart' : 'fi-rs-heart'">

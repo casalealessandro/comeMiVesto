@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { UserService } from './service/user.service';
 import { TermsAcceptanceService } from './service/terms-acceptance.service';
 import { FirebaseService } from './service/firebase.service';
+import { Capacitor } from '@capacitor/core';
 
 export const authGuard: CanActivateFn = async (route, state) => {
   const firebase = inject(FirebaseService);
@@ -48,6 +49,9 @@ export const authGuard: CanActivateFn = async (route, state) => {
     }
 
     const registration = userService.gRegistrationStatus()();
+    if (registration?.quickRegistration && !registration.profileComplete && Capacitor.isNativePlatform()) {
+      return router.createUrlTree(['/register'], { queryParams: { quick: '1' } });
+    }
     if (registration?.social && !registration.profileComplete) {
       return router.createUrlTree(['/register'], {
         queryParams: {
@@ -79,6 +83,12 @@ export const guestGuard: CanActivateFn = async (route) => {
 
     const token = await user.getIdToken();
     if (!token) return true;
+
+    if (route.routeConfig?.path === 'register' && route.queryParamMap.get('quick') === '1') {
+      if (!userService.isBootstrapReady(user.uid)) await userService.loadBootstrap();
+      const registration = userService.gRegistrationStatus()();
+      if (registration?.quickRegistration && !registration.profileComplete) return true;
+    }
 
     if (route.routeConfig?.path === 'register' && route.queryParamMap.get('social')) {
       if (!userService.isBootstrapReady(user.uid)) {

@@ -45,6 +45,10 @@ export class DetailOutfitPage implements OnInit {
     return this.userService.gUserProfile()()?.isGuest === true;
   }
 
+  saveGuestOutfit(): void {
+    void this.router.navigate(['/guestQuickRegister'], { queryParams: { outfitId: String(this.outfitId) } });
+  }
+
   ngOnInit() {
     this.route.paramMap.subscribe(async params => {
       this.outfitId = params.get('id');

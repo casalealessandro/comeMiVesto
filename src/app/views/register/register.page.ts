@@ -30,6 +30,8 @@ export class RegisterPage {
   submitting: boolean = false;
   termsAccepted = false;
   socialRegistration = false;
+  quickRegistration = false;
+  quickBio = '';
   socialSubmitting = false;
   socialNome = '';
   socialCognome = '';
@@ -44,7 +46,8 @@ export class RegisterPage {
     private router: Router) {
       const socialProvider = this.route.snapshot.queryParamMap.get('social');
       this.socialRegistration = socialProvider === 'google' || socialProvider === 'apple';
-      if (this.socialRegistration) {
+      this.quickRegistration = this.route.snapshot.queryParamMap.get('quick') === '1';
+      if (this.socialRegistration || this.quickRegistration) {
         const profile = this.userService.gUserProfile()();
         const pendingProfile = this.socialAuthService.getPendingProfile();
         this.socialNome = profile?.nome?.trim() || pendingProfile?.givenName || '';
@@ -143,10 +146,11 @@ export class RegisterPage {
         nome: this.socialNome.trim(),
         cognome: this.socialCognome.trim(),
         gender: this.socialGender,
+        ...(this.quickRegistration ? { bio: this.quickBio.trim() } : {}),
         termsAccepted: true,
       }));
       await this.userService.completeAuthenticatedSession();
-      this.socialAuthService.clearPendingProfile();
+      if (this.socialRegistration) this.socialAuthService.clearPendingProfile();
       await this.router.navigateByUrl('/tabs/myoutfit', { replaceUrl: true });
     } catch (error: any) {
       const message = error?.code === 'CONTENT_FLAGGED'
@@ -215,8 +219,8 @@ export class RegisterPage {
 
 
   async handleBackButton() {
-    if (this.socialRegistration) {
-      this.socialAuthService.clearPendingProfile();
+    if (this.socialRegistration || this.quickRegistration) {
+      if (this.socialRegistration) this.socialAuthService.clearPendingProfile();
       await this.userService.logOut();
     }
     this.navController.navigateBack('/login');

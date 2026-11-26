@@ -874,6 +874,10 @@ export class MyOutFitPage implements OnDestroy {
 
   async addFavoriteOutfit(outfit: any) {
     const outfitId = String(outfit.id);
+    if (this.isGuest) {
+      await this.router.navigate(['/guestQuickRegister'], { queryParams: { outfitId } });
+      return;
+    }
     if (this.favoriteActionsInProgress.has(outfitId)) return;
     this.favoriteActionsInProgress.add(outfitId);
 

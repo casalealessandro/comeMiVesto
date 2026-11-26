@@ -141,6 +141,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'guestQuickRegister',
+    loadComponent: () =>
+      import('./views/guest-quick-register/guest-quick-register.page').then(m => m.GuestQuickRegisterPage),
+  },
+  {
     path: 'guestAuth',
     loadComponent: () =>
       import('./views/guest-auth/guest-auth.page').then(m => m.GuestAuthPage),
