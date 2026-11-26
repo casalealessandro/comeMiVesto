@@ -1,4 +1,7 @@
 <ion-content [fullscreen]="true" class="ion-padding scroll-y">
+  <ion-button *ngIf="isGuest && outfitId" (click)="saveGuestOutfit()" expand="block" size="small">
+    Salva questo outfit
+  </ion-button>
   <ion-button *ngIf="isGuest" routerLink="/download" expand="block" fill="outline" size="small">
     Scarica ComeMiVesto
   </ion-button>
