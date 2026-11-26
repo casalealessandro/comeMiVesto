@@ -38,7 +38,7 @@ interface GuestUpgradeResponse {
             <ion-input label="Email" labelPlacement="stacked" name="email" type="email"
               autocomplete="email" [(ngModel)]="email" required></ion-input>
             <ion-input label="Password" labelPlacement="stacked" name="password" type="password"
-              autocomplete="existing-password" [(ngModel)]="password" required></ion-input>
+              [autocomplete]="existingAccount ? 'current-password' : 'new-password'" [(ngModel)]="password" required></ion-input>
             <ng-container *ngIf="!existingAccount">
               <ion-button fill="clear" type="button" (click)="acceptTerms()" [disabled]="accountCreated">
                 {{ termsAccepted ? 'Termini di Servizio accettati' : 'Leggi e accetta i Termini di Servizio' }}
@@ -130,8 +130,10 @@ export class GuestQuickRegisterPage implements OnInit {
       this.error = 'Inserisci nome e cognome e accetta i Termini di Servizio.';
       return;
     }
-    if (!this.email.trim() || this.password.length < 8) {
-      this.error = 'Inserisci un’email valida e una password di almeno 8 caratteri.';
+    if (!this.email.trim() || this.password.length < (this.existingAccount ? 1 : 8)) {
+      this.error = this.existingAccount
+        ? 'Inserisci email e password.'
+        : 'Inserisci un’email valida e una password di almeno 8 caratteri.';
       return;
     }
 
