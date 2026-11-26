@@ -48,6 +48,7 @@ export interface SocialRegistrationStatus {
   provider: string | null;
   profileExists: boolean;
   profileComplete: boolean;
+  quickRegistration?: boolean;
   missingRequiredFields: Array<'gender' | 'terms'>;
 }
 
@@ -76,6 +77,7 @@ export interface CompleteRegistrationPayload {
   nome?: string;
   cognome?: string;
   gender: 'U' | 'D';
+  bio?: string;
   termsAccepted: true;
 }
 
