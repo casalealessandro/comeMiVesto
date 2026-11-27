@@ -52,6 +52,29 @@ export class GuestOutfitNudge {
     return this.canPromptOnFeed(url) ? this.latestOutfitId : null;
   }
 
+  /** The centered modal may also appear on an outfit detail, as shown in the UX design. */
+  canPromptOnPage(url: string): boolean {
+    const path = url.split(/[?#]/, 1)[0].replace(/\/$/, '');
+    const validDetail = /^\/tabs\/detail-outfit\/[^/]+$/.test(path);
+    return (path === '/tabs/myoutfit' || validDetail)
+      && this.foregroundMs >= GUEST_NUDGE_AFTER_MS
+      && (this.viewedOutfits.size > 0 || this.exploredFeed);
+  }
+
+  outfitToSaveOnPage(url: string): string | null {
+    if (!this.canPromptOnPage(url)) return null;
+    const match = /^\/tabs\/detail-outfit\/([^/?#]+)(?:[/?#]|$)/.exec(url);
+    if (match) {
+      try {
+        const id = decodeURIComponent(match[1]);
+        return id && !id.includes('/') && id.length <= 128 ? id : null;
+      } catch {
+        return null;
+      }
+    }
+    return this.latestOutfitId;
+  }
+
   reset(): void {
     this.viewedOutfits.clear();
     this.latestOutfitId = null;

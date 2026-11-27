@@ -1,0 +1,33 @@
+<ion-content class="guest-save-dialog-content" [fullscreen]="true">
+  <section class="guest-save-dialog" aria-labelledby="guest-save-dialog-title"
+           aria-describedby="guest-save-dialog-description">
+    <button type="button" class="guest-save-dialog-close"
+            aria-label="Chiudi invito" (click)="close('explore')">
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+
+    <div class="guest-save-dialog-heart" aria-hidden="true">
+      <ion-icon name="heart-outline"></ion-icon>
+    </div>
+
+    <h2 id="guest-save-dialog-title">Ti piace questo look?</h2>
+
+    <p id="guest-save-dialog-description">
+      {{ outfitId
+        ? 'Registrati gratis per salvare questo outfit e ritrovarlo quando vuoi su ComeMiVesto.'
+        : 'Scopri gli outfit, scegli quello che ti piace e salvalo gratis su ComeMiVesto.' }}
+    </p>
+
+    <div class="guest-save-dialog-actions">
+      <button type="button" class="guest-save-dialog-primary" (click)="close('save')">
+        {{ outfitId ? 'Salva questo outfit' : 'Scegli un outfit' }}
+      </button>
+      <button type="button" class="guest-save-dialog-secondary" (click)="close('download')">
+        Scarica ComeMiVesto
+      </button>
+      <button type="button" class="guest-save-dialog-explore" (click)="close('explore')">
+        Continua a esplorare
+      </button>
+    </div>
+  </section>
+</ion-content>
