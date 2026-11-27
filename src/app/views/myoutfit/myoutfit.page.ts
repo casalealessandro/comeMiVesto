@@ -17,6 +17,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { SocialSharing } from 'src/app/service/social-sharing.service';
 import { CategoryService } from 'src/app/service/category.service';
+import { GuestOutfitNudge } from '../layout-tabs/guest-outfit-nudge';
 
 @Component({
   standalone: false,
@@ -61,6 +62,7 @@ export class MyOutFitPage implements OnDestroy {
   recommendationContext = '';
   private searchDebounce?: ReturnType<typeof setTimeout>;
   private productFilterFromDetailActive = false;
+  private readonly guestOutfitNudge = inject(GuestOutfitNudge);
 
   isFiltersSel: boolean = false
   backgroundImage: any = "url(assets/fallback-image.jpg);";
@@ -101,6 +103,10 @@ export class MyOutFitPage implements OnDestroy {
 
   get isGuest(): boolean {
     return this.userProfileService.gUserProfile()()?.isGuest === true;
+  }
+
+  onGuestFeedScroll(): void {
+    if (this.isGuest) this.guestOutfitNudge.recordFeedExploration();
   }
 
   async ionViewWillEnter() {
