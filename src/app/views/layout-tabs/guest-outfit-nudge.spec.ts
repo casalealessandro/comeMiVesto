@@ -42,6 +42,8 @@ describe('GuestOutfitNudge', () => {
     nudge.updateVisibility(600000, false);
     nudge.updateVisibility(601000, true);
     nudge.updateVisibility(720000, true);
+    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBeNull();
+    nudge.updateVisibility(721000, true);
     expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBe('b');
   });
 
@@ -59,5 +61,44 @@ describe('GuestOutfitNudge', () => {
     nudge.recordRoute('/tabs/detail-outfit/a');
     browseFor(180000);
     expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBeNull();
+  });
+});
+
+describe('GuestOutfitNudge feed engagement', () => {
+  let nudge: GuestOutfitNudge;
+  beforeEach(() => { nudge = new GuestOutfitNudge(); });
+
+  it('invites an engaged guest after three minutes even without opening details', () => {
+    nudge.recordFeedExploration();
+    nudge.updateVisibility(0, true);
+    nudge.updateVisibility(180000, true);
+    expect(nudge.canPromptOnFeed('/tabs/myoutfit')).toBeTrue();
+    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBeNull();
+  });
+
+  it('does not prompt an idle visitor who has not explored outfits', () => {
+    nudge.updateVisibility(0, true);
+    nudge.updateVisibility(180000, true);
+    expect(nudge.canPromptOnFeed('/tabs/myoutfit')).toBeFalse();
+  });
+
+  it('accepts a trailing slash or query parameters on the outfit feed', () => {
+    nudge.recordFeedExploration();
+    nudge.updateVisibility(0, true);
+    nudge.updateVisibility(180000, true);
+    expect(nudge.canPromptOnFeed('/tabs/myoutfit/')).toBeTrue();
+    expect(nudge.canPromptOnFeed('/tabs/myoutfit?occasion=office')).toBeTrue();
+    expect(nudge.canPromptOnFeed('/tabs/detail-outfit/abc')).toBeFalse();
+  });
+
+  it('resets prior guest interaction after the account becomes registered', () => {
+    nudge.recordRoute('/tabs/detail-outfit/a');
+    nudge.recordRoute('/tabs/detail-outfit/b');
+    nudge.recordFeedExploration();
+    nudge.updateVisibility(0, true);
+    nudge.updateVisibility(180000, true);
+    expect(nudge.canPromptOnFeed('/tabs/myoutfit')).toBeTrue();
+    nudge.reset();
+    expect(nudge.canPromptOnFeed('/tabs/myoutfit')).toBeFalse();
   });
 });
