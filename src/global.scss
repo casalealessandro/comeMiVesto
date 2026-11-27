@@ -72,3 +72,26 @@ ion-modal.cmv-preferences-onboarding {
   --padding-bottom: calc(70px + var(--ion-safe-area-bottom, 0px));
 }
 
+
+/* Centered guest save invitation: only Ionic owns backdrop, focus trap and stacking. */
+ion-modal.cmv-guest-save-modal {
+  --width: min(440px, calc(100vw - 32px));
+  --height: min(520px, calc(100dvh - 48px));
+  --max-height: calc(100dvh - 48px);
+  --border-radius: 26px;
+  --background: #fff;
+  --backdrop-opacity: 0.52;
+  --box-shadow: 0 18px 55px rgba(0, 0, 0, 0.22);
+}
+
+ion-modal.cmv-guest-save-modal::part(backdrop) {
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+@media (max-height: 600px) {
+  ion-modal.cmv-guest-save-modal {
+    --height: calc(100dvh - 28px);
+    --max-height: calc(100dvh - 28px);
+  }
+}
