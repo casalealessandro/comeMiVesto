@@ -73,13 +73,15 @@
     <div>
       <h2 id="guest-save-nudge-title">Hai trovato un look che ti piace?</h2>
       <p id="guest-save-nudge-description">
-        Salva l'ultimo outfit che hai visto e ritrovalo quando vuoi su ComeMiVesto.
+        {{ guestNudgeOutfitId
+          ? "Salva l'ultimo outfit che hai visto e ritrovalo quando vuoi su ComeMiVesto."
+          : 'Per ritrovare i look che ti piacciono, scegli un outfit e tocca il cuore.' }}
       </p>
     </div>
   </div>
   <div class="guest-save-nudge-actions">
     <button type="button" class="guest-save-nudge-primary" (click)="saveGuestNudgeOutfit()">
-      Salva l'outfit
+      {{ guestNudgeOutfitId ? "Salva l'outfit" : 'Scegli un outfit' }}
     </button>
     <button type="button" class="guest-save-nudge-later" (click)="dismissGuestNudge()">
       Continua a esplorare
