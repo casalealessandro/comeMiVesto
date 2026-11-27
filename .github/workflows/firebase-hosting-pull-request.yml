@@ -18,6 +18,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Verify guest invitation timer and Ionic dialog
+        run: |
+          npm test -- --watch=false --browsers=ChromeHeadlessCI \
+            --include=src/app/views/layout-tabs/guest-outfit-nudge.spec.ts \
+            --include=src/app/views/layout-tabs/layout-tabs.page.spec.ts \
+            --include=src/app/components/guest-save-dialog/guest-save-dialog.component.spec.ts
       - run: npm run build -- --configuration=dev
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

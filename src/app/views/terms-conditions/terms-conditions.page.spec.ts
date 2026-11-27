@@ -17,6 +17,7 @@ describe('TermsConditionsPage', () => {
     component = TestBed.runInInjectionContext(() => new TermsConditionsPage(
       {} as any,
       users,
+      { getStaticPage: jasmine.createSpy('getStaticPage') } as any,
       { create: jasmine.createSpy().and.resolveTo({ present: () => Promise.resolve() }) } as any,
       TestBed.inject(NgZone)
     ));

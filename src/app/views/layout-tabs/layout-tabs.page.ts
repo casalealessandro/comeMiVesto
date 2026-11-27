@@ -25,15 +25,16 @@ export class LayoutTabsPage implements OnInit {
   private tabLoadingTimeout:any
   private preferencesOnboardingOpen = false;
   private readonly preferencesOnboardingSkippedKey = 'preferencesOnboardingSkipped';
-  private readonly guestNudgeSessionKey = 'cmv-guest-centered-dialog-v2-shown';
+  private readonly guestNudgeSessionKey = 'cmv-guest-centered-dialog-v3-shown';
   private readonly guestNudge = inject(GuestOutfitNudge);
   private guestNudgeTimer?: ReturnType<typeof setInterval>;
   private guestNudgeChecking = false;
-  private guestNudgePresentationFailed = false;
+  private guestNudgeRetryAfter = 0;
   private guestNudgeModal?: HTMLIonModalElement;
 
   private readonly guestVisibilityChanged = (): void => {
-    this.guestNudge.updateVisibility(Date.now(), !document.hidden);
+    // A background tab is allowed to accumulate elapsed time.
+    // Presentation resumes when the tab becomes visible.
     if (!document.hidden) void this.maybeShowGuestNudge();
   };
 
@@ -133,21 +134,19 @@ export class LayoutTabsPage implements OnInit {
   private startGuestNudgeTracking(): void {
     if (!this.isGuest || !this.router.url.startsWith('/tabs/') ||
         this.guestNudgeTimer || sessionStorage.getItem(this.guestNudgeSessionKey)) return;
-    this.guestNudge.updateVisibility(Date.now(), !document.hidden);
+    this.guestNudge.start(Date.now());
     document.addEventListener('visibilitychange', this.guestVisibilityChanged);
     this.guestNudgeTimer = setInterval(() => {
       if (!this.isGuest) {
         this.stopGuestNudgeTracking();
         return;
       }
-      this.guestNudge.updateVisibility(Date.now(), !document.hidden);
       void this.maybeShowGuestNudge();
     }, 3000);
   }
 
   private stopGuestNudgeTracking(): void {
     if (this.guestNudgeTimer) {
-      this.guestNudge.updateVisibility(Date.now(), false);
       clearInterval(this.guestNudgeTimer);
     }
     this.guestNudgeTimer = undefined;
@@ -159,9 +158,9 @@ export class LayoutTabsPage implements OnInit {
   }
 
   private async maybeShowGuestNudge(): Promise<void> {
-    if (this.guestNudgeChecking || this.guestNudgePresentationFailed || !this.isGuest || document.hidden ||
-        sessionStorage.getItem(this.guestNudgeSessionKey)) return;
-    if (!this.guestNudge.canPromptOnPage(this.router.url)) return;
+    if (this.guestNudgeChecking || !this.isGuest || document.hidden ||
+        Date.now() < this.guestNudgeRetryAfter || sessionStorage.getItem(this.guestNudgeSessionKey)) return;
+    if (!this.guestNudge.canPromptOnPage(this.router.url, Date.now())) return;
 
     const focusedElement = document.activeElement;
     if (focusedElement?.closest('input, textarea, ion-input, ion-searchbar, [contenteditable="true"]')) return;
@@ -171,7 +170,7 @@ export class LayoutTabsPage implements OnInit {
     try {
       // A new Ionic dialog should not interrupt an existing modal (such as an image preview).
       if (await this.modalController.getTop()) return;
-      if (!this.isGuest || document.hidden || !this.guestNudge.canPromptOnPage(this.router.url) ||
+      if (!this.isGuest || document.hidden || !this.guestNudge.canPromptOnPage(this.router.url, Date.now()) ||
           sessionStorage.getItem(this.guestNudgeSessionKey)) return;
 
       const outfitId = this.guestNudge.outfitToSaveOnPage(this.router.url);
@@ -188,7 +187,7 @@ export class LayoutTabsPage implements OnInit {
       this.guestNudgeModal = modal;
 
       // Route/profile may have changed while Ionic was creating the overlay.
-      if (!this.isGuest || document.hidden || !this.guestNudge.canPromptOnPage(this.router.url)) {
+      if (!this.isGuest || document.hidden || !this.guestNudge.canPromptOnPage(this.router.url, Date.now())) {
         await modal.dismiss();
         return;
       }
@@ -214,7 +213,8 @@ export class LayoutTabsPage implements OnInit {
     } catch {
       // No personal data, URLs, tokens or raw errors in diagnostics.
       console.warn('[GUEST_NUDGE][PRESENT_FAILED]');
-      this.guestNudgePresentationFailed = true;
+      // Retry later instead of permanently suppressing a dialog that failed to display.
+      this.guestNudgeRetryAfter = Date.now() + 15_000;
       if (!presented) {
         try { await this.guestNudgeModal?.dismiss(); } catch { /* overlay not mounted */ }
       }
