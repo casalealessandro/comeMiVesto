@@ -209,3 +209,112 @@
 .outfit-bottom-bar-hidden {
     display: none;
 }
+
+/* A small, non-modal guest conversion prompt: the feed stays usable. */
+.guest-save-nudge {
+    position: fixed;
+    left: 50%;
+    bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 1100;
+    width: min(440px, calc(100% - 24px));
+    box-sizing: border-box;
+    padding: 20px 18px 14px;
+    border: 1px solid #ececec;
+    border-radius: 18px;
+    background: #fff;
+    color: var(--outfit-primary-text-color, #3f3f3f);
+    box-shadow: 0 9px 35px rgba(0, 0, 0, 0.17);
+    font-family: 'Instrument Sans', sans-serif;
+
+    .guest-save-nudge-close {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 36px;
+        height: 36px;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: #555;
+        cursor: pointer;
+
+        ion-icon { font-size: 22px; }
+    }
+
+    .guest-save-nudge-heading {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding-right: 16px;
+    }
+
+    .guest-save-nudge-icon {
+        flex: 0 0 42px;
+        display: grid;
+        place-items: center;
+        height: 42px;
+        border-radius: 12px;
+        background: #ffe600;
+
+        ion-icon { font-size: 24px; color: #3f3f3f; }
+    }
+
+    h2 {
+        font-size: 17px;
+        font-weight: 650;
+        line-height: 1.25;
+        margin: 0 0 5px;
+    }
+
+    p {
+        font-size: 13px;
+        line-height: 1.45;
+        margin: 0;
+        color: #555;
+    }
+
+    .guest-save-nudge-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 16px;
+    }
+
+    .guest-save-nudge-primary {
+        min-height: 44px;
+        width: 100%;
+        border: 0;
+        border-radius: 8px;
+        background: #3f3f3f;
+        color: #fff;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .guest-save-nudge-later {
+        min-height: 38px;
+        border: 0;
+        background: transparent;
+        color: #555;
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    button:focus-visible {
+        outline: 2px solid #3f3f3f;
+        outline-offset: 2px;
+    }
+}
+
+@media (max-width: 360px) {
+    .guest-save-nudge {
+        padding: 18px 14px 12px;
+
+        h2 { font-size: 15px; }
+        p { font-size: 12px; }
+    }
+}
