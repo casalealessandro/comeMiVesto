@@ -1,146 +1,56 @@
-import {
-  GUEST_NUDGE_AFTER_MS,
-  GUEST_NUDGE_MIN_DISTINCT_OUTFITS,
-  GuestOutfitNudge,
-} from './guest-outfit-nudge';
+import { GUEST_NUDGE_AFTER_MS, GuestOutfitNudge } from './guest-outfit-nudge';
 
-describe('GuestOutfitNudge', () => {
-  let nudge: GuestOutfitNudge;
-
-  beforeEach(() => { nudge = new GuestOutfitNudge(); });
-
-  function browseFor(ms: number): void {
-    nudge.updateVisibility(0, true);
-    nudge.updateVisibility(ms, true);
-  }
-
-  it('requires three minutes in the foreground and at least two distinct outfit views', () => {
-    expect(GUEST_NUDGE_AFTER_MS).toBe(180000);
-    expect(GUEST_NUDGE_MIN_DISTINCT_OUTFITS).toBe(2);
-    nudge.recordRoute('/tabs/detail-outfit/a');
-    nudge.recordRoute('/tabs/detail-outfit/a');
-    browseFor(180000);
-    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBeNull();
-
-    nudge.recordRoute('/tabs/detail-outfit/b?from=feed');
-    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBe('b');
-  });
-
-  it('never interrupts the outfit detail page', () => {
-    nudge.recordRoute('/tabs/detail-outfit/a');
-    nudge.recordRoute('/tabs/detail-outfit/b');
-    browseFor(190000);
-    expect(nudge.outfitToSaveOnFeed('/tabs/detail-outfit/b')).toBeNull();
-    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBe('b');
-  });
-
-  it('does not count time spent in a background tab', () => {
-    nudge.recordRoute('/tabs/detail-outfit/a');
-    nudge.recordRoute('/tabs/detail-outfit/b');
-    nudge.updateVisibility(0, true);
-    nudge.updateVisibility(60000, false);
-    nudge.updateVisibility(600000, false);
-    nudge.updateVisibility(601000, true);
-    nudge.updateVisibility(720000, true);
-    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBeNull();
-    nudge.updateVisibility(721000, true);
-    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBe('b');
-  });
-
-  it('remains ineligible if the visitor has not actually browsed for three minutes', () => {
-    nudge.recordRoute('/tabs/detail-outfit/a');
-    nudge.recordRoute('/tabs/detail-outfit/b');
-    browseFor(179999);
-    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBeNull();
-  });
-
-  it('rejects malformed or unrelated detail URLs and does not invent outfit ids', () => {
-    nudge.recordRoute('/tabs/detail-outfit/a%2Fb');
-    nudge.recordRoute('/tabs/detail-outfit/%XX');
-    nudge.recordRoute('/tabs/product/a');
-    nudge.recordRoute('/tabs/detail-outfit/a');
-    browseFor(180000);
-    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBeNull();
-  });
-});
-
-describe('GuestOutfitNudge feed engagement', () => {
+describe('GuestOutfitNudge deterministic timer', () => {
   let nudge: GuestOutfitNudge;
   beforeEach(() => { nudge = new GuestOutfitNudge(); });
 
-  it('invites an engaged guest after three minutes even without opening details', () => {
-    nudge.recordFeedExploration();
-    nudge.updateVisibility(0, true);
-    nudge.updateVisibility(180000, true);
-    expect(nudge.canPromptOnFeed('/tabs/myoutfit')).toBeTrue();
-    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBeNull();
+  it('does not appear before the guest first enters the outfit area', () => {
+    expect(nudge.canPromptOnPage('/tabs/myoutfit', 180_000)).toBeFalse();
   });
 
-  it('does not prompt an idle visitor who has not explored outfits', () => {
-    nudge.updateVisibility(0, true);
-    nudge.updateVisibility(180000, true);
-    expect(nudge.canPromptOnFeed('/tabs/myoutfit')).toBeFalse();
-  });
-
-  it('accepts a trailing slash or query parameters on the outfit feed', () => {
-    nudge.recordFeedExploration();
-    nudge.updateVisibility(0, true);
-    nudge.updateVisibility(180000, true);
-    expect(nudge.canPromptOnFeed('/tabs/myoutfit/')).toBeTrue();
-    expect(nudge.canPromptOnFeed('/tabs/myoutfit?occasion=office')).toBeTrue();
-    expect(nudge.canPromptOnFeed('/tabs/detail-outfit/abc')).toBeFalse();
-  });
-
-  it('resets prior guest interaction after the account becomes registered', () => {
-    nudge.recordRoute('/tabs/detail-outfit/a');
-    nudge.recordRoute('/tabs/detail-outfit/b');
-    nudge.recordFeedExploration();
-    nudge.updateVisibility(0, true);
-    nudge.updateVisibility(180000, true);
-    expect(nudge.canPromptOnFeed('/tabs/myoutfit')).toBeTrue();
-    nudge.reset();
-    expect(nudge.canPromptOnFeed('/tabs/myoutfit')).toBeFalse();
-  });
-});
-
-describe('GuestOutfitNudge centered modal eligibility', () => {
-  let nudge: GuestOutfitNudge;
-  beforeEach(() => { nudge = new GuestOutfitNudge(); });
-
-  it('offers the CURRENT outfit detail after three minutes in the foreground', () => {
-    nudge.recordRoute('/tabs/detail-outfit/look-a');
-    nudge.updateVisibility(0, true);
-    nudge.updateVisibility(180000, true);
-    expect(nudge.canPromptOnPage('/tabs/detail-outfit/look-a')).toBeTrue();
-    expect(nudge.outfitToSaveOnPage('/tabs/detail-outfit/look-a')).toBe('look-a');
-  });
-
-  it('allows the modal on the feed after a genuine scroll without forcing two detail visits', () => {
-    nudge.recordFeedExploration();
-    nudge.updateVisibility(0, true);
-    nudge.updateVisibility(180000, true);
-    expect(nudge.canPromptOnPage('/tabs/myoutfit')).toBeTrue();
+  it('appears after three minutes on the feed without requiring a scroll or multiple outfits', () => {
+    nudge.start(1_000);
+    expect(GUEST_NUDGE_AFTER_MS).toBe(180_000);
+    expect(nudge.canPromptOnPage('/tabs/myoutfit', 180_999)).toBeFalse();
+    expect(nudge.canPromptOnPage('/tabs/myoutfit', 181_000)).toBeTrue();
     expect(nudge.outfitToSaveOnPage('/tabs/myoutfit')).toBeNull();
   });
 
-  it('does not appear for idle guests or before three minutes', () => {
-    nudge.updateVisibility(0, true);
-    nudge.updateVisibility(180000, true);
-    expect(nudge.canPromptOnPage('/tabs/myoutfit')).toBeFalse();
-    nudge.recordFeedExploration();
-    nudge.reset();
-    nudge.recordFeedExploration();
-    nudge.updateVisibility(0, true);
-    nudge.updateVisibility(179999, true);
-    expect(nudge.canPromptOnPage('/tabs/myoutfit')).toBeFalse();
+  it('does not reset the timer when navigating to another outfit', () => {
+    nudge.start(1_000);
+    nudge.recordRoute('/tabs/detail-outfit/look-a');
+    nudge.start(60_000);
+    expect(nudge.canPromptOnPage('/tabs/detail-outfit/look-b', 181_000)).toBeTrue();
+    expect(nudge.outfitToSaveOnPage('/tabs/detail-outfit/look-b')).toBe('look-b');
   });
 
-  it('excludes registration, store download, and unrelated routes', () => {
+  it('retains the last real viewed outfit for the feed CTA', () => {
+    nudge.start(0);
+    nudge.recordRoute('/tabs/detail-outfit/look-a?source=feed');
+    expect(nudge.outfitToSaveOnPage('/tabs/myoutfit')).toBe('look-a');
+    expect(nudge.canPromptOnPage('/tabs/myoutfit/', 180_000)).toBeTrue();
+  });
+
+  it('does not offer the modal on registration, download, or unrelated routes', () => {
+    nudge.start(0);
+    const now = 180_000;
+    expect(nudge.canPromptOnPage('/guestQuickRegister', now)).toBeFalse();
+    expect(nudge.canPromptOnPage('/download', now)).toBeFalse();
+    expect(nudge.canPromptOnPage('/tabs/my-profile', now)).toBeFalse();
+  });
+
+  it('ignores malformed or encoded-slash outfit IDs', () => {
+    nudge.recordRoute('/tabs/detail-outfit/a%2Fb');
+    nudge.recordRoute('/tabs/detail-outfit/%XX');
+    expect(nudge.outfitToSaveOnPage('/tabs/myoutfit')).toBeNull();
+    expect(nudge.outfitToSaveOnPage('/tabs/detail-outfit/a%2Fb')).toBeNull();
+  });
+
+  it('resets the timer and last outfit after the guest upgrades their account', () => {
+    nudge.start(0);
     nudge.recordRoute('/tabs/detail-outfit/look-a');
-    nudge.updateVisibility(0, true);
-    nudge.updateVisibility(180000, true);
-    expect(nudge.canPromptOnPage('/guestQuickRegister?outfitId=look-a')).toBeFalse();
-    expect(nudge.canPromptOnPage('/download')).toBeFalse();
-    expect(nudge.canPromptOnPage('/tabs/my-profile')).toBeFalse();
+    nudge.reset();
+    expect(nudge.canPromptOnPage('/tabs/myoutfit', 180_000)).toBeFalse();
+    expect(nudge.outfitToSaveOnPage('/tabs/myoutfit')).toBeNull();
   });
 });
