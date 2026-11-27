@@ -1,0 +1,132 @@
+:host {
+  display: block;
+  height: 100%;
+  font-family: 'Instrument Sans', sans-serif;
+}
+
+.guest-save-dialog-content {
+  --background: #fff;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.guest-save-dialog {
+  position: relative;
+  box-sizing: border-box;
+  min-height: 100%;
+  padding: 42px 26px 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #292929;
+}
+
+.guest-save-dialog-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: #555;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+
+  ion-icon { font-size: 26px; }
+}
+
+.guest-save-dialog-heart {
+  width: 74px;
+  height: 74px;
+  flex: 0 0 74px;
+  margin-bottom: 18px;
+  border-radius: 25px;
+  background: #f2ebe4;
+  display: grid;
+  place-items: center;
+  color: #3f3f3f;
+
+  ion-icon { font-size: 40px; }
+}
+
+h2 {
+  margin: 0 0 13px;
+  font-size: clamp(22px, 5.8vw, 27px);
+  line-height: 1.17;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+p {
+  margin: 0 auto;
+  max-width: 340px;
+  color: #555;
+  font-size: 15px;
+  line-height: 1.52;
+}
+
+.guest-save-dialog-actions {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 11px;
+  margin-top: 27px;
+}
+
+.guest-save-dialog-primary,
+.guest-save-dialog-secondary {
+  min-height: 50px;
+  width: 100%;
+  border-radius: 13px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.guest-save-dialog-primary {
+  background: #3f3f3f;
+  border: 1px solid #3f3f3f;
+  color: white;
+}
+
+.guest-save-dialog-secondary {
+  background: #fff;
+  border: 1.5px solid #3f3f3f;
+  color: #292929;
+}
+
+.guest-save-dialog-explore {
+  min-height: 41px;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  color: #555;
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 3px solid #b18b49;
+  outline-offset: 3px;
+}
+
+@media (max-height: 620px) {
+  .guest-save-dialog { padding: 28px 20px 16px; }
+  .guest-save-dialog-heart { width: 56px; height: 56px; flex-basis: 56px; margin-bottom: 11px; border-radius: 17px;
+    ion-icon { font-size: 32px; }
+  }
+  h2 { margin-bottom: 8px; }
+  .guest-save-dialog-actions { margin-top: 15px; gap: 7px; }
+  .guest-save-dialog-primary, .guest-save-dialog-secondary { min-height: 44px; }
+}
