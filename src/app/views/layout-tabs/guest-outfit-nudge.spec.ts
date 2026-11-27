@@ -1,0 +1,63 @@
+import {
+  GUEST_NUDGE_AFTER_MS,
+  GUEST_NUDGE_MIN_DISTINCT_OUTFITS,
+  GuestOutfitNudge,
+} from './guest-outfit-nudge';
+
+describe('GuestOutfitNudge', () => {
+  let nudge: GuestOutfitNudge;
+
+  beforeEach(() => { nudge = new GuestOutfitNudge(); });
+
+  function browseFor(ms: number): void {
+    nudge.updateVisibility(0, true);
+    nudge.updateVisibility(ms, true);
+  }
+
+  it('requires three minutes in the foreground and at least two distinct outfit views', () => {
+    expect(GUEST_NUDGE_AFTER_MS).toBe(180000);
+    expect(GUEST_NUDGE_MIN_DISTINCT_OUTFITS).toBe(2);
+    nudge.recordRoute('/tabs/detail-outfit/a');
+    nudge.recordRoute('/tabs/detail-outfit/a');
+    browseFor(180000);
+    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBeNull();
+
+    nudge.recordRoute('/tabs/detail-outfit/b?from=feed');
+    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBe('b');
+  });
+
+  it('never interrupts the outfit detail page', () => {
+    nudge.recordRoute('/tabs/detail-outfit/a');
+    nudge.recordRoute('/tabs/detail-outfit/b');
+    browseFor(190000);
+    expect(nudge.outfitToSaveOnFeed('/tabs/detail-outfit/b')).toBeNull();
+    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBe('b');
+  });
+
+  it('does not count time spent in a background tab', () => {
+    nudge.recordRoute('/tabs/detail-outfit/a');
+    nudge.recordRoute('/tabs/detail-outfit/b');
+    nudge.updateVisibility(0, true);
+    nudge.updateVisibility(60000, false);
+    nudge.updateVisibility(600000, false);
+    nudge.updateVisibility(601000, true);
+    nudge.updateVisibility(720000, true);
+    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBe('b');
+  });
+
+  it('remains ineligible if the visitor has not actually browsed for three minutes', () => {
+    nudge.recordRoute('/tabs/detail-outfit/a');
+    nudge.recordRoute('/tabs/detail-outfit/b');
+    browseFor(179999);
+    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBeNull();
+  });
+
+  it('rejects malformed or unrelated detail URLs and does not invent outfit ids', () => {
+    nudge.recordRoute('/tabs/detail-outfit/a%2Fb');
+    nudge.recordRoute('/tabs/detail-outfit/%XX');
+    nudge.recordRoute('/tabs/product/a');
+    nudge.recordRoute('/tabs/detail-outfit/a');
+    browseFor(180000);
+    expect(nudge.outfitToSaveOnFeed('/tabs/myoutfit')).toBeNull();
+  });
+});
