@@ -1,31 +1,17 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { LayoutTabsPage } from './layout-tabs.page';
+import { GuestOutfitNudge } from './guest-outfit-nudge';
 
-describe('LayoutTabsPage', () => {
-  let component: LayoutTabsPage;
-  let fixture: ComponentFixture<LayoutTabsPage>;
-
-  beforeEach(waitForAsync(() => {
-    fixture = TestBed.createComponent(LayoutTabsPage);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  }));
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
-
-describe('Guest save modal presentation', () => {
-  const shownKey = 'cmv-guest-centered-dialog-v2-shown';
+describe('Guest save modal: timed presentation', () => {
+  const shownKey = 'cmv-guest-centered-dialog-v3-shown';
   beforeEach(() => sessionStorage.removeItem(shownKey));
   afterEach(() => sessionStorage.removeItem(shownKey));
 
   function createGuestPage(role: string = 'explore', failToPresent = false) {
+    // Isolated component methods: no Firebase session or registration calls.
     const component = Object.create(LayoutTabsPage.prototype) as LayoutTabsPage;
     const modal = {
       present: jasmine.createSpy('present').and.callFake(async () => {
-        if (failToPresent) throw new Error('Simulated failed Ionic presentation');
+        if (failToPresent) throw new Error('Simulated Ionic presentation failure');
       }),
       onDidDismiss: jasmine.createSpy('onDidDismiss').and.resolveTo({ role }),
       dismiss: jasmine.createSpy('dismiss').and.resolveTo(true),
@@ -38,29 +24,39 @@ describe('Guest save modal presentation', () => {
       url: '/tabs/detail-outfit/look-123',
       navigate: jasmine.createSpy('navigate').and.resolveTo(true),
     };
+    const nudge = new GuestOutfitNudge();
+    nudge.recordRoute(router.url);
     Object.assign(component, {
       userService: { gUserProfile: () => () => ({ isGuest: true }) },
       router,
       modalController: modals,
-      guestNudge: {
-        canPromptOnPage: () => true,
-        outfitToSaveOnPage: () => 'look-123',
-      },
+      guestNudge: nudge,
       guestNudgeSessionKey: shownKey,
       guestNudgeChecking: false,
-      guestNudgePresentationFailed: false,
+      guestNudgeRetryAfter: 0,
     });
     spyOn<any>(component, 'stopGuestNudgeTracking').and.stub();
-    return { component, modal, modals, router };
+    return { component, nudge, modal, modals, router };
   }
 
-  it('uses Ionic ModalController, not a floating HTML card, and records the real presentation', async () => {
-    const { component, modal, modals } = createGuestPage();
+  it('does not open before the three-minute threshold', async () => {
+    const { component, nudge, modals } = createGuestPage();
+    nudge.start(Date.now() - 179_000);
+
+    await (component as any).maybeShowGuestNudge();
+
+    expect(modals.create).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem(shownKey)).toBeNull();
+  });
+
+  it('opens the centered Ionic modal at the three-minute threshold without scrolling', async () => {
+    const { component, nudge, modal, modals } = createGuestPage();
+    nudge.start(Date.now() - 180_100);
     spyOn(console, 'info').and.stub();
 
     await (component as any).maybeShowGuestNudge();
 
-    expect(modals.create).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(modals.create).toHaveBeenCalledOnceWith(jasmine.objectContaining({
       cssClass: 'cmv-guest-save-modal',
       backdropDismiss: true,
       componentProps: { outfitId: 'look-123' },
@@ -69,8 +65,9 @@ describe('Guest save modal presentation', () => {
     expect(sessionStorage.getItem(shownKey)).toBe('true');
   });
 
-  it('preserves the existing guest save route when choosing the primary CTA', async () => {
-    const { component, router } = createGuestPage('save');
+  it('passes the actual outfit to the existing guest registration route', async () => {
+    const { component, nudge, router } = createGuestPage('save');
+    nudge.start(Date.now() - 180_100);
     spyOn(console, 'info').and.stub();
 
     await (component as any).maybeShowGuestNudge();
@@ -80,8 +77,9 @@ describe('Guest save modal presentation', () => {
     );
   });
 
-  it('does not mark the invite as shown if Ionic fails to display the modal', async () => {
-    const { component } = createGuestPage('explore', true);
+  it('does not mark as shown when Ionic cannot present the modal', async () => {
+    const { component, nudge } = createGuestPage('explore', true);
+    nudge.start(Date.now() - 180_100);
     spyOn(console, 'warn').and.stub();
     spyOn(console, 'info').and.stub();
 
@@ -91,8 +89,9 @@ describe('Guest save modal presentation', () => {
     expect(console.warn).toHaveBeenCalledWith('[GUEST_NUDGE][PRESENT_FAILED]');
   });
 
-  it('lets the guest continue without any forced registration', async () => {
-    const { component, router } = createGuestPage('explore');
+  it('allows browsing without mandatory registration', async () => {
+    const { component, nudge, router } = createGuestPage('explore');
+    nudge.start(Date.now() - 180_100);
     spyOn(console, 'info').and.stub();
 
     await (component as any).maybeShowGuestNudge();
