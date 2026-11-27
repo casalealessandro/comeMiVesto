@@ -58,6 +58,35 @@
   </ion-tab-bar>
 </ion-tabs>
 
+<!-- Non-blocking invitation: shown once per session after meaningful guest outfit exploration. -->
+<section *ngIf="guestNudgeVisible && isGuest" class="guest-save-nudge"
+         role="dialog" aria-modal="false" aria-labelledby="guest-save-nudge-title"
+         aria-describedby="guest-save-nudge-description">
+  <button type="button" class="guest-save-nudge-close"
+          aria-label="Chiudi invito" (click)="dismissGuestNudge()">
+    <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+  </button>
+  <div class="guest-save-nudge-heading">
+    <span class="guest-save-nudge-icon" aria-hidden="true">
+      <ion-icon name="heart-outline"></ion-icon>
+    </span>
+    <div>
+      <h2 id="guest-save-nudge-title">Hai trovato un look che ti piace?</h2>
+      <p id="guest-save-nudge-description">
+        Salva l'ultimo outfit che hai visto e ritrovalo quando vuoi su ComeMiVesto.
+      </p>
+    </div>
+  </div>
+  <div class="guest-save-nudge-actions">
+    <button type="button" class="guest-save-nudge-primary" (click)="saveGuestNudgeOutfit()">
+      Salva l'outfit
+    </button>
+    <button type="button" class="guest-save-nudge-later" (click)="dismissGuestNudge()">
+      Continua a esplorare
+    </button>
+  </div>
+</section>
+
 <div *ngIf="tabLoading" class="tab-loading-overlay">
   <div class="tab-loading-content">
     <ion-spinner name="crescent"></ion-spinner>
