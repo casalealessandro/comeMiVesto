@@ -47,7 +47,7 @@ describe('GuestQuickRegisterPage Terms consent', () => {
     component.onTermsCheckboxChange(true);
 
     expect(component.termsAccepted).toBeFalse();
-    expect(component.termsCheckbox.checked).toBeFalse();
+    expect(component.termsCheckbox?.checked).toBeFalse();
     expect(openTerms).toHaveBeenCalledTimes(1);
   });
 
@@ -62,19 +62,19 @@ describe('GuestQuickRegisterPage Terms consent', () => {
       backdropDismiss: false,
     }));
     expect(component.termsAccepted).toBeTrue();
-    expect(component.termsCheckbox.checked).toBeTrue();
+    expect(component.termsCheckbox?.checked).toBeTrue();
   });
 
   it('leaves the checkbox unchecked when the modal is declined or dismissed', async () => {
     component.termsCheckbox = { checked: false } as any;
     await component.acceptTerms();
     expect(component.termsAccepted).toBeFalse();
-    expect(component.termsCheckbox.checked).toBeFalse();
+    expect(component.termsCheckbox?.checked).toBeFalse();
 
     modalResult = {};
     await component.acceptTerms();
     expect(component.termsAccepted).toBeFalse();
-    expect(component.termsCheckbox.checked).toBeFalse();
+    expect(component.termsCheckbox?.checked).toBeFalse();
   });
 
   it('clears previously accepted consent when the checkbox is unchecked', () => {
