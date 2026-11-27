@@ -102,3 +102,45 @@ describe('GuestOutfitNudge feed engagement', () => {
     expect(nudge.canPromptOnFeed('/tabs/myoutfit')).toBeFalse();
   });
 });
+
+describe('GuestOutfitNudge centered modal eligibility', () => {
+  let nudge: GuestOutfitNudge;
+  beforeEach(() => { nudge = new GuestOutfitNudge(); });
+
+  it('offers the CURRENT outfit detail after three minutes in the foreground', () => {
+    nudge.recordRoute('/tabs/detail-outfit/look-a');
+    nudge.updateVisibility(0, true);
+    nudge.updateVisibility(180000, true);
+    expect(nudge.canPromptOnPage('/tabs/detail-outfit/look-a')).toBeTrue();
+    expect(nudge.outfitToSaveOnPage('/tabs/detail-outfit/look-a')).toBe('look-a');
+  });
+
+  it('allows the modal on the feed after a genuine scroll without forcing two detail visits', () => {
+    nudge.recordFeedExploration();
+    nudge.updateVisibility(0, true);
+    nudge.updateVisibility(180000, true);
+    expect(nudge.canPromptOnPage('/tabs/myoutfit')).toBeTrue();
+    expect(nudge.outfitToSaveOnPage('/tabs/myoutfit')).toBeNull();
+  });
+
+  it('does not appear for idle guests or before three minutes', () => {
+    nudge.updateVisibility(0, true);
+    nudge.updateVisibility(180000, true);
+    expect(nudge.canPromptOnPage('/tabs/myoutfit')).toBeFalse();
+    nudge.recordFeedExploration();
+    nudge.reset();
+    nudge.recordFeedExploration();
+    nudge.updateVisibility(0, true);
+    nudge.updateVisibility(179999, true);
+    expect(nudge.canPromptOnPage('/tabs/myoutfit')).toBeFalse();
+  });
+
+  it('excludes registration, store download, and unrelated routes', () => {
+    nudge.recordRoute('/tabs/detail-outfit/look-a');
+    nudge.updateVisibility(0, true);
+    nudge.updateVisibility(180000, true);
+    expect(nudge.canPromptOnPage('/guestQuickRegister?outfitId=look-a')).toBeFalse();
+    expect(nudge.canPromptOnPage('/download')).toBeFalse();
+    expect(nudge.canPromptOnPage('/tabs/my-profile')).toBeFalse();
+  });
+});
