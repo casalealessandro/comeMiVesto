@@ -17,7 +17,7 @@ describe('LayoutTabsPage', () => {
 });
 
 describe('Guest save modal presentation', () => {
-  const shownKey = 'cmv-guest-outfit-nudge-shown';
+  const shownKey = 'cmv-guest-centered-dialog-v2-shown';
   beforeEach(() => sessionStorage.removeItem(shownKey));
   afterEach(() => sessionStorage.removeItem(shownKey));
 
