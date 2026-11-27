@@ -1,86 +1,51 @@
 import { Injectable } from '@angular/core';
 
 /**
- * Client-only eligibility rules for the guest outfit-save invitation.
- * No account identifiers, analytics, or data are persisted here.
+ * Minimal, deterministic guest prompt eligibility.
+ * The clock starts when a guest first reaches the outfit area; it does not
+ * depend on a scroll event, visited-card count or repeated visibility updates.
  */
 export const GUEST_NUDGE_AFTER_MS = 3 * 60 * 1000;
-export const GUEST_NUDGE_MIN_DISTINCT_OUTFITS = 2;
 
 @Injectable({ providedIn: 'root' })
 export class GuestOutfitNudge {
-  private readonly viewedOutfits = new Set<string>();
-  private exploredFeed = false;
+  private startedAtMs: number | null = null;
   private latestOutfitId: string | null = null;
-  private foregroundMs = 0;
-  private lastClockMs: number | null = null;
-  private wasVisible = false;
 
-  recordFeedExploration(): void {
-    this.exploredFeed = true;
+  start(now: number): void {
+    this.startedAtMs ??= now;
   }
 
   recordRoute(url: string): void {
-    const match = /^\/tabs\/detail-outfit\/([^/?#]+)(?:[?#]|$)/.exec(url);
-    if (!match) return;
-    try {
-      const id = decodeURIComponent(match[1]);
-      if (!id || id.includes('/') || id.length > 128) return;
-      this.viewedOutfits.add(id);
-      this.latestOutfitId = id;
-    } catch {
-      // Ignore malformed URLs rather than using them as registration targets.
+    const id = this.detailOutfitId(url);
+    if (id) this.latestOutfitId = id;
+  }
+
+  canPromptOnPage(url: string, now: number): boolean {
+    if (this.startedAtMs === null || now - this.startedAtMs < GUEST_NUDGE_AFTER_MS) {
+      return false;
     }
-  }
-
-  updateVisibility(now: number, visible: boolean): void {
-    if (this.lastClockMs !== null && this.wasVisible) {
-      this.foregroundMs += Math.max(0, now - this.lastClockMs);
-    }
-    this.lastClockMs = now;
-    this.wasVisible = visible;
-  }
-
-  canPromptOnFeed(url: string): boolean {
     const path = url.split(/[?#]/, 1)[0].replace(/\/$/, '');
-    return path === '/tabs/myoutfit'
-      && this.foregroundMs >= GUEST_NUDGE_AFTER_MS
-      && (this.viewedOutfits.size >= GUEST_NUDGE_MIN_DISTINCT_OUTFITS || this.exploredFeed);
-  }
-
-  outfitToSaveOnFeed(url: string): string | null {
-    return this.canPromptOnFeed(url) ? this.latestOutfitId : null;
-  }
-
-  /** The centered modal may also appear on an outfit detail, as shown in the UX design. */
-  canPromptOnPage(url: string): boolean {
-    const path = url.split(/[?#]/, 1)[0].replace(/\/$/, '');
-    const validDetail = /^\/tabs\/detail-outfit\/[^/]+$/.test(path);
-    return (path === '/tabs/myoutfit' || validDetail)
-      && this.foregroundMs >= GUEST_NUDGE_AFTER_MS
-      && (this.viewedOutfits.size > 0 || this.exploredFeed);
+    return path === '/tabs/myoutfit' || this.detailOutfitId(url) !== null;
   }
 
   outfitToSaveOnPage(url: string): string | null {
-    if (!this.canPromptOnPage(url)) return null;
-    const match = /^\/tabs\/detail-outfit\/([^/?#]+)(?:[/?#]|$)/.exec(url);
-    if (match) {
-      try {
-        const id = decodeURIComponent(match[1]);
-        return id && !id.includes('/') && id.length <= 128 ? id : null;
-      } catch {
-        return null;
-      }
-    }
-    return this.latestOutfitId;
+    return this.detailOutfitId(url) ?? this.latestOutfitId;
   }
 
   reset(): void {
-    this.viewedOutfits.clear();
+    this.startedAtMs = null;
     this.latestOutfitId = null;
-    this.exploredFeed = false;
-    this.foregroundMs = 0;
-    this.lastClockMs = null;
-    this.wasVisible = false;
+  }
+
+  private detailOutfitId(url: string): string | null {
+    const match = /^\/tabs\/detail-outfit\/([^/?#]+)(?:[/?#]|$)/.exec(url);
+    if (!match) return null;
+    try {
+      const id = decodeURIComponent(match[1]);
+      return id && !id.includes('/') && id.length <= 128 ? id : null;
+    } catch {
+      return null;
+    }
   }
 }
