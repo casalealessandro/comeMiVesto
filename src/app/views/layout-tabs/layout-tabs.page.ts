@@ -25,7 +25,7 @@ export class LayoutTabsPage implements OnInit {
   private tabLoadingTimeout:any
   private preferencesOnboardingOpen = false;
   private readonly preferencesOnboardingSkippedKey = 'preferencesOnboardingSkipped';
-  private readonly guestNudgeSessionKey = 'cmv-guest-outfit-nudge-shown';
+  private readonly guestNudgeSessionKey = 'cmv-guest-centered-dialog-v2-shown';
   private readonly guestNudge = inject(GuestOutfitNudge);
   private guestNudgeTimer?: ReturnType<typeof setInterval>;
   private guestNudgeChecking = false;
