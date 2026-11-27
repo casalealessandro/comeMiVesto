@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ModalController, IonicModule } from '@ionic/angular';
+import { ModalController, IonicModule, IonCheckbox } from '@ionic/angular';
 import { browserLocalPersistence, setPersistence, signInWithEmailAndPassword } from 'firebase/auth';
 import { firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -40,15 +40,28 @@ interface GuestUpgradeResponse {
             <ion-input label="Password" labelPlacement="stacked" name="password" type="password"
               [autocomplete]="existingAccount ? 'current-password' : 'new-password'" [(ngModel)]="password" required></ion-input>
             <ng-container *ngIf="!existingAccount">
-              <ion-button fill="clear" type="button" (click)="acceptTerms()" [disabled]="accountCreated">
-                {{ termsAccepted ? 'Termini di Servizio accettati' : 'Leggi e accetta i Termini di Servizio' }}
-              </ion-button>
+              <div class="terms-consent">
+                <ion-checkbox #termsCheckbox
+                  aria-label="Ho letto e accetto i Termini di Servizio"
+                  [checked]="termsAccepted"
+                  [disabled]="accountCreated || submitting"
+                  (ionChange)="onTermsCheckboxChange($event.detail.checked)">
+                </ion-checkbox>
+                <span class="terms-consent-label">
+                  Ho letto e accetto i
+                  <button type="button" class="terms-link"
+                    [disabled]="accountCreated || submitting"
+                    (click)="acceptTerms()">Termini di Servizio</button>
+                  <span class="terms-required">(obbligatorio)</span>
+                </span>
+              </div>
               <p class="privacy">Registrandoti dichiari di aver preso visione della
                 <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>.
               </p>
             </ng-container>
             <p class="error" *ngIf="error">{{ error }}</p>
-            <ion-button type="submit" expand="block" [disabled]="submitting">
+            <ion-button type="submit" expand="block"
+              [disabled]="submitting || (!existingAccount && !accountCreated && !termsAccepted)">
               {{ submitting ? 'Salvataggio...' : 'Continua e salva l’outfit' }}
             </ion-button>
           </form>
@@ -76,11 +89,21 @@ interface GuestUpgradeResponse {
     p { font-size: 14px; line-height: 1.5; text-align: center; margin: 0; color: #555; }
     form { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
     ion-input { border-bottom: 1px solid #ddd; }
+    .terms-consent { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+    .terms-consent ion-checkbox { --size: 22px; --border-color: #3f3f3f; --checkbox-background-checked: #3f3f3f; flex-shrink: 0; }
+    .terms-consent-label { color: #3f3f3f; font-size: 14px; line-height: 1.5; }
+    .terms-link { font: inherit; color: inherit; background: none; border: 0; border-radius: 2px; text-decoration: underline;
+      text-underline-offset: 2px; cursor: pointer; padding: 0; }
+    .terms-link:focus-visible { outline: 2px solid #3f3f3f; outline-offset: 2px; }
+    .terms-link:disabled { opacity: 0.6; cursor: default; }
+    .terms-required { color: #676767; font-size: 12px; margin-left: 4px; }
     .privacy { font-size: 12px; }
     .error { color: #ad2020; }
   `],
 })
 export class GuestQuickRegisterPage implements OnInit {
+  @ViewChild('termsCheckbox') termsCheckbox?: IonCheckbox;
+
   outfitId = '';
   nome = '';
   cognome = '';
@@ -110,7 +133,21 @@ export class GuestQuickRegisterPage implements OnInit {
     }
   }
 
+  onTermsCheckboxChange(checked: boolean): void {
+    if (!checked) {
+      this.termsAccepted = false;
+      return;
+    }
+
+    // Like the standard registration form, checking opens the Terms modal.
+    // The checkbox must remain unchecked until the modal explicitly accepts.
+    this.termsAccepted = false;
+    if (this.termsCheckbox) this.termsCheckbox.checked = false;
+    void this.acceptTerms();
+  }
+
   async acceptTerms(): Promise<void> {
+    if (this.accountCreated || this.submitting) return;
     const modal = await this.modals.create({
       component: TermsConditionsPage,
       componentProps: { mode: 'registration' },
@@ -120,6 +157,7 @@ export class GuestQuickRegisterPage implements OnInit {
     await modal.present();
     const { data } = await modal.onDidDismiss<{ accepted: boolean }>();
     this.termsAccepted = data?.accepted === true;
+    if (this.termsCheckbox) this.termsCheckbox.checked = this.termsAccepted;
   }
 
   async submit(): Promise<void> {
