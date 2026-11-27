@@ -56,6 +56,12 @@ export class LayoutTabsPage implements OnInit {
         this.stopGuestNudgeTracking();
         return;
       }
+      // Only count time spent exploring the guest feed/outfit details.
+      if (!/^\/tabs\/(?:myoutfit(?:[?#]|$)|detail-outfit\/)/.test(event.urlAfterRedirects)) {
+        this.guestNudgeVisible = false;
+        this.stopGuestNudgeTracking();
+        return;
+      }
       this.startGuestNudgeTracking();
       this.guestNudge.recordRoute(event.urlAfterRedirects);
       if (!/^\/tabs\/myoutfit(?:[?#]|$)/.test(event.urlAfterRedirects)) {
@@ -116,7 +122,8 @@ export class LayoutTabsPage implements OnInit {
   }
 
   private startGuestNudgeTracking(): void {
-    if (!this.isGuest || this.guestNudgeTimer || sessionStorage.getItem(this.guestNudgeSessionKey)) return;
+    if (!this.isGuest || !this.router.url.startsWith('/tabs/') ||
+        this.guestNudgeTimer || sessionStorage.getItem(this.guestNudgeSessionKey)) return;
     this.guestNudge.updateVisibility(Date.now(), !document.hidden);
     document.addEventListener('visibilitychange', this.guestVisibilityChanged);
     this.guestNudgeTimer = setInterval(() => {
@@ -131,7 +138,10 @@ export class LayoutTabsPage implements OnInit {
   }
 
   private stopGuestNudgeTracking(): void {
-    if (this.guestNudgeTimer) clearInterval(this.guestNudgeTimer);
+    if (this.guestNudgeTimer) {
+      this.guestNudge.updateVisibility(Date.now(), false);
+      clearInterval(this.guestNudgeTimer);
+    }
     this.guestNudgeTimer = undefined;
     document.removeEventListener('visibilitychange', this.guestVisibilityChanged);
   }
